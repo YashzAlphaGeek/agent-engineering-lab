@@ -108,11 +108,12 @@ classDiagram
 
     class AgentLoopV2 {
         <<Phase 2 - Claude style>>
-        +MAX_ITERATIONS = 20
+        -MAX_ITERATIONS = 20
+        -client : MockClaudeClient
+        -registry : ToolRegistry
         +run(state)
-        -executeTool(toolCall)
     }
-    note for AgentLoopV2 "DIFFERENT FROM AgentLoop:\n- NO Planner / Evaluator: Claude decides\n- Driven by StopReason\n  TOOL_USE = run tool, continue\n  END_TURN = completed, break\n- Tool requested via ToolCall\n- Output stored as ToolResult\n- MAX_ITERATIONS = safety cap only"
+    note for AgentLoopV2 "DIFFERENT FROM AgentLoop:<br/>- NO Planner / Evaluator: Claude decides<br/>- Driven by StopReason<br/>   TOOL_USE = run tool, continue<br/>   END_TURN = completed, break<br/>- Tool requested via ToolCall<br/>- Output stored as ToolResult<br/>- MAX_ITERATIONS = safety cap only"
 
     class AgentState {
         +goal
