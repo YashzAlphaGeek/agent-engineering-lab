@@ -83,7 +83,7 @@
   <a href="#tests">8. Testing</a>
   <a href="#exam">9. CCAR-F exam link</a>
   <a href="#qa">10. Interview Q&amp;A</a>
-  <a href="#quiz">11. Quiz</a>
+  <a href="#quiz">11. Practice quiz</a>
   <a href="#cheat">12. Cheat sheet</a>
 </nav>
 
@@ -360,9 +360,16 @@
 </section>
 
 <section id="quiz">
-  <h2><small>Self-check</small>Quick quiz</h2>
+  <h2><small>Self-check</small>Practice quiz (generic CCAR-F style)</h2>
+  <p>A bank of general Claude-architect questions across all five exam domains &mdash; <b>not</b> specific to Catalyst. Every round picks 10 random questions and shuffles the answer order, so you can come back <b>time to time</b> and practise again. Your last rounds are remembered in this browser.</p>
+  <p style="font-size:.88rem;color:var(--mute)">Original practice questions written from the public CCAR-F domain outlines (claudecertificationguide.com, buildingai.in). They are not official exam questions.</p>
+  <div class="sim" style="margin-bottom:12px">
+    <label>Domain: <select id="domSel"></select></label>
+    <button id="newRound" style="margin-left:10px">New round &#8635;</button>
+    <p class="score" id="score" style="margin:8px 0 0"></p>
+    <p id="hist" style="font-size:.85rem;color:var(--mute);margin:6px 0 0"></p>
+  </div>
   <div id="quizBox"></div>
-  <p class="score" id="score"></p>
 </section>
 
 <section id="cheat">
@@ -416,38 +423,97 @@ $('stepBtn').onclick=()=>{
 };
 $('resetBtn').onclick=reset;$('cap').onchange=reset;reset();
 
-/* ---------- quiz ---------- */
-const quiz=[
- {q:'Which class is "the heart" of the architecture?',o:['Agent','AgentLoop','Evaluator','ToolRegistry'],a:1},
- {q:'Claude stop_reason "tool_use" maps to which Catalyst item?',o:['StopReason.END_TURN','ToolResult','StopReason.TOOL_USE','MAX_ITERATIONS'],a:2},
- {q:'What is the PRIMARY way the loop should stop?',o:['MAX_ITERATIONS','END_TURN','A timeout','Empty history'],a:1},
- {q:'In TOOL_USE → TOOL_USE → END_TURN, what is the history size?',o:['1','2','3','0'],a:1},
- {q:'Which component maps to tools[] in the Claude API?',o:['ToolRegistry','Executor','AgentState','Planner'],a:0},
- {q:'Which component maps to messages[]?',o:['Evaluator','ClaudeResponse','AgentState','BaseTool'],a:2},
- {q:'What does ToolDefinition contain?',o:['Only the tool code','name, description, inputSchema','Iteration count','API key'],a:1},
- {q:'Why use MockClaudeClient?',o:['It is faster than Claude in prod','Learn/test without keys, credits, internet','It replaces AgentState','It is required by the SDK'],a:1},
- {q:'What changes in Phase 3?',o:['Everything','Only the client: Mock → Anthropic SDK','The StopReason enum is deleted','ToolRegistry is removed'],a:1},
- {q:'Which class actually runs tool.execute()?',o:['Planner','Evaluator','Executor','Agent'],a:2},
- {q:'An agent exits when content[0].type == "text", even though the response also has a tool_use block. Best fix?',o:['Cap the loop at 15 iterations','Check stop_reason: tool_use continues, end_turn stops','Scan the text for "I have completed"','Force tool_choice to "any"'],a:1},
- {q:'To save tokens in a long loop, you should…',o:['Drop old tool results from history','Replace history with a summary each turn','Shrink what the tool returns','Stop sending history'],a:2}
+/* ---------- generic CCAR-F style quiz ---------- */
+const DOMAINS={1:'D1 Agentic Architecture',2:'D2 Tools & MCP',3:'D3 Claude Code',4:'D4 Prompts & Structured Output',5:'D5 Context & Reliability'};
+const bank=[
+/* D1 */
+{d:1,q:'Your agent loop should keep running while the model still wants to call tools. Which signal is the reliable, deterministic one?',o:['stop_reason is "tool_use"','The reply text contains "working on it"','The reply has fewer than 100 tokens','The iteration counter is below 5'],a:0,e:'stop_reason is an API contract: "tool_use" means run the tool and continue, "end_turn" means finished. Text, length and counters are heuristics.'},
+{d:1,q:'An agent stops early whenever the first content block of a reply is text, even though the same reply also contains a tool_use block. Best fix?',o:['Branch on stop_reason instead of the type of the first block','Lower the iteration cap to 10','Ask the model to say "DONE" when finished','Force tool_choice to "any" on every call'],a:0,e:'A reply can hold text and tool_use together. Inspect stop_reason, not content position or phrasing.'},
+{d:1,q:'What is the correct role of an iteration cap (e.g. MAX_ITERATIONS = 20) in an agent loop?',o:['A safety bound against runaway loops, with a warning when hit','The main way the loop decides it is finished','A replacement for checking stop_reason','A way to reduce token cost per turn'],a:0,e:'end_turn is the normal exit. The cap only protects against bugs or endless tool calls.'},
+{d:1,q:'After a tool runs, the next API call makes Claude behave as if the tool was never called. Most likely cause?',o:['The tool_result was not appended to the messages history','The context window was exceeded by the last message','The system prompt lacks the word "use results"','Tool results must be plain text, never JSON'],a:0,e:'The model only knows what is in the messages you send. Append the assistant tool_use turn and the matching tool_result before the next call.'},
+{d:1,q:'In a hub-and-spoke multi-agent system, a subagent keeps lacking facts the coordinator already learned. Why?',o:['Subagents have isolated context; the coordinator must pass needed info in the subagent prompt','Subagents share the coordinator\'s full conversation automatically','The coordinator\'s temperature is too high','Subagents can only be used once per session'],a:0,e:'Subagent context is isolated. Anything it needs must be passed explicitly, ideally as concise structured findings.'},
+{d:1,q:'A policy says refunds above a threshold must always get manager approval, with zero exceptions. Where should this be enforced?',o:['In code: a hook or prerequisite gate that blocks the tool call','In the system prompt with "ALWAYS" in capitals','In a few-shot example','By lowering temperature to 0'],a:0,e:'When compliance must be deterministic, enforce programmatically (e.g. PreToolUse hook). Prompts are probabilistic.'},
+{d:1,q:'You want a coordinator to run three independent research subagents at the same time. What should it do?',o:['Emit multiple Task tool calls in a single response','Call them one per turn and wait','Run them in separate unrelated sessions','Chain them so each reads the previous output'],a:0,e:'Independent subtasks are launched in parallel by emitting several Task calls in one response (the coordinator needs Task in its allowed tools).'},
+{d:1,q:'Resuming a long old session would reload outdated tool results (files have since changed). What is usually better?',o:['Start a fresh session seeded with a structured summary of findings','Resume anyway and trust the model to notice','Delete the codebase cache','Increase max_tokens'],a:0,e:'Stale tool output misleads the model. A fresh start plus a concise structured summary is more reliable than resuming stale state.'},
+{d:1,q:'An agent escalates a case to a human. What makes the handoff effective?',o:['A structured summary: issue, actions taken, relevant facts, recommended next step','Forwarding the entire raw transcript only','Just the customer\'s last message','Nothing; the human can ask the customer again'],a:0,e:'The human has no access to the agent\'s context. A structured handoff avoids rework and repeated questions.'},
+/* D2 */
+{d:2,q:'Two tools have near-identical descriptions and Claude picks between them randomly. Most direct fix?',o:['Rewrite descriptions with exact inputs, outputs and "do not use for X" boundaries','Add routing rules only to the system prompt','Increase the temperature','Rename the tools alphabetically'],a:0,e:'Descriptions are the primary signal for tool selection. Make them differentiate clearly.'},
+{d:2,q:'A tool call fails. What should the tool return so the agent can recover sensibly?',o:['A structured error: category (transient/validation/business/permission), retryable flag and message','A generic "Something went wrong"','An empty result as if it succeeded','Throw away the error and retry forever'],a:0,e:'Structured errors let the agent decide: retry transient ones, fix input for validation, escalate permission/business issues.'},
+{d:2,q:'An agent is given 18 tools and often picks wrong ones. A good improvement is to…',o:['Give each agent only the small set of tools relevant to its role','Add 10 more tools for coverage','Remove all tool descriptions','Always force tool_choice to a specific tool'],a:0,e:'Scoping tools per role (roughly 4-5 each) reduces selection errors.'},
+{d:2,q:'A team wants a shared MCP server config in the repo without committing secrets. What fits best?',o:['Project-level .mcp.json using environment-variable expansion for tokens','Each developer pastes tokens into the committed file','Store the config only in one person\'s ~/.claude.json','Hard-code the token in CLAUDE.md'],a:0,e:'Project-level .mcp.json is shared via version control; ${ENV_VAR} expansion keeps secrets out.'},
+{d:2,q:'You need to find every file named like "*.test.ts" and, separately, every place a function name appears inside file contents. Which built-ins?',o:['Glob for file names, Grep for contents','Grep for both','Glob for both','Edit for both'],a:0,e:'Glob matches file paths; Grep searches file contents.'},
+{d:2,q:'The Edit tool fails because the text to replace is not unique. What is a sensible fallback?',o:['Read the file and Write the updated version, or add more surrounding context to the anchor','Retry the same Edit repeatedly','Delete the file and start over','Switch to Grep'],a:0,e:'Edit needs a unique anchor. Add context to make it unique or fall back to Read + Write.'},
+{d:2,q:'In MCP, which primitive is best for exposing a read-only catalog of data (e.g. a schema list) so the agent need not make exploratory calls?',o:['Resources','Prompts','Sampling','Hooks'],a:0,e:'MCP has tools (actions), resources (readable data) and prompts (templates). Resources expose content/catalogs.'},
+/* D3 */
+{d:3,q:'A lead adds review standards to ~/.claude/CLAUDE.md. New teammates do not get them. Why?',o:['User-level config is personal and not version-controlled; put team rules in project CLAUDE.md','New users must restart Claude Code','The file is too large and truncated','Claude Code never reads CLAUDE.md'],a:0,e:'User-level settings apply to that user only. Shared standards belong in the project (root or .claude) CLAUDE.md in the repo.'},
+{d:3,q:'Test files live in many folders but need the same conventions. Which mechanism fits?',o:['A rule file with a path glob (e.g. **/*.test.ts) that loads only for matching files','A giant root CLAUDE.md for everything','One CLAUDE.md per test folder, copied manually','A slash command the user must remember'],a:0,e:'Path-specific rules with glob patterns apply conventions across directories only when relevant.'},
+{d:3,q:'Which task suits plan mode rather than direct execution?',o:['A large refactor touching many files with several valid approaches','Fixing a typo in one string','Adding a single well-defined null check','Renaming one local variable'],a:0,e:'Plan mode is for complex, architectural or multi-file work where you want to explore and agree on an approach first.'},
+{d:3,q:'How do you run Claude Code in a CI pipeline without interactive prompts?',o:['Use the non-interactive print mode (-p / --print), optionally with JSON output','Run it normally and press Enter via a script','Disable all tools','It cannot run in CI'],a:0,e:'-p/--print runs non-interactively; --output-format json (and a JSON schema) give machine-readable results.'},
+{d:3,q:'Why prefer an independent review instance over asking the generating session to review its own code?',o:['The generator retains its reasoning and is biased toward its own output','It is always cheaper','It avoids using any tools','Reviews cannot run in the same session'],a:0,e:'A fresh instance without the author\'s reasoning context gives a more objective review.'},
+{d:3,q:'A skill produces long exploratory output that clutters the main conversation. Which frontmatter setting helps?',o:['context: fork','allowed-tools: none','argument-hint','model: fast'],a:0,e:'context: fork runs the skill in an isolated context so its verbose work does not pollute the main session.'},
+{d:3,q:'Prose instructions keep being interpreted inconsistently by Claude. A strong next step is to…',o:['Provide concrete input/output examples (or tests) showing the expected result','Repeat the instruction louder','Shorten the instruction','Switch the model'],a:0,e:'Concrete examples and test-driven iteration remove ambiguity better than more prose.'},
+/* D4 */
+{d:4,q:'A review prompt says "only flag issues when highly confident" yet still reports many false positives. Best fix?',o:['Replace vague confidence wording with explicit categorical report/skip criteria','Say "be even more conservative"','Add a numeric confidence threshold like 0.9','Review the whole repo instead'],a:0,e:'Models lack a categorical basis for vague confidence filters. Define exactly what to report and what to skip.'},
+{d:4,q:'You need output that always parses as a given JSON structure. Most reliable approach?',o:['Tool use with a JSON schema','Ask nicely for JSON in the prompt','Regex-clean the free text afterwards','Lower the temperature'],a:0,e:'Schema-bound tool use removes syntax errors. Note it does not guarantee semantic correctness, so still validate.'},
+{d:4,q:'When extracting fields from documents, some fields are sometimes absent. How do you reduce fabricated values?',o:['Make those fields nullable/optional in the schema','Mark every field required','Ask the model to "guess confidently"','Remove the field descriptions'],a:0,e:'Required fields push the model to invent data. Nullable/optional fields give it a truthful way to say "not present".'},
+{d:4,q:'How many few-shot examples are typically a good starting point, and what should they cover?',o:['About 2-4, including ambiguous/edge cases','One perfect example only','Around 50 identical examples','None; examples always hurt'],a:0,e:'A few varied examples (especially tricky cases) generalize better than many similar ones.'},
+{d:4,q:'A validation-retry loop should send which information back to the model?',o:['The original input, the failed output and the specific validation error','Only "try again"','Only the failed output','The error with the input removed'],a:0,e:'Give full context plus the precise error. Note retries cannot fix information that is simply absent from the source.'},
+{d:4,q:'Which workload fits the Message Batches API (about 50% cheaper, up to 24h, no latency guarantee)?',o:['Overnight bulk document processing','A blocking pre-merge check developers wait on','A live chat reply','Interactive tool-calling sessions'],a:0,e:'Batches are for non-urgent, high-volume work. They are unsuitable for latency-sensitive or multi-turn tool-calling flows.'},
+{d:4,q:'A large PR review misses cross-file issues and gives uneven depth. A better design is…',o:['Per-file passes first, then a separate cross-file integration pass','One huge single pass','Reviewing only the biggest file','Asking the model to self-review twice'],a:0,e:'Splitting into focused per-file analyses plus a cross-file pass avoids attention dilution and catches integration problems.'},
+{d:4,q:'Which tool_choice setting forces Claude to call some tool (but lets it pick which)?',o:['"any"','"auto"','"none"','Omit tools'],a:0,e:'"auto" lets Claude decide, "any" forces some tool call, a specific name forces that tool.'},
+/* D5 */
+{d:5,q:'In a long support chat the agent forgets the exact refund amount and order ID. Best fix?',o:['Keep a "case facts" block with exact values re-injected near the top of each prompt','Compact more aggressively','Raise max_tokens','Lower temperature to 0'],a:0,e:'Summaries blur exact values. A persistent facts block outside the summarized history preserves them.'},
+{d:5,q:'A customer explicitly asks for a human agent. What should the agent do?',o:['Honor the request and escalate promptly','Try to resolve it first regardless','Ask for their sentiment score','Ignore it unless frustrated'],a:0,e:'Explicit requests for a human should be honored. Escalate also on policy gaps or lack of progress.'},
+{d:5,q:'Which is a poor basis for deciding whether to escalate?',o:['The model\'s self-reported confidence or detected sentiment alone','An explicit user request','A policy the agent cannot cover','Repeated failure to make progress'],a:0,e:'Sentiment and self-reported confidence are weak proxies; use explicit criteria.'},
+{d:5,q:'A subagent\'s search returns nothing. How should it report this?',o:['Distinguish a valid empty result from an access/tool failure','Treat both as "no data"','Silently retry forever','Fill in plausible results'],a:0,e:'Conflating failures with empty results hides problems. Propagate the error type so the coordinator can react.'},
+{d:5,q:'Overall extraction accuracy is 97%, yet one document type fails badly. What practice reveals this?',o:['Stratified sampling and per-segment accuracy measurement','Looking only at the aggregate metric','Sampling only high-confidence outputs at random','Increasing the batch size'],a:0,e:'Aggregate numbers mask weak segments. Measure by segment and sample across strata.'},
+{d:5,q:'Two sources give conflicting statistics for the same claim. How should a synthesis agent handle this?',o:['Keep claim-to-source mapping and annotate the conflict with both sources','Silently average the numbers','Pick one at random','Drop both claims'],a:0,e:'Preserve provenance and surface the conflict rather than hiding it.'},
+{d:5,q:'Where should the most important instructions or facts go in a very long prompt?',o:['At the beginning (and/or end), not buried in the middle','Exactly in the middle','Anywhere, position never matters','Hidden in the last tool result only'],a:0,e:'Models attend less reliably to the middle of long contexts ("lost in the middle"). Put key information at the edges.'}
 ];
-let answered=0,correct=0;
-const box=$('quizBox');
-quiz.forEach((item,qi)=>{
-  const d=document.createElement('div');d.className='quiz-q';
-  d.innerHTML=`<b>${qi+1}. ${item.q}</b>`;
-  item.o.forEach((t,oi)=>{
-    const b=document.createElement('button');b.className='opt';b.textContent=t;
-    b.onclick=()=>{
-      if(d.dataset.done)return;d.dataset.done=1;answered++;
-      if(oi===item.a){b.classList.add('right');correct++}
-      else{b.classList.add('wrong');d.querySelectorAll('.opt')[item.a].classList.add('right')}
-      $('score').textContent=`Score: ${correct}/${answered} answered (${quiz.length} total)`;
-    };
-    d.appendChild(b);
+
+const ROUND=10;
+const $q=id=>document.getElementById(id);
+let round=[],answered=0,correct=0;
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function history(){try{return JSON.parse(localStorage.getItem('ccarHistory')||'[]')}catch(e){return[]}}
+function saveRound(){
+  try{const h=history();h.push({t:new Date().toLocaleString(),s:correct,n:round.length,dom:$q('domSel').value});
+  localStorage.setItem('ccarHistory',JSON.stringify(h.slice(-10)))}catch(e){}
+  showHist();
+}
+function showHist(){
+  const h=history();
+  $q('hist').innerHTML=h.length?'<b>Recent rounds:</b> '+h.slice().reverse().map(x=>`${x.t} &ndash; ${x.s}/${x.n}`).join(' &nbsp;|&nbsp; '):'No rounds saved yet.';
+}
+function newRound(){
+  const dom=$q('domSel').value;
+  let pool=bank.filter(x=>dom==='all'||String(x.d)===dom);
+  round=shuffle(pool).slice(0,ROUND);answered=0;correct=0;
+  $q('score').textContent='';
+  const box=$q('quizBox');box.innerHTML='';
+  round.forEach((item,qi)=>{
+    const d=document.createElement('div');d.className='quiz-q';
+    d.innerHTML=`<span class="pill">${DOMAINS[item.d]}</span><br><b>${qi+1}. ${item.q}</b>`;
+    const opts=shuffle(item.o.map((t,i)=>({t,ok:i===item.a})));
+    opts.forEach(op=>{
+      const b=document.createElement('button');b.className='opt';b.textContent=op.t;
+      b.onclick=()=>{
+        if(d.dataset.done)return;d.dataset.done=1;answered++;
+        if(op.ok){b.classList.add('right');correct++}else b.classList.add('wrong');
+        d.querySelectorAll('.opt').forEach((x,i)=>{if(opts[i].ok)x.classList.add('right')});
+        const ex=document.createElement('div');ex.className='callout';ex.innerHTML='<b>Why:</b> '+item.e;d.appendChild(ex);
+        $q('score').textContent=`Score: ${correct}/${answered} answered (${round.length} in this round)`;
+        if(answered===round.length){$q('score').textContent+=` — Round finished: ${Math.round(100*correct/round.length)}%`;saveRound()}
+      };
+      d.appendChild(b);
+    });
+    box.appendChild(d);
   });
-  box.appendChild(d);
-});
+}
+const sel=$q('domSel');
+sel.innerHTML='<option value="all">All domains (mixed)</option>'+Object.entries(DOMAINS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('');
+sel.onchange=newRound;$q('newRound').onclick=newRound;
+showHist();newRound();
 </script>
 </body>
 </html>
