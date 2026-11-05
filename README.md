@@ -107,8 +107,12 @@ classDiagram
     }
 
     class AgentLoopV2 {
+        <<Phase 2 - Claude style>>
+        +MAX_ITERATIONS = 20
         +run(state)
+        -executeTool(toolCall)
     }
+    note for AgentLoopV2 "DIFFERENT FROM AgentLoop:\n- NO Planner / Evaluator: Claude decides\n- Driven by StopReason\n  TOOL_USE = run tool, continue\n  END_TURN = completed, break\n- Tool requested via ToolCall\n- Output stored as ToolResult\n- MAX_ITERATIONS = safety cap only"
 
     class AgentState {
         +goal
@@ -156,6 +160,21 @@ classDiagram
         +toolCall
     }
 
+    class StopReason {
+        <<enum>>
+        TOOL_USE
+        END_TURN
+    }
+
+    class ToolCall {
+        +toolName
+        +input
+    }
+
+    class ToolResult {
+        +output
+    }
+
     Agent --> AgentLoop
     AgentLoop --> AgentState
     AgentLoop --> Planner
@@ -168,7 +187,28 @@ classDiagram
     AgentLoopV2 --> AgentState
     AgentLoopV2 --> ToolRegistry
     MockClaudeClient --> ClaudeResponse
+    ClaudeResponse --> StopReason
+    ClaudeResponse --> ToolCall
+    AgentLoopV2 --> ToolResult
+
+    %% Highlight the new Phase 2 core parts
+    style AgentLoopV2 fill:#fff2de,stroke:#d97706,stroke-width:3px
+    style MockClaudeClient fill:#fff2de,stroke:#d97706,stroke-width:3px
+    style ClaudeResponse fill:#fff2de,stroke:#d97706,stroke-width:2px
+    style StopReason fill:#fff2de,stroke:#d97706,stroke-width:2px
+    style ToolCall fill:#fff2de,stroke:#d97706,stroke-width:2px
+    style ToolResult fill:#fff2de,stroke:#d97706,stroke-width:2px
 ```
+
+**Legend:** orange = new in Phase 2. `AgentLoop` (Phase 1) uses `Planner` + `Evaluator` to decide; `AgentLoopV2` hands the decision to Claude (`MockClaudeClient` for now) and reacts to `StopReason`.
+
+| | AgentLoop (Phase 1) | AgentLoopV2 (Phase 2) |
+|---|---|---|
+| Who decides next step | `Planner` | Claude, via `ClaudeResponse` |
+| Continue / stop signal | `Evaluator` (`result != null`) | `StopReason` (`TOOL_USE` / `END_TURN`) |
+| Tool request | Planner picks tool name | `ToolCall` |
+| Tool output | `Result` | `ToolResult` |
+| Safety cap | none | `MAX_ITERATIONS = 20` |
 
 ---
 
