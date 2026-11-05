@@ -11,7 +11,21 @@ pip list
 
 ---
 
-## Agent Architecture
+## Phases
+
+| Phase | Focus | Decision maker |
+|-------|-------|----------------|
+| 1 | Agent architecture (Agent, AgentState, Planner, Executor, Evaluator, AgentLoop, tools) | `Planner` (rules) |
+| 2 | Claude-style tool loop (`StopReason`, `ToolCall`, `ToolResult`, `ClaudeResponse`, `MockClaudeClient`, `AgentLoopV2`) | `MockClaudeClient` |
+| 2.5 | Sequential tool calls: `TOOL_USE` -> `TOOL_USE` -> `END_TURN` | `MockClaudeClient` |
+| 3 (next) | Replace `MockClaudeClient` with the Anthropic SDK (`client.messages.create()`) | Real Claude |
+
+Details: `catalyst-java/Catalyst_Phase1_Agent_Architecture.md`, `catalyst-java/Catalyst_Phase2_Claude_Tool_Loop.md`.
+Study guide (single HTML): `catalyst-java/go-to/Catalyst_Prep_Guide.html`.
+
+---
+
+## Agent Architecture (Phase 1)
 
 ```mermaid
 flowchart TD
@@ -20,30 +34,62 @@ flowchart TD
 
     U --> A[Agent]
 
-    A --> P[Planner]
+    A --> L[AgentLoop]
 
-    P --> S[AgentState]
+    L --> P[Planner]
 
     P --> T[Tool Registry]
 
     T --> JT[JobSearchTool]
+    T --> RT[ResumeAnalyzerTool]
 
-    P --> E[Executor]
+    JT --> E[Executor]
+    RT --> E
 
-    E --> JT
-
-    JT --> R[Result]
+    E --> R[Result]
 
     R --> EV[Evaluator]
 
-    EV --> S
+    EV --> S[AgentState]
 
-    EV --> C{Success?}
-
-    C -->|Yes| F[Final Response]
+    S --> C{Completed?}
 
     C -->|No| P
+
+    C -->|Yes| F[Final Response]
 ```
+
+---
+
+## Claude Tool Loop (Phase 2 / 2.5)
+
+```mermaid
+flowchart TD
+
+    G[User Goal] --> L2[AgentLoopV2]
+
+    L2 --> M[MockClaudeClient]
+
+    M --> CR[ClaudeResponse]
+
+    CR --> D{StopReason}
+
+    D -->|TOOL_USE| TC[ToolCall]
+
+    TC --> TR[ToolRegistry]
+
+    TR --> TL[Tool.execute]
+
+    TL --> RES[ToolResult]
+
+    RES --> ST[AgentState]
+
+    ST --> L2
+
+    D -->|END_TURN| FR[Final Response]
+```
+
+`MAX_ITERATIONS = 20` is only a safety cap. `END_TURN` is the normal exit.
 
 ---
 
@@ -56,35 +102,77 @@ classDiagram
         +run(goal)
     }
 
+    class AgentLoop {
+        +run(state)
+    }
+
+    class AgentLoopV2 {
+        +run(state)
+    }
+
     class AgentState {
         +goal
-        +plan
         +result
         +completed
+        +iterationCount
         +history
     }
 
     class Planner {
-        +createPlan(goal)
+        +createPlan(state)
     }
 
     class Executor {
-        +execute(tool, request)
+        +execute(tool, input)
     }
 
     class Evaluator {
         +evaluate(result)
     }
 
-    Agent --> Planner
-    Agent --> Executor
-    Agent --> Evaluator
-    Agent --> AgentState
+    class ToolRegistry {
+        +register(tool)
+        +get(name)
+    }
+
+    class BaseTool {
+        <<interface>>
+        +definition()
+        +execute(input)
+    }
+
+    class ToolDefinition {
+        +name
+        +description
+        +inputSchema
+    }
+
+    class MockClaudeClient {
+        +nextResponse()
+    }
+
+    class ClaudeResponse {
+        +stopReason
+        +toolCall
+    }
+
+    Agent --> AgentLoop
+    AgentLoop --> AgentState
+    AgentLoop --> Planner
+    AgentLoop --> Executor
+    AgentLoop --> Evaluator
+    AgentLoop --> ToolRegistry
+    ToolRegistry --> BaseTool
+    BaseTool --> ToolDefinition
+    AgentLoopV2 --> MockClaudeClient
+    AgentLoopV2 --> AgentState
+    AgentLoopV2 --> ToolRegistry
+    MockClaudeClient --> ClaudeResponse
 ```
 
 ---
 
-## Request Flow
+## Request Flow (Phase 1)
 
 ```mermaid
 sequenceDiagram
@@ -130,29 +218,66 @@ sequenceDiagram
 catalyst-java/
 
 ├── pom.xml
+├── Catalyst_Phase1_Agent_Architecture.md
+├── Catalyst_Phase2_Claude_Tool_Loop.md
+├── go-to/
+│   └── Catalyst_Prep_Guide.html
 │
 └── src/
-    └── main/
+    ├── main/
+    │   └── java/
+    │       └── com/
+    │           └── catalyst/
+    │               │
+    │               ├── Application.java
+    │               │
+    │               ├── core/
+    │               │   ├── Agent.java
+    │               │   ├── AgentState.java
+    │               │   ├── Planner.java
+    │               │   ├── Executor.java
+    │               │   ├── Evaluator.java
+    │               │   ├── AgentLoop.java
+    │               │   └── AgentLoopV2.java
+    │               │
+    │               ├── anthropic/
+    │               │   ├── StopReason.java
+    │               │   ├── ToolCall.java
+    │               │   ├── ToolResult.java
+    │               │   ├── ClaudeResponse.java
+    │               │   └── MockClaudeClient.java
+    │               │
+    │               ├── domain/
+    │               │   └── Job.java
+    │               │
+    │               ├── phases/
+    │               │   ├── Phase1Runner.java
+    │               │   └── Phase2Runner.java
+    │               │
+    │               └── tools/
+    │                   ├── BaseTool.java
+    │                   ├── ToolDefinition.java
+    │                   ├── ToolRegistry.java
+    │                   ├── JobSearchTool.java
+    │                   ├── ResumeAnalyzerTool.java
+    │                   ├── CalculatorTool.java
+    │                   └── WebSearchTool.java
+    │
+    └── test/
         └── java/
             └── com/
                 └── catalyst/
-                    │
-                    ├── Application.java
-                    │
-                    ├── core/
-                    │   ├── Agent.java
-                    │   ├── AgentState.java
-                    │   ├── Planner.java
-                    │   ├── Executor.java
-                    │   └── Evaluator.java
-                    │
-                    ├── domain/
-                    │   └── Job.java
-                    │
-                    └── tools/
-                        ├── BaseTool.java
-                        ├── ToolRegistry.java
-                        └── JobSearchTool.java
+                    ├── PlannerTest.java
+                    ├── ToolRegistryTest.java
+                    ├── AgentLoopTest.java
+                    ├── AgentTest.java
+                    └── anthropic/
+                        ├── StopReasonTest.java
+                        ├── ToolCallTest.java
+                        ├── ClaudeResponseTest.java
+                        ├── MockClaudeClientTest.java
+                        ├── AgentLoopV2Test.java
+                        └── SequentialToolExecutionTest.java
 ```
 
 ```text
@@ -210,6 +335,14 @@ Evaluate
 Respond
 ```
 
+Claude-style loop (Phase 2+):
+
+```text
+Send history -> inspect stop_reason
+  tool_use -> run tool, append tool_result, repeat
+  end_turn -> return final response
+```
+
 Everything later in the Claude Code Certification builds on:
 
 ```text
@@ -218,4 +351,7 @@ AgentState
 Planner
 Executor
 Evaluator
+AgentLoop / AgentLoopV2
+ToolRegistry
+StopReason
 ```
