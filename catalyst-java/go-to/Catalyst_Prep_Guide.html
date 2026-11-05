@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Catalyst – Agent Architecture & Claude Tool Loop: Prep Guide</title>
+<style>
+  :root{--bg:#f7f8fb;--card:#fff;--ink:#1d2433;--mute:#5d6678;--line:#e1e5ee;--acc:#4f46e5;--acc2:#0ea5e9;--ok:#16a34a;--warn:#d97706;--bad:#dc2626;--code:#0f172a}
+  *{box-sizing:border-box}
+  body{margin:0;font:16px/1.65 system-ui,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+  header{background:linear-gradient(135deg,#4f46e5,#0ea5e9);color:#fff;padding:40px 24px}
+  header h1{margin:0 0 6px;font-size:2rem}
+  header p{margin:0;opacity:.92;max-width:760px}
+  .wrap{display:flex;max-width:1180px;margin:0 auto;gap:28px;padding:24px}
+  nav{position:sticky;top:16px;align-self:flex-start;min-width:210px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+  nav b{display:block;margin-bottom:6px;font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--mute)}
+  nav a{display:block;padding:5px 8px;color:var(--ink);text-decoration:none;border-radius:6px;font-size:.92rem}
+  nav a:hover{background:#eef0ff;color:var(--acc)}
+  main{flex:1;min-width:0}
+  section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:26px 28px;margin-bottom:22px}
+  h2{margin:0 0 4px;font-size:1.5rem}
+  h2 small{display:block;font-size:.8rem;font-weight:600;color:var(--acc);text-transform:uppercase;letter-spacing:.07em}
+  h3{margin:22px 0 6px;font-size:1.1rem}
+  p{margin:8px 0}
+  code{background:#eef0f6;padding:1px 6px;border-radius:5px;font:0.88em ui-monospace,Consolas,monospace}
+  pre{background:var(--code);color:#e2e8f0;padding:14px 16px;border-radius:10px;overflow:auto;font:.86rem/1.5 ui-monospace,Consolas,monospace}
+  pre .k{color:#c4b5fd}pre .s{color:#86efac}pre .c{color:#94a3b8}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:.93rem}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#f0f2f9}
+  .callout{border-left:4px solid var(--acc);background:#f1f0ff;padding:10px 14px;border-radius:0 8px 8px 0;margin:12px 0}
+  .callout.tip{border-color:var(--ok);background:#ecfdf3}
+  .callout.warn{border-color:var(--warn);background:#fff7ea}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:12px 0}
+  .card{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:#fbfbfe}
+  .card h4{margin:0 0 4px;color:var(--acc)}
+  .card p{margin:0;font-size:.92rem;color:var(--mute)}
+  /* flow diagram */
+  .flow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:14px 0}
+  .box{padding:8px 14px;border-radius:9px;background:#eef0ff;border:1px solid #c7cafc;font-weight:600;font-size:.9rem}
+  .box.g{background:#e8f8ee;border-color:#b6e5c7}.box.o{background:#fff2de;border-color:#f1d09a}.box.r{background:#fde8e8;border-color:#f3b6b6}
+  .arr{color:var(--mute);font-weight:700}
+  /* simulator */
+  .sim{border:1px solid var(--line);border-radius:12px;padding:14px;background:#fafbff}
+  .sim button,.qa button{background:var(--acc);color:#fff;border:0;border-radius:8px;padding:8px 14px;font-weight:600;cursor:pointer}
+  .sim button.sec{background:#e5e7f5;color:var(--ink)}
+  .sim button:disabled{opacity:.45;cursor:default}
+  .log{margin-top:12px;display:grid;gap:8px}
+  .step{border-left:4px solid var(--acc2);background:#fff;border:1px solid var(--line);border-left-width:4px;border-radius:8px;padding:8px 12px;font-size:.92rem;animation:in .3s}
+  .step.end{border-left-color:var(--ok)}.step.tool{border-left-color:var(--warn)}
+  @keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+  .state{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+  .pill{background:#fff;border:1px solid var(--line);border-radius:999px;padding:3px 12px;font-size:.85rem}
+  .pill b{color:var(--acc)}
+  /* Q&A */
+  details{border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin:8px 0;background:#fcfcff}
+  summary{cursor:pointer;font-weight:600}
+  details[open] summary{color:var(--acc);margin-bottom:6px}
+  .quiz-q{margin:14px 0;padding:12px;border:1px solid var(--line);border-radius:10px}
+  .opt{display:block;width:100%;text-align:left;margin:5px 0;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer;font:inherit;color:var(--ink)}
+  .opt:hover{border-color:var(--acc)}.opt.right{background:#e8f8ee;border-color:var(--ok)}.opt.wrong{background:#fde8e8;border-color:var(--bad)}
+  .score{font-weight:700;color:var(--acc)}
+  footer{text-align:center;color:var(--mute);padding:20px;font-size:.85rem}
+  @media(max-width:860px){.wrap{flex-direction:column}nav{position:static}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Catalyst: Agent Architecture &amp; Claude Tool Loop</h1>
+  <p>A plain-English prep guide for Phase 1 (agent architecture), Phase 2 (Claude-style tool loop) and Phase 2.5 (sequential tool calls) &mdash; with concepts, an interactive simulator, interview Q&amp;A and a quiz.</p>
+</header>
+
+<div class="wrap">
+<nav>
+  <b>Contents</b>
+  <a href="#big">1. The big picture</a>
+  <a href="#p1">2. Phase 1 – the 6 classes</a>
+  <a href="#tools">3. Tool infrastructure</a>
+  <a href="#p2">4. Phase 2 – Claude loop</a>
+  <a href="#p25">5. Phase 2.5 – sequential</a>
+  <a href="#sim">6. Try the loop</a>
+  <a href="#map">7. Cert mapping</a>
+  <a href="#tests">8. Testing</a>
+  <a href="#exam">9. CCAR-F exam link</a>
+  <a href="#qa">10. Interview Q&amp;A</a>
+  <a href="#quiz">11. Quiz</a>
+  <a href="#cheat">12. Cheat sheet</a>
+</nav>
+
+<main>
+
+<section id="big">
+  <h2><small>Start here</small>The big picture</h2>
+  <p>An <b>agent</b> is a program that takes a <b>goal</b>, repeatedly <b>decides</b> what to do next, <b>acts</b> using tools, <b>looks at the result</b>, and stops when the goal is met. A plain chatbot answers once; an agent loops.</p>
+  <div class="flow">
+    <span class="box">Goal</span><span class="arr">→</span>
+    <span class="box">Plan</span><span class="arr">→</span>
+    <span class="box o">Execute tool</span><span class="arr">→</span>
+    <span class="box g">Evaluate</span><span class="arr">→</span>
+    <span class="box">Done?</span><span class="arr">→ no: back to Plan / yes:</span>
+    <span class="box g">Final answer</span>
+  </div>
+  <h3>The learning path</h3>
+  <table>
+    <tr><th>Phase</th><th>What you build</th><th>Who "decides"?</th></tr>
+    <tr><td><b>1</b></td><td>Agent skeleton: Agent, AgentState, Planner, Executor, Evaluator, AgentLoop + tools</td><td>Your own <code>Planner</code> (simple rules)</td></tr>
+    <tr><td><b>2</b></td><td>Claude-style loop: <code>StopReason</code>, <code>ToolCall</code>, <code>ToolResult</code>, <code>ClaudeResponse</code>, <code>MockClaudeClient</code>, <code>AgentLoopV2</code></td><td>A <i>fake</i> Claude (<code>MockClaudeClient</code>)</td></tr>
+    <tr><td><b>2.5</b></td><td>Multi-step: TOOL_USE → TOOL_USE → END_TURN</td><td>Fake Claude, scripted sequence</td></tr>
+    <tr><td><b>3</b> (next)</td><td>Swap the mock for the real Anthropic SDK</td><td>Real Claude</td></tr>
+  </table>
+  <div class="callout tip"><b>Key idea:</b> the architecture is built so that only the "decision maker" changes between phases. Everything else (state, loop, registry, tools) stays the same. That is good design &mdash; and a great interview talking point.</div>
+</section>
+
+<section id="p1">
+  <h2><small>Phase 1</small>The six core classes</h2>
+  <p>Think of a small company: the Agent is the front desk, the AgentLoop is the manager who keeps work moving, and the others are specialists.</p>
+  <div class="grid">
+    <div class="card"><h4>Agent</h4><p>Entry point. You call <code>agent.run(goal)</code>. It creates the state and hands over to the AgentLoop.</p></div>
+    <div class="card"><h4>AgentState</h4><p>The agent's memory: <b>goal, result, history, iterationCount, completed flag</b>. Everything the loop needs to know is here.</p></div>
+    <div class="card"><h4>Planner</h4><p>Decides <i>what next</i>. E.g. "search java jobs" → <code>job_search</code>; "analyze my resume" → <code>resume_analyzer</code>.</p></div>
+    <div class="card"><h4>Executor</h4><p>Actually runs the chosen tool: <code>tool.execute(input)</code>. Does no thinking, just doing.</p></div>
+    <div class="card"><h4>Evaluator</h4><p>Decides whether to continue. Today: <code>result != null</code>. Later: look at <code>TOOL_USE</code> vs <code>END_TURN</code>.</p></div>
+    <div class="card"><h4>AgentLoop</h4><p>The heart. Repeats <b>Plan → Execute → Evaluate</b> until done (or a safety limit hits).</p></div>
+  </div>
+
+  <h3>How they connect</h3>
+<pre>Agent
+ └── AgentLoop
+       ├── Planner      (what to do)
+       ├── Executor     (do it)
+       ├── Evaluator    (are we done?)
+       ├── AgentState   (memory)
+       └── ToolRegistry (available tools)
+             ├── JobSearchTool
+             └── ResumeAnalyzerTool</pre>
+
+  <h3>Separation of concerns</h3>
+  <p>Each class has <b>one job</b>. Because the Planner only plans and the Executor only executes, you can replace the Planner with Claude later without touching the Executor. This is the Single Responsibility Principle in action.</p>
+
+  <h3>Safety boundaries</h3>
+  <p>Phase 1 lists "safety boundaries" as a learning outcome: the agent can only call tools that are <b>registered</b>, and the loop has a bounded number of iterations. An agent should never be able to do arbitrary things &mdash; only what you explicitly gave it.</p>
+</section>
+
+<section id="tools">
+  <h2><small>Phase 1</small>Tool infrastructure</h2>
+  <table>
+    <tr><th>Class</th><th>Role</th></tr>
+    <tr><td><code>BaseTool</code> (interface)</td><td>Contract every tool follows: <code>definition()</code> and <code>execute(input)</code>.</td></tr>
+    <tr><td><code>ToolDefinition</code></td><td>The tool's "business card": <b>name, description, inputSchema</b>. This is what Claude reads to decide whether to use the tool.</td></tr>
+    <tr><td><code>ToolRegistry</code></td><td>A lookup of tools: <code>register(tool)</code>, <code>get(name)</code>. Equivalent to the <code>tools[]</code> array you send to Claude.</td></tr>
+    <tr><td><code>JobSearchTool</code></td><td>Concrete tool #1 – finds jobs.</td></tr>
+    <tr><td><code>ResumeAnalyzerTool</code></td><td>Concrete tool #2 – analyzes a resume.</td></tr>
+  </table>
+<pre><span class="c">// Shape of the contract</span>
+<span class="k">interface</span> BaseTool {
+    ToolDefinition definition();      <span class="c">// name + description + inputSchema</span>
+    String execute(String input);     <span class="c">// do the work</span>
+}</pre>
+  <div class="callout"><b>Why a description matters:</b> with a real LLM, the <code>description</code> and <code>inputSchema</code> are the <i>only</i> way the model knows what a tool does. Vague descriptions = wrong tool choices.</div>
+  <div class="callout tip"><b>Why a registry?</b> It decouples "which tools exist" from "who uses them". Adding a third tool = register it; no loop changes needed (Open/Closed Principle).</div>
+</section>
+
+<section id="p2">
+  <h2><small>Phase 2</small>Claude-style tool loop</h2>
+  <p>With a real Claude, you don't hand-write a Planner. You send Claude the conversation plus the tools list, and Claude replies with a <b>stop reason</b> telling you what to do next. Phase 2 models that locally.</p>
+  <h3>New building blocks</h3>
+  <table>
+    <tr><th>Class</th><th>Meaning</th><th>Real-API equivalent</th></tr>
+    <tr><td><code>StopReason</code></td><td>enum: <code>TOOL_USE</code>, <code>END_TURN</code></td><td><code>response.stop_reason</code></td></tr>
+    <tr><td><code>ToolCall</code></td><td>Claude asking: "please run tool X with input Y"</td><td><code>tool_use</code> content block</td></tr>
+    <tr><td><code>ToolResult</code></td><td>The output you send back to Claude</td><td><code>tool_result</code> content block</td></tr>
+    <tr><td><code>ClaudeResponse</code></td><td>What Claude wants next (stop reason + tool call or final text)</td><td>the response of <code>messages.create()</code></td></tr>
+    <tr><td><code>MockClaudeClient</code></td><td>Scripted fake Claude</td><td><code>client.messages.create()</code></td></tr>
+    <tr><td><code>AgentLoopV2</code></td><td>The loop driven by stop reasons</td><td>the <code>while(true)</code> agent loop</td></tr>
+  </table>
+
+  <h3>Why a mock?</h3>
+  <p>Learning, testing and debugging <b>without API keys, credits or internet</b>. Tests become deterministic: the mock always returns the same scripted answers.</p>
+
+  <h3>The two stop reasons</h3>
+  <div class="grid">
+    <div class="card"><h4 style="color:var(--warn)">TOOL_USE</h4><p>"I'm not finished. Run this tool, give me the result, and I'll continue." → execute the tool, store the result, <b>loop again</b>.</p></div>
+    <div class="card"><h4 style="color:var(--ok)">END_TURN</h4><p>"I'm done; here is my final answer." → mark completed, <b>exit the loop</b>.</p></div>
+  </div>
+
+  <h3>The loop (Java)</h3>
+<pre><span class="k">while</span> (!state.isCompleted()) {                 <span class="c">// also bounded by MAX_ITERATIONS</span>
+
+    ClaudeResponse response = client.nextResponse();
+
+    <span class="k">if</span> (response.stopReason() == StopReason.TOOL_USE) {
+        executeTool();                         <span class="c">// run tool, save ToolResult in state</span>
+        <span class="k">continue</span>;                              <span class="c">// ask Claude again</span>
+    }
+
+    <span class="k">if</span> (response.stopReason() == StopReason.END_TURN) {
+        state.setCompleted(<span class="k">true</span>);
+        <span class="k">break</span>;
+    }
+}</pre>
+  <h3>Same loop in the Claude SDK (JavaScript)</h3>
+<pre><span class="k">while</span> (<span class="k">true</span>) {
+    <span class="k">const</span> response = <span class="k">await</span> client.messages.create(...);
+
+    <span class="k">if</span> (response.stop_reason === <span class="s">"tool_use"</span>) { executeTool(); <span class="k">continue</span>; }
+    <span class="k">if</span> (response.stop_reason === <span class="s">"end_turn"</span>)  { <span class="k">break</span>; }
+}</pre>
+
+  <h3>The safety cap</h3>
+<pre><span class="k">private static final int</span> MAX_ITERATIONS = 20;</pre>
+  <div class="callout warn"><b>Know this distinction:</b> the <b>primary</b> way the loop stops is <code>END_TURN</code>. <code>MAX_ITERATIONS</code> is only a <b>guard rail</b> against runaway loops (e.g. a model that keeps calling tools forever, costing money). Don't use the cap as the normal stopping logic.</div>
+</section>
+
+<section id="p25">
+  <h2><small>Phase 2.5</small>Sequential tool calls</h2>
+  <p>Real tasks need several steps. Goal: <i>"Find Java jobs and analyse my skills."</i> Claude calls one tool, sees the result, then decides the next step.</p>
+  <div class="flow">
+    <span class="box o">Iter 1: TOOL_USE job_search</span><span class="arr">→</span>
+    <span class="box o">Iter 2: TOOL_USE resume_analyzer</span><span class="arr">→</span>
+    <span class="box g">Iter 3: END_TURN</span>
+  </div>
+  <h3>Expected final state</h3>
+  <table>
+    <tr><th>Field</th><th>Value</th><th>Why</th></tr>
+    <tr><td>iterationCount</td><td>3</td><td>Claude was asked 3 times</td></tr>
+    <tr><td>history size</td><td>2</td><td>Only 2 tool executions are recorded (the END_TURN is not a tool)</td></tr>
+    <tr><td>completed</td><td>true</td><td>END_TURN received</td></tr>
+    <tr><td>stopReason</td><td>END_TURN</td><td>Last response</td></tr>
+    <tr><td>finalResponse</td><td>available</td><td>Claude's closing answer</td></tr>
+  </table>
+  <div class="callout"><b>Why sequential matters:</b> the second step can depend on the first step's output. That is the foundation of <i>multi-step reasoning</i> &mdash; the conversation state (<code>AgentState</code> ≈ <code>messages[]</code>) carries everything forward each iteration.</div>
+  <div class="callout tip"><b>Common trap:</b> iterations = tool calls + 1. If someone expects iterationCount = 2, they forgot the final END_TURN call.</div>
+</section>
+
+<section id="sim">
+  <h2><small>Hands-on</small>Try the loop yourself</h2>
+  <p>Click <b>Next iteration</b> to step through the Phase 2.5 scenario. Watch the state change and see when the loop stops.</p>
+  <div class="sim">
+    <button id="stepBtn">Next iteration ▶</button>
+    <button class="sec" id="resetBtn">Reset</button>
+    <label style="margin-left:12px;font-size:.9rem">MAX_ITERATIONS: <select id="cap"><option>20</option><option>2</option></select></label>
+    <div class="state">
+      <span class="pill">iterationCount: <b id="sIter">0</b></span>
+      <span class="pill">history size: <b id="sHist">0</b></span>
+      <span class="pill">completed: <b id="sDone">false</b></span>
+      <span class="pill">stopReason: <b id="sStop">–</b></span>
+    </div>
+    <div class="log" id="log"></div>
+  </div>
+  <p style="font-size:.88rem;color:var(--mute)">Tip: set MAX_ITERATIONS to 2 to see the safety cap kill the loop before Claude finishes.</p>
+</section>
+
+<section id="map">
+  <h2><small>Cheat map</small>Claude certification mapping</h2>
+  <table>
+    <tr><th>Claude concept</th><th>Catalyst class</th><th>Phase</th></tr>
+    <tr><td>Agent runtime</td><td>Agent</td><td>1</td></tr>
+    <tr><td><code>while(true)</code></td><td>AgentLoop / AgentLoopV2</td><td>1 / 2</td></tr>
+    <tr><td><code>messages[]</code> / state</td><td>AgentState</td><td>1</td></tr>
+    <tr><td>Decide next action</td><td>Planner</td><td>1</td></tr>
+    <tr><td><code>tools[]</code></td><td>ToolRegistry</td><td>1</td></tr>
+    <tr><td>tool #1 / #2</td><td>JobSearchTool / ResumeAnalyzerTool</td><td>1</td></tr>
+    <tr><td><code>executeTool()</code></td><td>Executor</td><td>1</td></tr>
+    <tr><td><code>stop_reason</code> handling</td><td>Evaluator → StopReason</td><td>1 → 2</td></tr>
+    <tr><td><code>tool_use</code></td><td>StopReason.TOOL_USE / ToolCall</td><td>2</td></tr>
+    <tr><td><code>tool_result</code></td><td>ToolResult</td><td>2</td></tr>
+    <tr><td><code>end_turn</code></td><td>StopReason.END_TURN</td><td>2</td></tr>
+    <tr><td><code>client.messages.create()</code></td><td>MockClaudeClient</td><td>2</td></tr>
+    <tr><td>Iteration guard</td><td>MAX_ITERATIONS = 20</td><td>2</td></tr>
+  </table>
+</section>
+
+<section id="tests">
+  <h2><small>Quality</small>Testing strategy</h2>
+  <table>
+    <tr><th>Test</th><th>What it proves</th></tr>
+    <tr><td>PlannerTest</td><td>Goal → correct tool selected</td></tr>
+    <tr><td>ToolRegistryTest</td><td>Tools can be registered and looked up</td></tr>
+    <tr><td>AgentLoopTest</td><td>Loop runs, counts iterations, completes</td></tr>
+    <tr><td>AgentTest</td><td>End-to-end goal → answer</td></tr>
+    <tr><td>StopReasonTest</td><td>Enum values behave</td></tr>
+    <tr><td>ToolCallTest / ClaudeResponseTest</td><td>Data objects hold the right fields</td></tr>
+    <tr><td>MockClaudeClientTest</td><td>Scripted responses come out in order</td></tr>
+    <tr><td>AgentLoopV2Test</td><td>TOOL_USE continues, END_TURN stops</td></tr>
+    <tr><td>SequentialToolExecutionTest</td><td>TOOL_USE → TOOL_USE → END_TURN, iterations=3, history=2</td></tr>
+  </table>
+  <div class="callout tip">Testing agents is hard with real LLMs because outputs vary. A <b>mock client</b> makes the loop logic fully deterministic &mdash; a pattern worth mentioning in interviews.</div>
+</section>
+
+<section id="exam">
+  <h2><small>Why this matters</small>Link to the CCAR-F exam</h2>
+  <p>This work prepares you for <b>Claude Certified Architect (Foundations), CCAR-F</b>. Domain 1 (<b>Agentic Architecture &amp; Orchestration</b>) is the biggest slice, and task 1.1 <i>Agentic Loops</i> is exactly what Phases 1&ndash;2.5 build.</p>
+  <p style="font-size:.88rem;color:var(--mute)">Source: claudecertificationguide.com (an independent community site, not Anthropic). Exam facts below are as reported there and not verified against the official exam guide &mdash; check the official guide before relying on them.</p>
+  <table>
+    <tr><th>Domain</th><th>Weight</th></tr>
+    <tr><td>1. Agentic Architecture &amp; Orchestration (loops, multi-agent, subagents, hooks, sessions)</td><td>27%</td></tr>
+    <tr><td>2. Tool Design &amp; MCP Integration</td><td>18%</td></tr>
+    <tr><td>3. Claude Code Configuration &amp; Workflows</td><td>20%</td></tr>
+    <tr><td>4. Prompt Engineering &amp; Structured Output</td><td>20%</td></tr>
+    <tr><td>5. Context Management &amp; Reliability</td><td>15%</td></tr>
+  </table>
+  <p>Format reported: 60 questions (multiple-choice and multiple-response), 120 minutes, pass at scaled 720/1000.</p>
+
+  <h3>Agentic loop rules the exam tests</h3>
+  <ol>
+    <li>Send the request with the <b>full history</b>.</li>
+    <li>Inspect <code>stop_reason</code>.</li>
+    <li><code>tool_use</code> &rarr; run the tools, <b>append tool results to history</b>, send again.</li>
+    <li><code>end_turn</code> &rarr; return the final response.</li>
+  </ol>
+  <div class="callout tip"><b>Rule:</b> <code>stop_reason</code> is the only reliable signal that controls the loop.</div>
+
+  <h3>Three anti-patterns (common wrong answers)</h3>
+  <table>
+    <tr><th>Anti-pattern</th><th>Why it's wrong</th></tr>
+    <tr><td>Parsing text such as "I'm done" / "I have completed"</td><td>Natural language is unreliable; wording varies.</td></tr>
+    <tr><td>Using an iteration cap as the <i>primary</i> stop</td><td>Caps only guard against runaway loops; they don't fix early exits. This is why Catalyst's <code>MAX_ITERATIONS</code> is "safety only".</td></tr>
+    <tr><td>Checking <code>content[0].type == "text"</code> for completion</td><td>A response can contain text <i>and</i> a <code>tool_use</code> block, so the agent exits too early.</td></tr>
+  </table>
+
+  <h3>More things to remember</h3>
+  <ul>
+    <li>Don't drop tool results from history or replace history with a summary just to save tokens; shrink what the tool returns instead.</li>
+    <li>Model-driven tool choice is the default; use programmatic enforcement where compliance demands it (financial, security, regulatory).</li>
+    <li>The real API has other stop reasons (<code>max_tokens</code>, <code>pause_turn</code>, <code>stop_sequence</code>, <code>refusal</code>, <code>model_context_window_exceeded</code>). Treat anything other than <code>end_turn</code> as "not finished &mdash; check why". The exam focuses on <code>tool_use</code> and <code>end_turn</code>.</li>
+    <li>Catalyst's <code>Evaluator</code> still uses <code>result != null</code> in Phase 1; from Phase 2 the stop reason replaces it.</li>
+  </ul>
+</section>
+
+<section id="qa">
+  <h2><small>Prepare</small>Interview-style Q&amp;A</h2>
+  <p>Click a question to reveal the answer. Try answering out loud first.</p>
+
+  <details><summary>What is an agent, and how is it different from a single LLM call?</summary>
+    An agent runs a loop: decide → act (tool) → observe → repeat until the goal is done. A single call produces one response and cannot take actions or react to results.</details>
+  <details><summary>Explain the Plan → Execute → Evaluate cycle.</summary>
+    Planner picks the next action, Executor runs the selected tool, Evaluator checks the result and decides to continue or stop. AgentLoop repeats this and AgentState records progress.</details>
+  <details><summary>What does AgentState hold and why is it important?</summary>
+    Goal, result, history, iteration count and completed flag. It is the agent's memory; in a Claude integration it corresponds to <code>messages[]</code>, which is sent on every call so the model has full context.</details>
+  <details><summary>Why have both BaseTool and ToolDefinition?</summary>
+    BaseTool is the behaviour (execute). ToolDefinition is the metadata (name, description, input schema) that tells the model what the tool does and what arguments it needs.</details>
+  <details><summary>What is a ToolRegistry for?</summary>
+    Central lookup of available tools by name. It maps to <code>tools[]</code> in the API, keeps the loop independent of specific tools, and acts as a safety boundary: only registered tools can run.</details>
+  <details><summary>What are the two stop reasons in this project and what does each trigger?</summary>
+    <code>TOOL_USE</code> → execute the requested tool, record the result, continue the loop. <code>END_TURN</code> → mark completed and return the final response. (The real API has more, e.g. <code>max_tokens</code>, but these two drive the core loop.)</details>
+  <details><summary>Why does the loop need MAX_ITERATIONS if END_TURN already stops it?</summary>
+    END_TURN is the normal exit; the cap is a safeguard against bugs or a model that keeps requesting tools forever (cost, latency, infinite loops). It must be generous enough not to cut legitimate work (20 here).</details>
+  <details><summary>Why use a MockClaudeClient?</summary>
+    Deterministic, free, offline. It lets you test loop logic and tool flow without keys, credits or network, and makes unit tests stable.</details>
+  <details><summary>In the sequential scenario, why is iterationCount 3 but history size 2?</summary>
+    Three calls to Claude (tool_use, tool_use, end_turn) but only two tool executions are recorded in history. The END_TURN call produces the final answer, not a tool run.</details>
+  <details><summary>What changes in Phase 3 when the real SDK arrives?</summary>
+    Only the client: <code>MockClaudeClient</code> is replaced by the Anthropic SDK's <code>client.messages.create()</code>. AgentState, AgentLoopV2, ToolRegistry, ToolCall, ToolResult and StopReason stay unchanged &mdash; the benefit of the abstraction.</details>
+  <details><summary>What is the role of tool_result in the conversation?</summary>
+    After the model requests a tool, you run it and send back a <code>tool_result</code> tied to that request. Claude uses it to decide the next step. Without it Claude cannot continue reasoning.</details>
+  <details><summary>How would you add a third tool?</summary>
+    Implement BaseTool with a clear ToolDefinition, register it in ToolRegistry, add a test. No change to AgentLoop (Open/Closed principle).</details>
+  <details><summary>What can go wrong in agent loops, and how does this design handle it?</summary>
+    Infinite loops (MAX_ITERATIONS), unknown tool names (registry lookup fails safely), bad tool output (Evaluator / error ToolResult), lost context (AgentState keeps history).</details>
+</section>
+
+<section id="quiz">
+  <h2><small>Self-check</small>Quick quiz</h2>
+  <div id="quizBox"></div>
+  <p class="score" id="score"></p>
+</section>
+
+<section id="cheat">
+  <h2><small>Last-minute revision</small>One-page cheat sheet</h2>
+<pre>AGENT  = goal -> loop(plan, execute, evaluate) -> answer
+STATE  = goal, result, history, iterationCount, completed   (~ messages[])
+TOOLS  = BaseTool + ToolDefinition(name, description, inputSchema) in ToolRegistry (~ tools[])
+
+PHASE 1  Planner decides (rules)         Evaluator: result != null
+PHASE 2  Claude decides (stop_reason)    TOOL_USE -> run tool & continue
+                                         END_TURN -> done, break
+PHASE 2.5 TOOL_USE, TOOL_USE, END_TURN   iterations=3, history=2, completed=true
+GUARD    MAX_ITERATIONS = 20  (safety only; END_TURN is the real exit)
+MOCK     MockClaudeClient = scripted fake of client.messages.create()
+PHASE 3  swap Mock -> Anthropic SDK; everything else unchanged
+EXAM     stop_reason is THE signal. Never: parse "I'm done", cap-as-primary, content[0]==text.
+         Keep full history incl. tool results. D1 = 27% of CCAR-F.</pre>
+  <h3>Words to be able to define</h3>
+  <p>Agent · Agent loop · State · Planner · Executor · Evaluator · Tool · Tool definition · Input schema · Registry · stop_reason · tool_use · tool_result · end_turn · Sequential tool calls · Multi-step reasoning · Mock client · Iteration cap · Separation of concerns</p>
+</section>
+
+</main>
+</div>
+<footer>Catalyst prep guide · built from Catalyst_Phase1_Agent_Architecture.md and Catalyst_Phase2_Claude_Tool_Loop.md</footer>
+
+<script>
+/* ---------- simulator ---------- */
+const script=[
+  {stop:'TOOL_USE',tool:'job_search',res:'Matching Jobs Found (Java, 12 results)'},
+  {stop:'TOOL_USE',tool:'resume_analyzer',res:'Resume skills analysed (gaps: Spring Boot, Docker)'},
+  {stop:'END_TURN',text:'Here are 12 Java jobs and the skill gaps to close.'}
+];
+let it,hist,done,stop,idx;
+const $=id=>document.getElementById(id);
+function reset(){it=0;hist=0;done=false;stop='–';idx=0;$('log').innerHTML='';render();$('stepBtn').disabled=false}
+function render(){$('sIter').textContent=it;$('sHist').textContent=hist;$('sDone').textContent=done;$('sStop').textContent=stop}
+function add(cls,html){const d=document.createElement('div');d.className='step '+cls;d.innerHTML=html;$('log').appendChild(d)}
+$('stepBtn').onclick=()=>{
+  const cap=+$('cap').value;
+  if(it>=cap){add('','<b>MAX_ITERATIONS reached</b> – loop force-stopped by the safety cap. Claude never reached END_TURN.');$('stepBtn').disabled=true;return}
+  const r=script[idx++];it++;stop=r.stop;
+  if(r.stop==='TOOL_USE'){
+    hist++;
+    add('tool',`<b>Iteration ${it} · TOOL_USE</b><br>Claude requests <code>${r.tool}</code> → ToolRegistry lookup → Executor runs it → ToolResult: <i>${r.res}</i> saved to state → <code>continue</code>`);
+  }else{
+    done=true;
+    add('end',`<b>Iteration ${it} · END_TURN</b><br>Final response: “${r.text}”<br>state.setCompleted(true) → <code>break</code>`);
+    $('stepBtn').disabled=true;
+  }
+  render();
+};
+$('resetBtn').onclick=reset;$('cap').onchange=reset;reset();
+
+/* ---------- quiz ---------- */
+const quiz=[
+ {q:'Which class is "the heart" of the architecture?',o:['Agent','AgentLoop','Evaluator','ToolRegistry'],a:1},
+ {q:'Claude stop_reason "tool_use" maps to which Catalyst item?',o:['StopReason.END_TURN','ToolResult','StopReason.TOOL_USE','MAX_ITERATIONS'],a:2},
+ {q:'What is the PRIMARY way the loop should stop?',o:['MAX_ITERATIONS','END_TURN','A timeout','Empty history'],a:1},
+ {q:'In TOOL_USE → TOOL_USE → END_TURN, what is the history size?',o:['1','2','3','0'],a:1},
+ {q:'Which component maps to tools[] in the Claude API?',o:['ToolRegistry','Executor','AgentState','Planner'],a:0},
+ {q:'Which component maps to messages[]?',o:['Evaluator','ClaudeResponse','AgentState','BaseTool'],a:2},
+ {q:'What does ToolDefinition contain?',o:['Only the tool code','name, description, inputSchema','Iteration count','API key'],a:1},
+ {q:'Why use MockClaudeClient?',o:['It is faster than Claude in prod','Learn/test without keys, credits, internet','It replaces AgentState','It is required by the SDK'],a:1},
+ {q:'What changes in Phase 3?',o:['Everything','Only the client: Mock → Anthropic SDK','The StopReason enum is deleted','ToolRegistry is removed'],a:1},
+ {q:'Which class actually runs tool.execute()?',o:['Planner','Evaluator','Executor','Agent'],a:2},
+ {q:'An agent exits when content[0].type == "text", even though the response also has a tool_use block. Best fix?',o:['Cap the loop at 15 iterations','Check stop_reason: tool_use continues, end_turn stops','Scan the text for "I have completed"','Force tool_choice to "any"'],a:1},
+ {q:'To save tokens in a long loop, you should…',o:['Drop old tool results from history','Replace history with a summary each turn','Shrink what the tool returns','Stop sending history'],a:2}
+];
+let answered=0,correct=0;
+const box=$('quizBox');
+quiz.forEach((item,qi)=>{
+  const d=document.createElement('div');d.className='quiz-q';
+  d.innerHTML=`<b>${qi+1}. ${item.q}</b>`;
+  item.o.forEach((t,oi)=>{
+    const b=document.createElement('button');b.className='opt';b.textContent=t;
+    b.onclick=()=>{
+      if(d.dataset.done)return;d.dataset.done=1;answered++;
+      if(oi===item.a){b.classList.add('right');correct++}
+      else{b.classList.add('wrong');d.querySelectorAll('.opt')[item.a].classList.add('right')}
+      $('score').textContent=`Score: ${correct}/${answered} answered (${quiz.length} total)`;
+    };
+    d.appendChild(b);
+  });
+  box.appendChild(d);
+});
+</script>
+</body>
+</html>
