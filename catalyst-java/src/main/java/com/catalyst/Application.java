@@ -1,55 +1,31 @@
 package com.catalyst;
 
-import com.catalyst.core.*;
-import com.catalyst.tools.*;
+import com.catalyst.phases.Phase1Runner;
+import com.catalyst.phases.Phase2Runner;
 
 public class Application {
+
+    private static final String ACTIVE_PHASE =
+            "PHASE_1";
 
     public static void main(
             String[] args
     ) {
 
-        ToolRegistry registry =
-        new ToolRegistry();
+        switch (ACTIVE_PHASE) {
 
-registry.register(
-        new JobSearchTool()
-);
+            case "PHASE_1" -> {
+                new Phase1Runner().run();
+            }
 
-registry.register(
-        new ResumeAnalyzerTool()
-);
+            case "PHASE_2" -> {
+                new Phase2Runner().run();
+            }
 
-        registry.register(
-                new CalculatorTool()
-        );
-
-        registry.register(
-                new WebSearchTool()
-        );
-
-        AgentLoop loop =
-                new AgentLoop(
-
-                        new Planner(),
-
-                        new Executor(),
-
-                        new Evaluator(),
-
-                        registry
-                );
-
-        Agent agent =
-                new Agent(loop);
-
-        AgentState result =
-                agent.run(
-                    "search java jobs"
-                );
-
-        System.out.println(
-                result.getResult()
-        );
+            default ->
+                    throw new IllegalArgumentException(
+                            "Unknown Phase"
+                    );
+        }
     }
 }

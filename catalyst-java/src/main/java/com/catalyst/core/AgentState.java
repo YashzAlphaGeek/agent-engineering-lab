@@ -11,6 +11,10 @@ public class AgentState {
 
     private boolean completed;
 
+    private String stopReason;
+
+    private String finalResponse;
+
     private int iterationCount;
 
     private final List<Object>
@@ -64,4 +68,25 @@ public class AgentState {
     ) {
         history.add(item);
     }
+
+    public String getStopReason() {
+    return stopReason;
+}
+
+public void setStopReason(
+        String stopReason
+) {
+    this.stopReason = stopReason;
+}
+
+public String getFinalResponse() {
+    return finalResponse;
+}
+
+public void setFinalResponse(
+            String finalResponse
+) {
+    this.finalResponse =
+            finalResponse;
+}
 }

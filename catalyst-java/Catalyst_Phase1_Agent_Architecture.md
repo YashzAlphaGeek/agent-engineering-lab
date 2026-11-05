@@ -311,6 +311,8 @@ classDiagram
     ResumeAnalyzerTool ..|> BaseTool
 ```
 
+![alt text](image.png)
+
 ## Mental Model
 
 ```text
