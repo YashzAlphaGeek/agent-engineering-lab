@@ -243,27 +243,98 @@ Safety Boundaries
 
 ---
 
-# Next Phase (Claude Integration)
+# Phase 1 Class Relationships
 
-After all tests pass:
+```mermaid
+classDiagram
 
-```text
-✅ PlannerTest
-✅ ToolRegistryTest
-✅ AgentLoopTest
-✅ AgentTest
+    class Agent {
+        +run(goal)
+    }
+
+    class AgentLoop {
+        +run(state)
+    }
+
+    class AgentState {
+        +goal
+        +result
+        +completed
+        +iterationCount
+        +history
+    }
+
+    class Planner {
+        +createPlan(state)
+    }
+
+    class Executor {
+        +execute(tool,input)
+    }
+
+    class Evaluator {
+        +evaluate(result)
+    }
+
+    class ToolRegistry {
+        +register(tool)
+        +get(name)
+    }
+
+    class BaseTool {
+        <<interface>>
+        +definition()
+        +execute(input)
+    }
+
+    class ToolDefinition {
+        +name
+        +description
+        +inputSchema
+    }
+
+    class JobSearchTool
+    class ResumeAnalyzerTool
+
+    Agent --> AgentLoop
+
+    AgentLoop --> AgentState
+    AgentLoop --> Planner
+    AgentLoop --> Executor
+    AgentLoop --> Evaluator
+    AgentLoop --> ToolRegistry
+
+    ToolRegistry --> BaseTool
+    BaseTool --> ToolDefinition
+
+    JobSearchTool ..|> BaseTool
+    ResumeAnalyzerTool ..|> BaseTool
 ```
 
-Introduce:
+## Mental Model
 
 ```text
-StopReason
-ClaudeResponse
-MockClaudeClient
-Tool Calls
-TOOL_USE
-END_TURN
-MAX_ITERATIONS
+Agent
+ └── AgentLoop
+       ├── Planner
+       ├── Executor
+       ├── Evaluator
+       ├── AgentState
+       └── ToolRegistry
+                ├── JobSearchTool
+                └── ResumeAnalyzerTool
 ```
 
-This aligns directly with the Claude Certification Agentic Loop requirements.
+## Claude Certification Mapping
+
+```text
+Agent                -> Agent Runtime
+AgentLoop            -> while(true)
+AgentState           -> messages/state
+Planner              -> Decide next action
+ToolRegistry         -> tools[]
+JobSearchTool        -> tool #1
+ResumeAnalyzerTool   -> tool #2
+Executor             -> executeTool()
+Evaluator            -> stop_reason handling
+```
