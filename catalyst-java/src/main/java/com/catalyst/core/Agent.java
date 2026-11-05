@@ -1,45 +1,29 @@
 package com.catalyst.core;
 
-import com.catalyst.tools.BaseTool;
-import com.catalyst.tools.ToolRegistry;
-
 public class Agent {
 
-    private final Planner planner;
-    private final Executor executor;
-    private final Evaluator evaluator;
-    private final ToolRegistry registry;
+    private final AgentLoop loop;
 
     public Agent(
-            Planner planner,
-            Executor executor,
-            Evaluator evaluator,
-            ToolRegistry registry
+            AgentLoop loop
     ) {
-        this.planner = planner;
-        this.executor = executor;
-        this.evaluator = evaluator;
-        this.registry = registry;
+
+        this.loop = loop;
     }
 
-    public Object run(
+    public AgentState run(
             String goal
     ) {
 
-        String toolName =
-                planner.createPlan(goal);
+        AgentState state =
+                new AgentState();
 
-        BaseTool tool =
-                registry.get(toolName);
+        state.setGoal(
+                goal
+        );
 
-        Object result =
-                executor.execute(
-                        tool,
-                        goal
-                );
-
-        evaluator.evaluate(result);
-
-        return result;
+        return loop.run(
+                state
+        );
     }
 }

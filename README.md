@@ -155,6 +155,41 @@ catalyst-java/
                         └── JobSearchTool.java
 ```
 
+```text
+catalyst-python/
+
+├── pyproject.toml
+│
+├── catalyst/
+│
+│   ├── core/
+│   │   ├── agent.py
+│   │   ├── state.py
+│   │   ├── planner.py
+│   │   ├── executor.py
+│   │   └── evaluator.py
+│   │
+│   ├── domain/
+│   │   └── job.py
+│   │
+│   ├── tools/
+│   │   ├── base_tool.py
+│   │   ├── registry.py
+│   │   └── job_search_tool.py
+│   │
+│   ├── agents/
+│   │
+│   ├── workflows/
+│   │
+│   ├── context/
+│   │
+│   ├── memory/
+│   │
+│   └── mcp/
+│
+└── tests/
+```
+
 ---
 
 ## Learning Objective (1.1 Agentic Loops)

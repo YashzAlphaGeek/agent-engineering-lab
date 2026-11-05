@@ -6,8 +6,11 @@ public class Executor {
 
     public Object execute(
             BaseTool tool,
-            Object request
+            Object input
     ) {
-        return tool.execute(request);
+
+        return tool.execute(
+                input
+        );
     }
 }

@@ -1,46 +1,39 @@
 package com.catalyst.core;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class AgentState {
 
     private String goal;
 
-    private Map<String, Object> plan = new HashMap<>();
-
     private Object result;
 
     private boolean completed;
 
-    private List<Object> history = new ArrayList<>();
+    private int iterationCount;
 
-    public AgentState() {
-    }
+    private final List<Object>
+            history =
+            new ArrayList<>();
 
     public String getGoal() {
         return goal;
     }
 
-    public void setGoal(String goal) {
+    public void setGoal(
+            String goal
+    ) {
         this.goal = goal;
-    }
-
-    public Map<String, Object> getPlan() {
-        return plan;
-    }
-
-    public void setPlan(Map<String, Object> plan) {
-        this.plan = plan;
     }
 
     public Object getResult() {
         return result;
     }
 
-    public void setResult(Object result) {
+    public void setResult(
+            Object result
+    ) {
         this.result = result;
     }
 
@@ -48,15 +41,27 @@ public class AgentState {
         return completed;
     }
 
-    public void setCompleted(boolean completed) {
+    public void setCompleted(
+            boolean completed
+    ) {
         this.completed = completed;
+    }
+
+    public int getIterationCount() {
+        return iterationCount;
+    }
+
+    public void incrementIterationCount() {
+        iterationCount++;
     }
 
     public List<Object> getHistory() {
         return history;
     }
 
-    public void addHistory(Object item) {
-        this.history.add(item);
+    public void addHistory(
+            Object item
+    ) {
+        history.add(item);
     }
 }

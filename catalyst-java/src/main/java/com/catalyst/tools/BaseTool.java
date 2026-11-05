@@ -2,7 +2,9 @@ package com.catalyst.tools;
 
 public interface BaseTool {
 
-    String getName();
+    ToolDefinition definition();
 
-    Object execute(Object input);
+    Object execute(
+            Object input
+    );
 }

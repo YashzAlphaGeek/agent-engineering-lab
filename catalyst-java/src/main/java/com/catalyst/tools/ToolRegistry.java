@@ -5,14 +5,20 @@ import java.util.Map;
 
 public class ToolRegistry {
 
-    private final Map<String, BaseTool> tools =
-            new HashMap<>();
+    private final Map<String, BaseTool> tools = new HashMap<>();
 
-    public void register(BaseTool tool) {
-        tools.put(tool.getName(), tool);
+    public void register(
+            BaseTool tool) {
+
+        tools.put(
+                tool.definition().name(),
+                tool);
     }
 
-    public BaseTool get(String name) {
-        return tools.get(name);
+    public BaseTool get(
+            String toolName) {
+
+        return tools.get(
+                toolName);
     }
 }

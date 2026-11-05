@@ -1,10 +1,16 @@
+com\catalyst\tools\WebSearchTool.class
 com\catalyst\core\Executor.class
 com\catalyst\Application.class
+com\catalyst\core\AgentLoop.class
 com\catalyst\core\Evaluator.class
-com\catalyst\domain\Job.class
 com\catalyst\tools\ToolRegistry.class
+com\catalyst\anthropic\ClaudeClient.class
 com\catalyst\core\AgentState.class
 com\catalyst\tools\BaseTool.class
 com\catalyst\core\Planner.class
+com\catalyst\tools\ResumeAnalyzerTool.class
 com\catalyst\core\Agent.class
+com\catalyst\domain\Job.class
+com\catalyst\tools\CalculatorTool.class
+com\catalyst\tools\ToolDefinition.class
 com\catalyst\tools\JobSearchTool.class
