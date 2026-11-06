@@ -1,15 +1,83 @@
 # Catalyst Agent Architecture Reference
 
-A generic, tool-agnostic reference for building agents with the Claude loop model. It describes the components, how they connect and the rules that keep an agent reliable. It deliberately uses no domain examples: replace `Tool A`, `Subagent A` etc. with your own.
+A generic, tool-agnostic guide to building agents around the agentic loop (call the model, check `stop_reason`, run tools, repeat): the components, how they connect, and the rules that keep an agent reliable. It uses no domain examples; replace `Tool A`, `Subagent A` and so on with your own.
 
-## Setup
+---
+
+## Contents
+
+| # | Section | You will learn |
+|---|---------|----------------|
+| - | [Quick start](#quick-start) | Build, test and run a phase |
+| - | [Repository map](#repository-map) | Where everything lives |
+| - | [Roadmap at a glance](#roadmap-at-a-glance) | What each phase adds |
+| 1 | [What an agent is](#1-what-an-agent-is) | The loop in one line |
+| 2 | [Core components](#2-core-components-single-agent) | Agent, state, tools, planner/client |
+| 3 | [Rule-based loop](#3-rule-based-loop-planner--evaluator) | Phase 1 loop |
+| 4 | [Claude tool loop](#4-claude-tool-loop-model-driven) | `stop_reason` driven loop |
+| 5 | [Multi-agent orchestration](#5-multi-agent-orchestration-hub-and-spoke) | Coordinator, subagents, context, provenance |
+| 6 | [Workflow enforcement and handoff](#6-workflow-enforcement-and-handoff-deterministic-gates) | Gates in code, structured handoff |
+| 7 | [Phases](#7-phases) | Phase table and study material |
+| 8 | [Reliability rules](#8-rules-that-keep-an-agent-reliable) | 14 rules to remember |
+| 9 | [Claude concept mapping](#9-claude-concept-mapping) | Claude API term to component |
+| 10 | [Testing strategy](#10-testing-strategy) | What to verify |
+| 11 | [Module layout](#11-module-layout-generic) | Generic folder structure |
+| 12 | [Learning objective](#12-learning-objective-11-agentic-loops-and-beyond) | The big idea |
+
+---
+
+## Quick start
+
+Requirements: **JDK 21** and **Maven**.
 
 ```bash
-python -m venv .venv
-.venv\Scripts\activate
-pip install -e .
-pip list
+cd catalyst-java
+
+mvn test                                                   # run all unit tests
+mvn compile exec:java -Dexec.mainClass=com.catalyst.Application   # run the active phase
 ```
+
+Choose the phase to run by editing `ACTIVE_PHASE` in `Application.java`:
+
+| Value | Runs |
+|-------|------|
+| `PHASE_1` | Rule-based agent (Planner + Evaluator) |
+| `PHASE_2` | Claude-style loop with the mock client |
+| `PHASE_3` | Coordinator with three subagents |
+| `PHASE_4` | Same, with explicit context passing and provenance |
+| `PHASE_5` | Workflow gates governing the coordinator, then a handoff |
+
+No API key is needed: the model is a scripted mock until the real SDK is plugged in.
+
+> Optional: the repository root also has a Python project file (`pyproject.toml`, Python 3.12+): `python -m venv .venv`, activate it, then `pip install -e .`.
+
+---
+
+## Repository map
+
+```text
+agent-engineering-lab/
+    README.md                this file
+    catalyst-java/           Java reference implementation (start here)
+        src/main/java/...    core, anthropic, tools, agents, context, model, workflow, phases
+        src/test/java/...    unit and integration tests
+        Catalyst_Phase*.md   one design document per phase
+        go-to/               HTML study material (prep guide, golden design, Q&A)
+    golden-agent/            small reusable agent framework (java / python / rust), see its own README
+```
+
+---
+
+## Roadmap at a glance
+
+| Phase | Adds | Exam topic |
+|-------|------|------------|
+| 1 | Single agent: state, planner, executor, evaluator, tools | Agentic loop basics |
+| 2 / 2.5 | `stop_reason` loop, `LLMClient`, sequential tool calls | Loop control |
+| 3 | Hub-and-spoke multi-agent orchestration | Orchestration |
+| 4 | Explicit context passing and provenance | Context passing |
+| 5 | Prerequisite gates and structured handoff | Enforcement and handoff |
+| 6 (next) | Agent SDK hooks | Hooks |
 
 ---
 

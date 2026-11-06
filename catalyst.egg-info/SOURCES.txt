@@ -1,7 +1,0 @@
-README.md
-pyproject.toml
-catalyst.egg-info/PKG-INFO
-catalyst.egg-info/SOURCES.txt
-catalyst.egg-info/dependency_links.txt
-catalyst.egg-info/requires.txt
-catalyst.egg-info/top_level.txt
