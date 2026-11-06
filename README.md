@@ -91,17 +91,6 @@ classDiagram
     ToolRegistry --> BaseTool
     BaseTool --> ToolDefinition
     Executor --> BaseTool
-
-    note for Agent "Entry point. Takes the goal and starts the loop."
-    note for AgentLoop "Heart of the agent. Repeats: decide, act, observe, until done or capped."
-    note for AgentState "Memory of one run. Everything the loop needs to know lives here."
-    note for Planner "Phase 1. Picks the next tool using fixed rules. No model."
-    note for LLMClient "Phase 2+. Interface for asking the model what to do next. MockClaudeClient today, real SDK later."
-    note for Executor "Runs the chosen tool. Does no thinking."
-    note for Evaluator "Phase 1. Decides whether to keep going."
-    note for ToolRegistry "The only tools the agent may use. Looked up by name."
-    note for BaseTool "Contract every tool follows: describe itself, run on input."
-    note for ToolDefinition "What the model reads: name, description, input schema."
 ```
 
 | Component | Responsibility |
