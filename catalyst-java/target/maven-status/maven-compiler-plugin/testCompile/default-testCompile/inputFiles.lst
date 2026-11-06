@@ -1,4 +1,8 @@
 D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\test\java\com\catalyst\AgentLoopTest.java
+D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\test\java\com\catalyst\agents\CoordinatorAgentTest.java
+D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\test\java\com\catalyst\agents\JobSearchAgentTest.java
+D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\test\java\com\catalyst\agents\ResumeAnalysisAgentTest.java
+D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\test\java\com\catalyst\agents\SkillsMatchAgentTest.java
 D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\test\java\com\catalyst\AgentTest.java
 D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\test\java\com\catalyst\anthropic\AgentLoopV2Test.java
 D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\test\java\com\catalyst\anthropic\ClaudeResponseTest.java
@@ -6,5 +10,11 @@ D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\test\java\com\catalys
 D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\test\java\com\catalyst\anthropic\SequentialToolExecutionTest.java
 D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\test\java\com\catalyst\anthropic\StopReasonTest.java
 D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\test\java\com\catalyst\anthropic\ToolCallTest.java
+D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\test\java\com\catalyst\context\ContextBuilderTest.java
+D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\test\java\com\catalyst\context\ContextPassingTest.java
+D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\test\java\com\catalyst\context\MetadataPreservationTest.java
+D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\test\java\com\catalyst\context\ResearchContextTest.java
+D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\test\java\com\catalyst\context\ResearchMetadataTest.java
+D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\test\java\com\catalyst\context\SubagentIsolationTest.java
 D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\test\java\com\catalyst\PlannerTest.java
 D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\test\java\com\catalyst\ToolRegistryTest.java

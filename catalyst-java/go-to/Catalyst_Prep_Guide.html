@@ -67,7 +67,7 @@
 <body>
 <header>
   <h1>Catalyst: Agent Architecture &amp; Claude Tool Loop</h1>
-  <p>A plain-English prep guide for Phase 1 (agent architecture), Phase 2 (Claude-style tool loop) and Phase 2.5 (sequential tool calls) &mdash; with concepts, an interactive simulator, interview Q&amp;A and a quiz.</p>
+  <p>A plain-English prep guide for Phase 1 (agent architecture), Phase 2 (Claude-style tool loop), Phase 2.5 (sequential tool calls), Phase 3 (multi-agent orchestration) and Phase 4 (context passing &amp; provenance) &mdash; with concepts, an interactive simulator, interview Q&amp;A and a quiz.</p>
 </header>
 
 <div class="wrap">
@@ -79,12 +79,14 @@
   <a href="#p2">4. Phase 2 – Claude loop</a>
   <a href="#p25">5. Phase 2.5 – sequential</a>
   <a href="#sim">6. Try the loop</a>
-  <a href="#map">7. Cert mapping</a>
-  <a href="#tests">8. Testing</a>
-  <a href="#exam">9. CCAR-F exam link</a>
-  <a href="#qa">10. Interview Q&amp;A</a>
-  <a href="#quiz">11. Practice quiz</a>
-  <a href="#cheat">12. Cheat sheet</a>
+  <a href="#p3">7. Phase 3 – multi-agent</a>
+  <a href="#p4">8. Phase 4 – context passing</a>
+  <a href="#map">9. Cert mapping</a>
+  <a href="#tests">10. Testing</a>
+  <a href="#exam">11. CCAR-F exam link</a>
+  <a href="#qa">12. Interview Q&amp;A</a>
+  <a href="#quiz">13. Practice quiz</a>
+  <a href="#cheat">14. Cheat sheet</a>
 </nav>
 
 <main>
@@ -106,8 +108,11 @@
     <tr><td><b>1</b></td><td>Agent skeleton: Agent, AgentState, Planner, Executor, Evaluator, AgentLoop + tools</td><td>Your own <code>Planner</code> (simple rules)</td></tr>
     <tr><td><b>2</b></td><td>Claude-style loop: <code>StopReason</code>, <code>ToolCall</code>, <code>ToolResult</code>, <code>ClaudeResponse</code>, <code>MockClaudeClient</code>, <code>AgentLoopV2</code></td><td>A <i>fake</i> Claude (<code>MockClaudeClient</code>)</td></tr>
     <tr><td><b>2.5</b></td><td>Multi-step: TOOL_USE → TOOL_USE → END_TURN</td><td>Fake Claude, scripted sequence</td></tr>
-    <tr><td><b>3</b> (next)</td><td>Swap the mock for the real Anthropic SDK</td><td>Real Claude</td></tr>
+    <tr><td><b>3</b></td><td>Multi-agent, hub-and-spoke: <code>CoordinatorAgent</code> + <code>JobSearchAgent</code>, <code>ResumeAnalysisAgent</code>, <code>SkillsMatchAgent</code>; <code>SubTopic</code>, <code>ResearchFinding</code>, <code>ResearchReport</code>, <code>CoverageReport</code></td><td>The coordinator (hard-coded rules for now)</td></tr>
+    <tr><td><b>4</b></td><td>Explicit context passing and provenance: <code>ResearchContext</code>, <code>ContextBuilder</code>, <code>ResearchMetadata</code>; subagents now take a context object</td><td>Coordinator builds and passes context</td></tr>
+    <tr><td><b>Later</b></td><td>Swap the mock for the real Anthropic SDK (<code>client.messages.create()</code>)</td><td>Real Claude</td></tr>
   </table>
+  <div class="callout warn"><b>Note:</b> the Phase 2 document called the real SDK "Phase 3". In the project, Phase 3 became multi-agent orchestration, so the SDK swap is now a later step.</div>
   <div class="callout tip"><b>Key idea:</b> the architecture is built so that only the "decision maker" changes between phases. Everything else (state, loop, registry, tools) stays the same. That is good design &mdash; and a great interview talking point.</div>
 </section>
 
@@ -206,6 +211,14 @@
     <span class="k">if</span> (response.stop_reason === <span class="s">"end_turn"</span>)  { <span class="k">break</span>; }
 }</pre>
 
+  <h3>How it is actually coded</h3>
+  <ul>
+    <li><code>ToolCall</code> = <code>(id, toolName, input)</code>; <code>ToolResult</code> = <code>(toolCallId, content)</code>. The id links a result to its request, like <code>tool_use_id</code> in the API.</li>
+    <li><code>AgentState</code> gained <code>stopReason</code> and <code>finalResponse</code> (besides goal, result, history, iterationCount, completed).</li>
+    <li><code>MockClaudeClient</code> is a step counter: step 1 &rarr; <code>TOOL_USE job_search</code>, step 2 &rarr; <code>TOOL_USE resume_analyzer</code>, step 3 &rarr; <code>END_TURN</code> (any later call also returns <code>END_TURN</code>).</li>
+    <li>The cap is checked at the <b>top</b> of each iteration: if <code>iterationCount &gt;= MAX_ITERATIONS</code> it prints a warning and breaks.</li>
+    <li><code>AgentLoopV2</code> and <code>Phase2Runner</code> hold the same loop. The runner also wraps output in a <code>ToolResult</code> and stops if the tool name is not in the registry.</li>
+  </ul>
   <h3>The safety cap</h3>
 <pre><span class="k">private static final int</span> MAX_ITERATIONS = 20;</pre>
   <div class="callout warn"><b>Know this distinction:</b> the <b>primary</b> way the loop stops is <code>END_TURN</code>. <code>MAX_ITERATIONS</code> is only a <b>guard rail</b> against runaway loops (e.g. a model that keeps calling tools forever, costing money). Don't use the cap as the normal stopping logic.</div>
@@ -250,6 +263,98 @@
   <p style="font-size:.88rem;color:var(--mute)">Tip: set MAX_ITERATIONS to 2 to see the safety cap kill the loop before Claude finishes.</p>
 </section>
 
+<section id="p3">
+  <h2><small>Phase 3</small>Multi-agent orchestration (hub-and-spoke)</h2>
+  <p>Instead of one agent doing everything, a <b>coordinator</b> splits the goal into sub-topics, hands each to a <b>specialist subagent</b>, collects the findings, checks coverage and produces one report.</p>
+  <div class="flow">
+    <span class="box">Goal</span><span class="arr">→</span>
+    <span class="box o">decompose()</span><span class="arr">→</span>
+    <span class="box o">delegate()</span><span class="arr">→</span>
+    <span class="box">subagents</span><span class="arr">→</span>
+    <span class="box g">evaluateCoverage()</span><span class="arr">→</span>
+    <span class="box g">aggregate() → ResearchReport</span>
+  </div>
+  <div class="callout"><b>Key rule:</b> subagents never talk to each other. Everything goes through the <code>CoordinatorAgent</code> (the hub). This keeps control, error handling and context in one place.</div>
+
+  <h3>The cast</h3>
+  <table>
+    <tr><th>Class</th><th>Job</th></tr>
+    <tr><td><code>CoordinatorAgent</code></td><td>Decompose, delegate, aggregate, evaluate coverage. Entry: <code>research(topic)</code>.</td></tr>
+    <tr><td><code>JobSearchAgent</code></td><td>Specialist for jobs, companies, locations.</td></tr>
+    <tr><td><code>ResumeAnalysisAgent</code></td><td>Specialist for resume strengths, weaknesses, skill gaps.</td></tr>
+    <tr><td><code>SkillsMatchAgent</code></td><td>Specialist for skill matching and recommendations.</td></tr>
+    <tr><td><code>SubTopic</code> (record)</td><td>One slice of the goal: <code>name</code>.</td></tr>
+    <tr><td><code>ResearchFinding</code> (record)</td><td>One result: <code>claim</code>, <code>analysis</code>, <code>metadata</code> (provenance). Changed in Phase 4.</td></tr>
+    <tr><td><code>ResearchReport</code> (record)</td><td>Final aggregate: <code>topic</code> + list of findings.</td></tr>
+    <tr><td><code>CoverageReport</code> (record)</td><td><code>covered</code>, <code>gaps</code>, <code>completeness</code> (0.0&ndash;1.0).</td></tr>
+  </table>
+
+  <h3>The four steps</h3>
+  <ol>
+    <li><b>Decompose</b> &ndash; goal becomes sub-topics: Job Search, Resume Analysis, Skills Match, Salary Analysis, Market Trends.</li>
+    <li><b>Delegate</b> &ndash; for each sub-topic the coordinator builds a <code>ResearchContext</code> and calls <code>agent.research(context)</code>.</li>
+    <li><b>Evaluate coverage</b> &ndash; the intended idea: covered = sub-topics that have a finding; gaps = planned sub-topics with none; completeness = covered / planned. (See the honest notes below for what the code does today.)</li>
+    <li><b>Aggregate</b> &ndash; findings are wrapped in a <code>ResearchReport</code>.</li>
+  </ol>
+
+  <h3>Try it: coverage evaluation</h3>
+  <div class="sim">
+    <p style="margin-top:0">Tick which sub-topics got a finding back from their subagent:</p>
+    <div id="covBoxes"></div>
+    <div class="state">
+      <span class="pill">covered: <b id="covN">5</b> / 5</span>
+      <span class="pill">completeness: <b id="covP">100%</b></span>
+    </div>
+    <p id="covGaps" style="margin-bottom:0"></p>
+  </div>
+
+  <h3>Current implementation &ndash; honest notes</h3>
+  <ul>
+    <li><code>decompose()</code> is hard-coded to five sub-topics; no model is involved yet.</li>
+    <li><code>delegate()</code> uses a <code>switch</code> on the name: "Job Search" &rarr; <code>JobSearchAgent</code>, "Resume Analysis" &rarr; <code>ResumeAnalysisAgent</code>, <b>default</b> (Skills Match, Salary Analysis, Market Trends) &rarr; <code>SkillsMatchAgent</code>.</li>
+    <li>Subagents return hard-coded findings (e.g. claim "Java jobs found in Munich"), not real research. Delegation is a sequential loop, not parallel.</li>
+    <li><b>Coverage logic drifted:</b> after the Phase 4 change <code>evaluateCoverage()</code> lists <code>metadata.retrievedBy</code> (agent names) as "covered", always returns an empty <code>gaps</code> list, and computes completeness as <code>findings.size() / topics.size()</code>. That is always 100% as long as every sub-topic returns something, so it can never report a gap. Good interview example of a metric that cannot fail.</li>
+    <li>The "Refine" step (re-delegate for gaps) is in the docs but not coded.</li>
+    <li><code>Application.java</code> still only switches between PHASE_1 and PHASE_2, so <code>Phase3Runner</code> and <code>Phase4Runner</code> are not wired into <code>main</code>.</li>
+  </ul>
+  <div class="callout tip"><b>Interview angle:</b> hub-and-spoke gives observability and consistent error handling, but the coordinator can decompose too narrowly. If the decomposition misses a topic, no subagent will cover it &mdash; so coverage evaluation compares findings with the plan <i>and</i> should question whether the plan itself was complete.</div>
+</section>
+
+<section id="p4">
+  <h2><small>Phase 4</small>Context passing &amp; provenance</h2>
+  <p>A subagent starts with <b>isolated context</b>: it knows only what the coordinator puts in its prompt. Phase 3 assumed it had what it needed; Phase 4 makes the handoff explicit. This maps to exam task 1.3 <i>Subagent Invocation &amp; Context Passing</i> and, for metadata, 5.6 <i>Information Provenance</i>.</p>
+
+  <div class="flow">
+    <span class="box o">Coordinator</span><span class="arr">→ ContextBuilder.build(goal, subTopic, priorFindings) →</span>
+    <span class="box">ResearchContext</span><span class="arr">→ agent.research(context) →</span>
+    <span class="box g">ResearchFinding (claim + analysis + metadata)</span>
+  </div>
+
+  <table>
+    <tr><th>Class / record</th><th>Fields</th><th>Purpose</th></tr>
+    <tr><td><code>ResearchContext</code></td><td>originalGoal, assignedSubTopic, expectedOutput, priorFindings</td><td>Everything a subagent is allowed to know, passed explicitly</td></tr>
+    <tr><td><code>ContextBuilder</code></td><td><code>build(goal, subTopic, priorFindings)</code></td><td>Creates the context; sets expectedOutput to "Provide structured findings"</td></tr>
+    <tr><td><code>ResearchMetadata</code></td><td>sourceUrl, documentName, pageNumber, confidence, retrievedBy</td><td>Provenance: where a claim came from and how sure we are</td></tr>
+    <tr><td><code>ResearchFinding</code></td><td>claim, analysis, metadata</td><td>A claim always travels with its source info</td></tr>
+    <tr><td><code>ResearchOutput</code></td><td>findings, query, timestamp</td><td>Structured return wrapper (defined, not used yet)</td></tr>
+  </table>
+
+  <h3>What changed from Phase 3</h3>
+  <ul>
+    <li>Subagents: <code>research(subTopic, goal)</code> &rarr; <code>research(ResearchContext)</code>. They can only use what is in the context object.</li>
+    <li>The coordinator feeds findings forward: after each subagent it appends <code>"- " + finding.claim()</code> to <code>priorFindings</code>, and the next subagent receives it. Context flows <i>only through the coordinator</i> &mdash; still hub-and-spoke.</li>
+    <li>Metadata differs per agent: JobSearch has a source URL; ResumeAnalysis has document "Resume.pdf", page 3, confidence MEDIUM; SkillsMatch has no URL. <code>null</code> fields are allowed when a source does not exist (not fabricated).</li>
+  </ul>
+
+  <h3>Try it: explicit context vs. nothing</h3>
+  <div class="sim">
+    <label><input type="checkbox" id="ctxToggle" checked> Pass prior findings to the next subagent</label>
+    <pre id="ctxOut" style="margin-top:10px"></pre>
+  </div>
+
+  <div class="callout tip"><b>Exam angle:</b> the subagent prompt must contain the goal, its assigned sub-topic, the expected output format and any prior findings it needs. Do not rely on the subagent "knowing" the coordinator's conversation. Keep claims and their sources together so conflicts can be annotated instead of silently merged.</div>
+</section>
+
 <section id="map">
   <h2><small>Cheat map</small>Claude certification mapping</h2>
   <table>
@@ -267,6 +372,15 @@
     <tr><td><code>end_turn</code></td><td>StopReason.END_TURN</td><td>2</td></tr>
     <tr><td><code>client.messages.create()</code></td><td>MockClaudeClient</td><td>2</td></tr>
     <tr><td>Iteration guard</td><td>MAX_ITERATIONS = 20</td><td>2</td></tr>
+    <tr><td>Research coordinator / hub-and-spoke</td><td>CoordinatorAgent</td><td>3</td></tr>
+    <tr><td>Task decomposition</td><td>CoordinatorAgent.decompose()</td><td>3</td></tr>
+    <tr><td>Subagent delegation (Task tool)</td><td>CoordinatorAgent.delegate()</td><td>3</td></tr>
+    <tr><td>Specialist subagents</td><td>JobSearchAgent / ResumeAnalysisAgent / SkillsMatchAgent</td><td>3</td></tr>
+    <tr><td>Aggregation</td><td>ResearchReport</td><td>3</td></tr>
+    <tr><td>Coverage evaluation</td><td>CoverageReport</td><td>3</td></tr>
+    <tr><td>Explicit context passing</td><td>ResearchContext + ContextBuilder</td><td>4</td></tr>
+    <tr><td>Information provenance</td><td>ResearchMetadata (source, confidence, retrievedBy)</td><td>4</td></tr>
+    <tr><td>Subagent isolation</td><td>Agents use only the ResearchContext they are given</td><td>4</td></tr>
   </table>
 </section>
 
@@ -283,6 +397,12 @@
     <tr><td>MockClaudeClientTest</td><td>Scripted responses come out in order</td></tr>
     <tr><td>AgentLoopV2Test</td><td>TOOL_USE continues, END_TURN stops</td></tr>
     <tr><td>SequentialToolExecutionTest</td><td>TOOL_USE → TOOL_USE → END_TURN, iterations=3, history=2</td></tr>
+    <tr><td>CoordinatorAgentTest</td><td>Decompose, delegate, coverage and report from the hub</td></tr>
+    <tr><td>JobSearchAgentTest / ResumeAnalysisAgentTest / SkillsMatchAgentTest</td><td>Each specialist returns a finding for its context</td></tr>
+    <tr><td>ResearchContextTest / ContextBuilderTest</td><td>Context record and builder fill the fields correctly</td></tr>
+    <tr><td>ContextPassingTest</td><td>A subagent accepts and uses the passed context</td></tr>
+    <tr><td>SubagentIsolationTest</td><td>A subagent works from only the context it was given</td></tr>
+    <tr><td>ResearchMetadataTest / MetadataPreservationTest</td><td>Provenance fields are created and survive in the finding</td></tr>
   </table>
   <div class="callout tip">Testing agents is hard with real LLMs because outputs vary. A <b>mock client</b> makes the loop logic fully deterministic &mdash; a pattern worth mentioning in interviews.</div>
 </section>
@@ -318,6 +438,14 @@
     <tr><td>Checking <code>content[0].type == "text"</code> for completion</td><td>A response can contain text <i>and</i> a <code>tool_use</code> block, so the agent exits too early.</td></tr>
   </table>
 
+  <h3>Where Phase 3 and 4 fit in Domain 1</h3>
+  <ul>
+    <li><b>1.2 Multi-agent orchestration:</b> hub-and-spoke &mdash; the coordinator owns all communication; subagents have isolated context.</li>
+    <li><b>1.3 Subagent invocation &amp; context passing:</b> pass findings and goals explicitly in the subagent prompt (<code>ResearchContext</code>); independent subtasks can run in parallel via several Task calls in one response.</li>
+    <li><b>5.6 Information provenance:</b> keep claim&ndash;source mappings (<code>ResearchMetadata</code>) and annotate conflicting values with their sources.</li>
+    <li><b>1.6 Task decomposition:</b> a too-narrow decomposition is a classic failure; check coverage against the real goal.</li>
+  </ul>
+
   <h3>More things to remember</h3>
   <ul>
     <li>Don't drop tool results from history or replace history with a summary just to save tokens; shrink what the tool returns instead.</li>
@@ -349,7 +477,25 @@
     Deterministic, free, offline. It lets you test loop logic and tool flow without keys, credits or network, and makes unit tests stable.</details>
   <details><summary>In the sequential scenario, why is iterationCount 3 but history size 2?</summary>
     Three calls to Claude (tool_use, tool_use, end_turn) but only two tool executions are recorded in history. The END_TURN call produces the final answer, not a tool run.</details>
-  <details><summary>What changes in Phase 3 when the real SDK arrives?</summary>
+  <details><summary>What is the hub-and-spoke pattern and why use it?</summary>
+    One coordinator talks to specialist subagents; subagents never talk to each other. It centralises control, error handling, logging and context, and makes clear who owns the final result.</details>
+  <details><summary>What does the CoordinatorAgent do, step by step?</summary>
+    Decompose the goal into sub-topics, delegate each to a specialist, evaluate coverage (covered vs gaps vs completeness), then aggregate findings into a ResearchReport.</details>
+  <details><summary>How is completeness calculated and what is its weakness?</summary>
+    Covered distinct sub-topics divided by planned sub-topics. It only checks that a finding exists, not that it is good, and it cannot detect topics the decomposition never planned.</details>
+  <details><summary>Why must a subagent's context be passed explicitly?</summary>
+    Subagents have isolated context; they do not inherit the coordinator's conversation. Without an explicit goal, assigned sub-topic, expected output and prior findings (<code>ResearchContext</code>) they work blind or duplicate effort.</details>
+  <details><summary>How could Phase 3 delegation be made faster?</summary>
+    The sub-topics are independent, so launch the subagents in parallel (several Task calls in one response) instead of looping sequentially.</details>
+  <details><summary>What are the known limitations of the current Phase 3/4 code?</summary>
+    Hard-coded decomposition, hard-coded subagent output, unknown sub-topics routed to SkillsMatchAgent by the default branch, no refine step, sequential delegation, runners not wired into <code>Application</code>, and a coverage metric that always reports 100% with no gaps.</details>
+  <details><summary>Why is the current completeness metric weak?</summary>
+    It divides the number of findings by the number of planned sub-topics, and every sub-topic always produces a finding, so the result is always 1.0 and gaps is always empty. A useful metric must be able to fail: compare required topics against findings that actually contain evidence.</details>
+  <details><summary>What goes into a good subagent context?</summary>
+    The original goal, the assigned sub-topic, the expected output format and any prior findings it needs (<code>ResearchContext</code>). Passed explicitly because subagents do not inherit the coordinator's conversation.</details>
+  <details><summary>Why does a finding carry metadata?</summary>
+    Provenance: source URL or document, page, confidence and which agent retrieved it. It lets a synthesis step trace claims, show confidence, and annotate conflicts between sources. Unknown fields stay null instead of being invented.</details>
+  <details><summary>What changes when the real SDK replaces the mock?</summary>
     Only the client: <code>MockClaudeClient</code> is replaced by the Anthropic SDK's <code>client.messages.create()</code>. AgentState, AgentLoopV2, ToolRegistry, ToolCall, ToolResult and StopReason stay unchanged &mdash; the benefit of the abstraction.</details>
   <details><summary>What is the role of tool_result in the conversation?</summary>
     After the model requests a tool, you run it and send back a <code>tool_result</code> tied to that request. Claude uses it to decide the next step. Without it Claude cannot continue reasoning.</details>
@@ -384,11 +530,16 @@ PHASE 2  Claude decides (stop_reason)    TOOL_USE -> run tool & continue
 PHASE 2.5 TOOL_USE, TOOL_USE, END_TURN   iterations=3, history=2, completed=true
 GUARD    MAX_ITERATIONS = 20  (safety only; END_TURN is the real exit)
 MOCK     MockClaudeClient = scripted fake of client.messages.create()
-PHASE 3  swap Mock -> Anthropic SDK; everything else unchanged
+PHASE 3  CoordinatorAgent: decompose -> delegate -> evaluateCoverage -> aggregate
+         hub-and-spoke: subagents never talk to each other
+         completeness = covered / planned sub-topics
+PHASE 4  ContextBuilder -> ResearchContext -> agent.research(context) -> ResearchFinding(claim, analysis, metadata)
+         priorFindings flow through the coordinator only; metadata = provenance
+LATER    swap Mock -> Anthropic SDK; loop, state, registry stay unchanged
 EXAM     stop_reason is THE signal. Never: parse "I'm done", cap-as-primary, content[0]==text.
          Keep full history incl. tool results. D1 = 27% of CCAR-F.</pre>
   <h3>Words to be able to define</h3>
-  <p>Agent · Agent loop · State · Planner · Executor · Evaluator · Tool · Tool definition · Input schema · Registry · stop_reason · tool_use · tool_result · end_turn · Sequential tool calls · Multi-step reasoning · Mock client · Iteration cap · Separation of concerns</p>
+  <p>Agent · Agent loop · State · Planner · Executor · Evaluator · Tool · Tool definition · Input schema · Registry · stop_reason · tool_use · tool_result · end_turn · Sequential tool calls · Multi-step reasoning · Mock client · Iteration cap · Separation of concerns · Hub-and-spoke · Decomposition · Delegation · Aggregation · Coverage · Context isolation · Provenance</p>
 </section>
 
 </main>
@@ -422,6 +573,42 @@ $('stepBtn').onclick=()=>{
   render();
 };
 $('resetBtn').onclick=reset;$('cap').onchange=reset;reset();
+
+/* ---------- coverage widget ---------- */
+(function(){
+  const topics=['Job Search','Resume Analysis','Skills Match','Salary Analysis','Market Trends'];
+  const box=document.getElementById('covBoxes');
+  topics.forEach(t=>{
+    const l=document.createElement('label');l.style.marginRight='14px';
+    l.innerHTML='<input type="checkbox" checked> '+t;
+    l.firstChild.onchange=upd;box.appendChild(l);
+  });
+  function upd(){
+    const on=[...box.querySelectorAll('input')].map(i=>i.checked);
+    const n=on.filter(Boolean).length;
+    document.getElementById('covN').textContent=n;
+    document.getElementById('covP').textContent=Math.round(100*n/topics.length)+'%';
+    const gaps=topics.filter((t,i)=>!on[i]);
+    document.getElementById('covGaps').innerHTML=gaps.length?'<b>Gaps:</b> '+gaps.join(', ')+' &rarr; a refine step would re-delegate these.':'No gaps.';
+  }
+  upd();
+})();
+
+/* ---------- context passing widget ---------- */
+(function(){
+  const t=document.getElementById('ctxToggle'),o=document.getElementById('ctxOut');
+  function upd(){
+    const on=t.checked;
+    o.textContent=
+'1. JobSearchAgent    context: goal, "Job Search", prior=""\n'+
+'   -> claim: "Java jobs found in Munich"\n\n'+
+'2. ResumeAnalysisAgent context: goal, "Resume Analysis", prior='+(on?'"- Java jobs found in Munich"':'""')+'\n'+
+'   -> claim: "Spring Boot experience missing"\n\n'+
+'3. SkillsMatchAgent  context: goal, "Skills Match", prior='+(on?'"- Java jobs found in Munich\\n- Spring Boot experience missing"':'""')+'\n'+
+'   -> '+(on?'can build on earlier findings':'works blind: cannot relate jobs to the resume gaps');
+  }
+  t.onchange=upd;upd();
+})();
 
 /* ---------- generic CCAR-F style quiz ---------- */
 const DOMAINS={1:'D1 Agentic Architecture',2:'D2 Tools & MCP',3:'D3 Claude Code',4:'D4 Prompts & Structured Output',5:'D5 Context & Reliability'};
