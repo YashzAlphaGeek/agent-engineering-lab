@@ -29,6 +29,7 @@ D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\main\java\com\catalys
 D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\main\java\com\catalyst\phases\Phase2Runner.java
 D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\main\java\com\catalyst\phases\Phase3Runner.java
 D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\main\java\com\catalyst\phases\Phase4Runner.java
+D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\main\java\com\catalyst\phases\Phase5Runner.java
 D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\main\java\com\catalyst\tools\BaseTool.java
 D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\main\java\com\catalyst\tools\CalculatorTool.java
 D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\main\java\com\catalyst\tools\JobSearchTool.java
@@ -36,3 +37,12 @@ D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\main\java\com\catalys
 D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\main\java\com\catalyst\tools\ToolDefinition.java
 D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\main\java\com\catalyst\tools\ToolRegistry.java
 D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\main\java\com\catalyst\tools\WebSearchTool.java
+D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\main\java\com\catalyst\workflow\HandoffBuilder.java
+D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\main\java\com\catalyst\workflow\JobApplicationWorkflow.java
+D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\main\java\com\catalyst\workflow\WorkflowEngine.java
+D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\main\java\com\catalyst\workflow\WorkflowExecutionResult.java
+D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\main\java\com\catalyst\workflow\WorkflowHandoff.java
+D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\main\java\com\catalyst\workflow\WorkflowState.java
+D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\main\java\com\catalyst\workflow\WorkflowStatus.java
+D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\main\java\com\catalyst\workflow\WorkflowStep.java
+D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\main\java\com\catalyst\workflow\WorkflowValidator.java

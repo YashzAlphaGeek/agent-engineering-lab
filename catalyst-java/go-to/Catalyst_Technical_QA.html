@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Catalyst – Technical Questions &amp; Answers</title>
+<style>
+  :root{--bg:#f7f8fb;--card:#fff;--ink:#1d2433;--mute:#5d6678;--line:#e1e5ee;--acc:#4f46e5;--ok:#16a34a;--warn:#d97706}
+  *{box-sizing:border-box}
+  body{margin:0;font:16px/1.65 system-ui,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+  header{background:linear-gradient(135deg,#4f46e5,#0ea5e9);color:#fff;padding:36px 24px}
+  header h1{margin:0 0 6px;font-size:1.8rem}
+  header p{margin:0;opacity:.92;max-width:780px}
+  .wrap{display:flex;max-width:1180px;margin:0 auto;gap:28px;padding:24px}
+  nav{position:sticky;top:16px;align-self:flex-start;min-width:220px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+  nav b{display:block;margin-bottom:6px;font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--mute)}
+  nav a{display:block;padding:5px 8px;color:var(--ink);text-decoration:none;border-radius:6px;font-size:.9rem}
+  nav a:hover{background:#eef0ff;color:var(--acc)}
+  nav button{margin-top:8px;width:100%;background:var(--acc);color:#fff;border:0;border-radius:8px;padding:7px;font-weight:600;cursor:pointer}
+  main{flex:1;min-width:0}
+  section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:24px 26px;margin-bottom:22px}
+  h2{margin:0 0 10px;font-size:1.35rem}
+  h2 small{display:block;font-size:.75rem;font-weight:600;color:var(--acc);text-transform:uppercase;letter-spacing:.07em}
+  details{border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin:9px 0;background:#fcfcff}
+  summary{cursor:pointer;font-weight:600}
+  details[open] summary{color:var(--acc);margin-bottom:8px}
+  p{margin:8px 0}
+  code{background:#eef0f6;padding:1px 6px;border-radius:5px;font:0.88em ui-monospace,Consolas,monospace}
+  pre{background:#0f172a;color:#e2e8f0;padding:12px 14px;border-radius:10px;overflow:auto;font:.84rem/1.5 ui-monospace,Consolas,monospace;margin:10px 0}
+  pre code{background:none;padding:0;color:inherit}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:.92rem}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+  th{background:#f0f2f9}
+  .tip{border-left:4px solid var(--ok);background:#ecfdf3;padding:8px 12px;border-radius:0 8px 8px 0;margin:10px 0}
+  .warn{border-left:4px solid var(--warn);background:#fff7ea;padding:8px 12px;border-radius:0 8px 8px 0;margin:10px 0}
+  .tabs{max-width:1180px;margin:0 auto;padding:16px 24px 0;display:flex;gap:8px}
+  .tabs button{background:#e5e7f5;color:var(--ink);border:0;border-radius:10px 10px 0 0;padding:10px 20px;font:600 .95rem system-ui;cursor:pointer}
+  .tabs button.on{background:var(--acc);color:#fff}
+  .panel{display:none}.panel.on{display:flex}
+  .dg{max-width:640px;margin:14px auto;display:flex;flex-direction:column;align-items:stretch}
+  .dg-gate,.dg-coord,.dg-sub-agent{border-radius:12px;padding:12px 16px;text-align:center;position:relative}
+  .dg-gate{background:#e8f8ee;border:2px solid #16a34a}
+  .dg-coord{background:#eef0ff;border:2px solid #4f46e5;flex:1}
+  .dg-sub-agent{background:#fff4e0;border:2px solid #d97706;flex:1;min-width:140px}
+  .dg-title{font-weight:700}
+  .dg-sub{font-size:.85rem;color:var(--mute)}
+  .dg-tag{position:absolute;top:-10px;left:14px;background:#1d2433;color:#fff;font-size:.68rem;letter-spacing:.05em;padding:1px 9px;border-radius:999px}
+  .dg-arrow{text-align:center;color:var(--mute);padding:6px 0;line-height:1.2}
+  .dg-arrow span{display:block;font-size:1.1rem;color:var(--acc)}
+  .dg-arrow em{font-size:.8rem}
+  .dg-side{display:flex;gap:12px;align-items:stretch}
+  .dg-deny{flex:1;border:2px dashed #dc2626;background:#fde8e8;border-radius:12px;padding:10px 12px;font-size:.84rem}
+  .dg-row{display:flex;gap:10px;flex-wrap:wrap}
+  .dg-legend{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-top:14px;font-size:.8rem;color:var(--mute)}
+  .dg-legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+  .cat{border-left:4px solid #db2777;background:#fdf2f8;padding:8px 12px;border-radius:0 8px 8px 0;margin:12px 0;font-size:.93rem}
+  .cat-chip{display:inline-block;background:#db2777;color:#fff;font-size:.68rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:1px 9px;border-radius:999px;margin-right:6px}
+  /* core principle card v3 (clean, with mapping) */
+  .pr{margin:18px 0 24px;border-radius:18px;padding:28px 26px 22px;color:#e8ecff;background:#111735;border:1px solid #2a3470}
+  .pr-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .pr-badge{background:#fbbf24;color:#1c1405;font-size:.7rem;font-weight:800;letter-spacing:.1em;padding:4px 13px;border-radius:999px}
+  .pr-quote{font-size:1.65rem;line-height:1.3;font-weight:700;margin:14px 0 4px;letter-spacing:-.01em;color:#fff}
+  .pr-quote .b{color:#a5b4fc}.pr-quote .h{color:#6ee7b7}.pr-quote .v{color:#fca5a5}
+  .pr-flow{display:flex;align-items:stretch;gap:10px;margin:20px 0 6px}
+  .pr-card{flex:1;min-width:0;border-radius:14px;padding:15px 16px 14px;background:#1a2147;border:1px solid #333f85}
+  .pr-card .ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;margin-bottom:10px}
+  .pr-card .ic svg{width:25px;height:25px}
+  .pr-card .step{font-size:.66rem;font-weight:800;letter-spacing:.12em;opacity:.7}
+  .pr-card h4{margin:2px 0 0;font-size:1.2rem;letter-spacing:.05em;color:#fff}
+  .pr-card .who{display:inline-block;margin:6px 0 8px;font-size:.66rem;font-weight:700;letter-spacing:.1em;padding:2px 9px;border-radius:999px}
+  .pr-card p{margin:0;font-size:.9rem;line-height:1.5;color:#cfd6f6}
+  .pr-card.brain{border-color:#6366f1}.pr-card.brain .ic,.pr-card.brain .who{background:#312e81;color:#c7d2fe}
+  .pr-card.veto{border-color:#ef4444}.pr-card.veto .ic{background:#5b1d1d;color:#fecaca}.pr-card.veto .who{background:#064e3b;color:#a7f3d0}
+  .pr-card.hands{border-color:#10b981}.pr-card.hands .ic,.pr-card.hands .who{background:#064e3b;color:#a7f3d0}
+  .pr-link{flex:0 0 auto;align-self:center;text-align:center;font-size:.64rem;letter-spacing:.08em;color:#9aa6d6;max-width:72px;line-height:1.25}
+  .pr-link i{display:block;font-style:normal;font-size:1.4rem;color:#fcd34d;line-height:1}
+  .pr-time{display:flex;margin:16px 0 0;border-radius:10px;overflow:hidden;border:1px solid #333f85;font-size:.82rem}
+  .pr-time div{padding:9px 14px}
+  .pr-time .d{flex:0 0 38%;background:#0f3d33}
+  .pr-time .r{flex:1;background:#262c6b}
+  .pr-time b{display:block;font-size:.66rem;letter-spacing:.12em;opacity:.8}
+  .pr-sec{margin:22px 0 8px;font-size:.74rem;font-weight:800;letter-spacing:.12em;color:#fcd34d}
+  .pr-map{overflow-x:auto}
+  .pr-map table{width:100%;border-collapse:collapse;font-size:.84rem;color:#dfe5ff;margin:0}
+  .pr-map th{background:#1a2147;color:#9aa6d6;font-size:.68rem;letter-spacing:.09em;text-transform:uppercase;border:1px solid #333f85;padding:8px 10px;text-align:left}
+  .pr-map td{border:1px solid #333f85;padding:8px 10px;vertical-align:top;background:#141a3d}
+  .pr-map td.role{font-weight:800;white-space:nowrap}
+  .pr-map td.role.b{color:#a5b4fc}.pr-map td.role.v{color:#fca5a5}.pr-map td.role.h{color:#6ee7b7}
+  .pr-map th.cx{background:#831843;color:#fbcfe8}
+  .pr-map td.cx{background:#2a1020;color:#fbcfe8}
+  .pr-map code{background:#262c6b;color:#fff;padding:0 5px;border-radius:4px;font-size:.92em}
+  .pr-map td.cx code{background:#5b1a3b}
+  .pr-ex{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:.84rem}
+  .pr-ex .c{border-radius:9px;padding:7px 11px;border:1px solid #333f85;background:#1a2147}
+  .pr-ex .c.b{border-color:#6366f1}.pr-ex .c.v{border-color:#ef4444}.pr-ex .c.h{border-color:#10b981}
+  .pr-ex .c.x{border-style:dashed;border-color:#ef4444;background:#3a1620}
+  .pr-ex .a{color:#fcd34d;font-weight:800}
+  .pr-ex small{display:block;opacity:.7;font-size:.7rem;letter-spacing:.06em}
+  .pr-rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-top:20px}
+  .pr-rule{display:flex;gap:10px;align-items:flex-start;background:#0b1028;border-radius:10px;padding:10px 12px;font-size:.9rem;color:#e3e8ff}
+  .pr-rule .n{flex:0 0 26px;height:26px;border-radius:50%;background:#fbbf24;color:#1c1405;font-weight:800;font-size:.8rem;display:grid;place-items:center}
+  .pr-rule b{color:#fcd34d}
+  @media(max-width:760px){.pr-flow{flex-direction:column}.pr-link{max-width:none}.pr-link i{transform:rotate(90deg)}.pr-time{flex-direction:column}.pr-quote{font-size:1.3rem}}
+  .empty{color:var(--mute);font-style:italic}
+  footer{text-align:center;color:var(--mute);padding:20px;font-size:.85rem}
+  @media(max-width:860px){.wrap{flex-direction:column}nav{position:static}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Catalyst – Technical Questions &amp; Answers</h1>
+  <p>Deeper, code-level questions on the Catalyst prep guide: loop mechanics, the real Anthropic API, tool design, multi-agent orchestration, context passing, workflow gates, Java design and testing. Click a question to reveal the answer &mdash; try answering first.</p>
+</header>
+<div class="tabs">
+  <button type="button" class="on" data-p="panel-tech">Technical Q&amp;A</button>
+  <button type="button" data-p="panel-mine">My Questions</button>
+</div>
+<div class="wrap panel on" id="panel-tech">
+<nav>
+  <b>Topics</b>
+  <a href="#t1">1. Agent loop</a>
+  <a href="#t2">2. Real Claude API</a>
+  <a href="#t3">3. Tools &amp; registry</a>
+  <a href="#t4">4. Multi-agent</a>
+  <a href="#t5">5. Context &amp; provenance</a>
+  <a href="#t6">6. Workflow gates</a>
+  <a href="#t7">7. Java design</a>
+  <a href="#t8">8. Testing</a>
+  <a href="#t9">9. Scenario / debugging</a>
+  <button id="toggle" type="button">Expand all</button>
+</nav>
+<main>
+
+<!-- ============ 1 ============ -->
+<section id="t1">
+<h2><small>Topic 1</small>Agent loop mechanics</h2>
+
+<details><summary>1.1 Walk through <code>AgentLoopV2</code> line by line. What are the exit conditions?</summary>
+<pre><code>while (!state.isCompleted()) {
+    if (state.getIterationCount() &gt;= MAX_ITERATIONS) { warn(); break; }   // guard rail
+    state.incrementIteration();
+    ClaudeResponse r = client.nextResponse();
+    state.setStopReason(r.stopReason());
+
+    if (r.stopReason() == StopReason.TOOL_USE) {
+        ToolCall call = r.toolCall();
+        BaseTool tool = registry.get(call.toolName());       // unknown name -&gt; stop / error result
+        String out = tool.execute(call.input());
+        state.addHistory(new ToolResult(call.id(), out));
+        continue;                                              // ask Claude again
+    }
+    if (r.stopReason() == StopReason.END_TURN) {
+        state.setFinalResponse(r.text());
+        state.setCompleted(true);
+        break;
+    }
+}</code></pre>
+Exit conditions: (1) <code>END_TURN</code> &mdash; the normal, intended exit; (2) <code>MAX_ITERATIONS</code> &mdash; safety only; (3) an unknown tool name (the runner stops). An exception from a tool is a fourth, unplanned exit &mdash; see 1.5.
+</details>
+
+<details><summary>1.2 Why is the iteration cap checked at the <b>top</b> of the loop rather than the bottom?</summary>
+Checking before calling the model means you never spend an API call that would be thrown away. With cap = 2 the loop makes exactly 2 calls (both TOOL_USE) and then stops without ever seeing END_TURN &mdash; this is what the simulator shows. Checking at the bottom would allow one extra call (cap + 1 total) and makes the off-by-one harder to reason about.
+</details>
+
+<details><summary>1.3 Why is <code>iterationCount = 3</code> but <code>history.size() = 2</code>?</summary>
+<code>iterationCount</code> counts <i>model calls</i> (TOOL_USE, TOOL_USE, END_TURN). <code>history</code> records <i>tool executions</i> (job_search, resume_analyzer). The END_TURN call returns a final answer and runs no tool. General formula: <b>iterations = toolCalls + 1</b> for a successful run (assuming one tool per response).
+</details>
+
+<details><summary>1.4 Why must the loop send the <i>full</i> history on every call?</summary>
+The Messages API is <b>stateless</b>. Claude remembers nothing between calls; the only memory is the <code>messages[]</code> array you send. If you drop earlier tool results, the model cannot see what it already did and may repeat tool calls or contradict itself. In Catalyst <code>AgentState.history</code> plays that role. To save tokens, shrink what a tool <i>returns</i> (trim fields, paginate) rather than deleting results or replacing history with a lossy summary.
+</details>
+
+<details><summary>1.5 What happens if <code>tool.execute()</code> throws? How should the loop handle it?</summary>
+Today an uncaught exception would crash the loop. Better: catch it and feed the failure back so the model can recover.
+<pre><code>try {
+    out = tool.execute(call.input());
+    result = new ToolResult(call.id(), out, false);
+} catch (Exception e) {
+    result = new ToolResult(call.id(), "Error: " + e.getMessage(), true);   // is_error = true
+}
+state.addHistory(result);        // model sees the failure and can retry or choose another tool</code></pre>
+In the real API this is <code>tool_result</code> with <code>"is_error": true</code>. Distinguish transient errors (retry with backoff) from permanent ones (tell the model, do not retry) and keep the error text actionable.
+</details>
+
+<details><summary>1.6 Explain the three exam anti-patterns and why each fails.</summary>
+<table>
+<tr><th>Anti-pattern</th><th>Failure mode</th></tr>
+<tr><td>Parse text like "I'm done"</td><td>Wording varies by prompt, language and model version. A false negative loops forever; a false positive exits early.</td></tr>
+<tr><td>Iteration cap as the primary stop</td><td>Cuts legitimate long tasks and lets bad loops run until the cap. A cap is a backstop, not control flow.</td></tr>
+<tr><td><code>content[0].type == "text"</code> means done</td><td>A single response can contain a text block <i>and</i> a <code>tool_use</code> block (Claude "thinks aloud" then calls a tool). Checking only the first block exits before the tool runs.</td></tr>
+</table>
+The reliable signal is <code>stop_reason</code>.
+</details>
+
+<details><summary>1.7 Can one response contain several tool calls? What does that mean for <code>ClaudeResponse</code>?</summary>
+Yes. The real API can return multiple <code>tool_use</code> blocks in one response (parallel tool use). Catalyst's <code>ClaudeResponse</code> holds a <b>single</b> <code>ToolCall</code>, a simplification. A faithful model would be:
+<pre><code>record ClaudeResponse(StopReason stopReason, List&lt;ToolCall&gt; toolCalls, String text) {}</code></pre>
+The loop would execute all calls (possibly in parallel, since they are independent) and send <b>all</b> results back together in <b>one</b> user message.
+</details>
+
+<details><summary>1.8 Why does <code>MockClaudeClient</code> keep returning END_TURN after step 3?</summary>
+It is a step counter: after the script is exhausted it defaults to END_TURN. This is a deliberate fail-safe so a test that calls it too many times terminates instead of throwing <code>IndexOutOfBounds</code>. The downside: it can hide a bug where the loop asks for more responses than expected, so tests should also assert the call count.
+</details>
+</section>
+
+<!-- ============ 2 ============ -->
+<section id="t2">
+<h2><small>Topic 2</small>The real Claude API</h2>
+
+<details><summary>2.1 Show the exact message sequence for one tool round-trip in the real API.</summary>
+<pre><code>// 1. you send
+{ "model": "...", "max_tokens": 1024,
+  "tools": [ { "name": "job_search", "description": "...", "input_schema": {...} } ],
+  "messages": [ { "role": "user", "content": "Find Java jobs" } ] }
+
+// 2. Claude replies  (stop_reason = "tool_use")
+{ "role": "assistant",
+  "content": [
+    { "type": "text",     "text": "I'll search for jobs." },
+    { "type": "tool_use", "id": "toolu_01A...", "name": "job_search",
+      "input": { "keyword": "java" } } ] }
+
+// 3. you append BOTH the assistant turn and a user turn with the result
+{ "role": "user",
+  "content": [ { "type": "tool_result", "tool_use_id": "toolu_01A...",
+                 "content": "12 results" } ] }</code></pre>
+Key rules: append the <b>entire assistant message</b> (including the tool_use block) before the result; the result goes in a <b>user</b> message; <code>tool_use_id</code> must match; tool_result blocks must come <b>first</b> in that user message's content.
+</details>
+
+<details><summary>2.2 What does Catalyst's <code>ToolCall(id, toolName, input)</code> / <code>ToolResult(toolCallId, content)</code> map to?</summary>
+<table>
+<tr><th>Catalyst</th><th>API field</th></tr>
+<tr><td><code>ToolCall.id</code></td><td><code>tool_use.id</code></td></tr>
+<tr><td><code>ToolCall.toolName</code></td><td><code>tool_use.name</code></td></tr>
+<tr><td><code>ToolCall.input</code> (String)</td><td><code>tool_use.input</code> (a JSON <i>object</i>, not a string)</td></tr>
+<tr><td><code>ToolResult.toolCallId</code></td><td><code>tool_result.tool_use_id</code></td></tr>
+<tr><td><code>ToolResult.content</code></td><td><code>tool_result.content</code></td></tr>
+<tr><td>(missing)</td><td><code>is_error</code></td></tr>
+</table>
+Gaps to fix when going live: input should be a parsed JSON map/<code>JsonNode</code>, and results need an error flag.
+</details>
+
+<details><summary>2.3 List the real <code>stop_reason</code> values and how the loop should treat each.</summary>
+<table>
+<tr><th>Value</th><th>Meaning</th><th>Action</th></tr>
+<tr><td><code>end_turn</code></td><td>Model finished</td><td>Return the answer</td></tr>
+<tr><td><code>tool_use</code></td><td>Wants tool(s) run</td><td>Execute, append results, loop</td></tr>
+<tr><td><code>max_tokens</code></td><td>Output truncated by <code>max_tokens</code></td><td>Not done. Raise the limit or continue; a truncated <code>tool_use</code> block is invalid</td></tr>
+<tr><td><code>stop_sequence</code></td><td>Custom stop string hit</td><td>Handle per your design</td></tr>
+<tr><td><code>pause_turn</code></td><td>Server-side tool turn paused</td><td>Send the response back to continue</td></tr>
+<tr><td><code>refusal</code></td><td>Model declined</td><td>Surface/handle; do not retry blindly</td></tr>
+<tr><td><code>model_context_window_exceeded</code></td><td>Hit context limit</td><td>Shrink context and retry</td></tr>
+</table>
+Rule of thumb: <b>anything other than <code>end_turn</code> is "not finished &mdash; find out why."</b> (Check the current API docs for the full, up-to-date list.)
+</details>
+
+<details><summary>2.4 What does <code>tool_choice</code> do, and when would you use each option?</summary>
+<table>
+<tr><th>Setting</th><th>Behaviour</th><th>Use when</th></tr>
+<tr><td><code>auto</code> (default)</td><td>Model decides whether to call a tool</td><td>Normal agentic work</td></tr>
+<tr><td><code>any</code></td><td>Must call <i>some</i> tool</td><td>Guaranteed structured output via tools</td></tr>
+<tr><td><code>tool</code> + name</td><td>Must call that specific tool</td><td>Force a first step (e.g. extract metadata before enrichment)</td></tr>
+<tr><td><code>none</code></td><td>No tool calls</td><td>Final summarisation turn</td></tr>
+</table>
+Forcing a tool is a <i>soft</i> workflow control for a single turn; ordering across turns still needs code (Topic 6).
+</details>
+
+<details><summary>2.5 How do you swap <code>MockClaudeClient</code> for the real SDK in this design?</summary>
+Implement <code>LLMClient</code> with a class that builds the request from <code>AgentState</code> (history -&gt; messages, registry -&gt; tools), calls <code>messages.create()</code>, and maps the SDK response to <code>ClaudeResponse</code>.
+<pre><code>class AnthropicLLMClient implements LLMClient {
+    public ClaudeResponse nextResponse(AgentState s, ToolRegistry reg) {
+        var resp = sdk.messages().create(buildParams(s, reg));
+        StopReason sr = switch (resp.stopReason()) {
+            case "tool_use" -&gt; StopReason.TOOL_USE;
+            case "end_turn" -&gt; StopReason.END_TURN;
+            default -&gt; throw new IllegalStateException("Unhandled: " + resp.stopReason());
+        };
+        return toClaudeResponse(resp, sr);
+    }
+}</code></pre>
+<div class="warn"><b>Important:</b> the guide's description of <code>nextResponse()</code> takes no arguments (the mock ignores state). A real client <b>needs</b> the state/history and tools, so the interface signature must grow. This is the one place "only the client changes" is a slight simplification.</div>
+</details>
+
+<details><summary>2.6 What else changes when you go live (cost, reliability)?</summary>
+<ul>
+<li><b>Non-determinism</b>: same input may yield different tool sequences &mdash; tests use the mock; add a few live evals.</li>
+<li><b>Latency/cost</b>: every iteration is a paid round-trip; the whole history is re-sent each time (use prompt caching for the stable prefix: system prompt + tools).</li>
+<li><b>Errors</b>: 429/5xx/overloaded need retry with exponential backoff; timeouts need a deadline.</li>
+<li><b>Secrets</b>: API key from environment/secret store, never in source.</li>
+<li><b>Context growth</b>: long loops can exceed the context window &mdash; trim tool outputs.</li>
+</ul>
+</details>
+</section>
+
+<!-- ============ 3 ============ -->
+<section id="t3">
+<h2><small>Topic 3</small>Tools, schemas and the registry</h2>
+
+<details><summary>3.1 What makes a good <code>ToolDefinition</code>?</summary>
+The model sees only name, description and schema. Good definitions: a specific verb-noun name; a description saying <i>what it does, when to use it, when not to, and what it returns</i>; a tight JSON Schema with typed, described, <code>required</code> parameters and enums where values are finite.
+<pre><code>{ "name": "job_search",
+  "description": "Search job postings by keyword and location. Use for finding openings, NOT for analysing a resume. Returns up to 10 postings with title, company, URL.",
+  "input_schema": { "type": "object",
+    "properties": { "keyword":  {"type":"string","description":"e.g. 'java'"},
+                    "location": {"type":"string","description":"City, optional"} },
+    "required": ["keyword"] } }</code></pre>
+Two tools with overlapping descriptions cause mis-selection &mdash; fix the descriptions first, not the prompt.
+</details>
+
+<details><summary>3.2 Why is <code>execute(String input)</code> a weak signature, and how would you improve it?</summary>
+A raw String forces every tool to parse its own input and gives no compile-time safety. Better: a typed input (record) validated against the schema, and a structured result.
+<pre><code>interface BaseTool&lt;I, O&gt; {
+    ToolDefinition definition();
+    O execute(I input) throws ToolException;
+}</code></pre>
+Validate model-produced input before executing: the model can emit missing or wrongly-typed fields. Return validation errors as an <code>is_error</code> result so the model can correct itself.
+</details>
+
+<details><summary>3.3 How does the registry act as a security boundary? What does it <i>not</i> protect against?</summary>
+Only registered tools can be executed, so a hallucinated tool name fails the lookup instead of running arbitrary code. It does <b>not</b> protect against misuse of a legitimate tool (bad arguments, prompt injection from tool output telling the model to call a destructive tool). Add: least-privilege tools, argument validation, allow-lists, human confirmation for destructive actions, and treat tool output as untrusted data.
+</details>
+
+<details><summary>3.4 <code>get(name)</code> returns null for an unknown tool &mdash; what is the better design?</summary>
+Return <code>Optional&lt;BaseTool&gt;</code> or throw a specific <code>UnknownToolException</code>, and have the loop convert it into an error <code>ToolResult</code> ("Unknown tool 'x'. Available: job_search, resume_analyzer") so the model can self-correct rather than the program stopping silently.
+</details>
+
+<details><summary>3.5 How many tools should one agent have?</summary>
+Fewer is better. Reliability of tool selection degrades as the list grows and overlaps (a rule of thumb is to keep an agent to a handful of focused tools). If you need many, split by role across subagents (Topic 4), each with a narrow tool set, or load tools dynamically.
+</details>
+</section>
+
+<!-- ============ 4 ============ -->
+<section id="t4">
+<h2><small>Topic 4</small>Multi-agent orchestration</h2>
+
+<details><summary>4.1 Why hub-and-spoke instead of agents talking to each other?</summary>
+<ul>
+<li><b>Observability</b>: one place to log every delegation.</li>
+<li><b>Consistent error handling</b>: the coordinator decides retry / skip / escalate.</li>
+<li><b>Controlled information flow</b>: subagents only see what the coordinator passes (isolation).</li>
+<li><b>Less coupling</b>: N specialists need N links to the hub, not N&sup2; to each other.</li>
+</ul>
+Cost: the coordinator is a bottleneck and single point of failure, and it may decompose too narrowly.
+</details>
+
+<details><summary>4.2 Make <code>delegate()</code> run sub-topics in parallel in Java. What must be true?</summary>
+Sub-topics must be <b>independent</b>. Note that in Phase 4 they are <i>not</i> fully independent because <code>priorFindings</code> feeds each into the next &mdash; parallelising forces a choice: drop the chaining for independent topics, or run in dependency stages (parallel stage 1: Job Search + Resume Analysis, then stage 2: Skills Match using both).
+<pre><code>try (var ex = Executors.newVirtualThreadPerTaskExecutor()) {          // Java 21
+    List&lt;Future&lt;ResearchFinding&gt;&gt; fs = topics.stream()
+        .map(t -&gt; ex.submit(() -&gt; agentFor(t).research(ContextBuilder.build(goal, t, List.of()))))
+        .toList();
+    List&lt;ResearchFinding&gt; findings = new ArrayList&lt;&gt;();
+    for (var f : fs) findings.add(f.get());          // or CompletableFuture + allOf
+}</code></pre>
+Also consider: per-subagent timeout, partial failure (one fails, others still return), and thread-safety of any shared state. In the Claude Agent SDK equivalent, you emit several Task tool calls in <b>one</b> response.
+</details>
+
+<details><summary>4.3 The coverage metric always returns 100%. Diagnose and fix it.</summary>
+<b>Diagnosis:</b> <code>completeness = findings.size() / topics.size()</code>, and the code always creates one finding per sub-topic, so numerator = denominator. <code>gaps</code> is hard-coded empty, and "covered" lists agent names (<code>retrievedBy</code>) instead of topics &mdash; the metric cannot fail.<br>
+<b>Fix:</b> tie each finding to the sub-topic it answers and require real evidence.
+<pre><code>Set&lt;String&gt; covered = findings.stream()
+    .filter(f -&gt; f.metadata() != null &amp;&amp; hasEvidence(f))         // source or doc present, claim non-blank
+    .map(ResearchFinding::subTopic)                              // needs a subTopic field on the record
+    .collect(toSet());
+List&lt;String&gt; gaps = planned.stream().filter(t -&gt; !covered.contains(t)).toList();
+double completeness = planned.isEmpty() ? 0.0 : (double) covered.size() / planned.size();</code></pre>
+Then add the missing <b>refine</b> step: re-delegate each gap (bounded retries). Remember coverage vs. the <i>plan</i> still cannot detect a topic the plan never included.
+</details>
+
+<details><summary>4.4 <code>delegate()</code> uses a <code>switch</code> with <code>default -&gt; SkillsMatchAgent</code>. What is the risk?</summary>
+Unknown or new sub-topics are silently routed to the wrong specialist and still "succeed", so coverage looks fine while the content is irrelevant (Salary Analysis answered by SkillsMatch). Fix: make the default <b>throw</b> or return "no capable agent" so it shows up as a gap; better, use a <code>Map&lt;String, SubAgent&gt;</code> / common <code>SubAgent</code> interface so adding an agent is registration, not editing a switch (Open/Closed).
+</details>
+
+<details><summary>4.5 What common interface would you introduce for the three subagents?</summary>
+<pre><code>interface SubAgent {
+    String topic();                                   // what it handles
+    ResearchFinding research(ResearchContext ctx);
+}
+Map&lt;String, SubAgent&gt; agents = Map.of("Job Search", new JobSearchAgent(), ...);</code></pre>
+The coordinator then depends on an abstraction, can be tested with fake subagents, and the same pattern as <code>LLMClient</code> / <code>BaseTool</code> is reused.
+</details>
+
+<details><summary>4.6 When is multi-agent the wrong choice?</summary>
+When one agent with a few tools can do the job: multi-agent adds latency, cost (each agent has its own context/tokens) and coordination bugs. Use it when tasks are genuinely parallelisable, need different tool sets / permissions, or would overflow a single context window.
+</details>
+
+<details><summary>4.7 How do you handle a subagent that fails or returns nothing?</summary>
+Return a structured failure (error type, what was attempted, partial results) rather than an empty success. The coordinator then decides: retry, route to another agent, proceed with partial coverage and <i>report the gap</i> in the final output, or escalate. Silently swallowing the failure produces a confident but incomplete report.
+</details>
+</section>
+
+<!-- ============ 5 ============ -->
+<section id="t5">
+<h2><small>Topic 5</small>Context passing &amp; provenance</h2>
+
+<details><summary>5.1 Why isn't it enough to just "trust" the subagent knows the situation?</summary>
+A subagent is a fresh model call with its own prompt; it has <b>no access</b> to the coordinator's conversation. Anything not in <code>ResearchContext</code> does not exist for it. So the context object must carry the goal, assigned sub-topic, expected output format and relevant prior findings.
+</details>
+
+<details><summary>5.2 <code>priorFindings</code> is a String built with <code>"- " + claim</code>. What are the weaknesses?</summary>
+<ul>
+<li>Loses provenance &mdash; source, page, confidence are dropped, so the next agent cannot weigh evidence.</li>
+<li>Unbounded growth &mdash; with many agents the string grows and burns tokens; pass only <i>relevant</i> findings.</li>
+<li>Unstructured &mdash; the prompt-injection and parsing surface is larger than a typed list.</li>
+</ul>
+Better: <code>List&lt;ResearchFinding&gt; priorFindings</code>, serialised into the prompt with claim + source + confidence, filtered to what the subagent needs.
+</details>
+
+<details><summary>5.3 Why are some <code>ResearchMetadata</code> fields allowed to be <code>null</code>?</summary>
+Because a source may not exist (SkillsMatch has no URL). A null honestly says "unknown"; inventing a URL would be fabrication and would poison downstream trust. Use <code>Optional</code> or explicit fields in the type, and let the aggregator display "source unknown" rather than hide it.
+</details>
+
+<details><summary>5.4 Two subagents return conflicting values for the same fact. What should the synthesis do?</summary>
+Do not silently pick one or average. Keep <b>both</b> with their sources and confidence, annotate the conflict (and the dates if they differ &mdash; it may be a time difference, not an error), and let the report or a human resolve it. This is exactly why a claim must travel with its <code>ResearchMetadata</code>.
+</details>
+
+<details><summary>5.5 How would you protect the pipeline from prompt injection in tool/web content?</summary>
+Treat all tool and retrieved content as <b>data, not instructions</b>: delimit it clearly in the prompt, never let it change tool permissions, validate the arguments of every tool call the model proposes, keep destructive tools behind confirmation or code gates, and give subagents minimal tool sets so an injected instruction has little to abuse.
+</details>
+</section>
+
+<!-- ============ 6 ============ -->
+<section id="t6">
+<h2><small>Topic 6</small>Workflow enforcement &amp; handoff</h2>
+
+<details><summary>6.1 Explain why "prompts are not enforcement".</summary>
+A prompt shifts probabilities; it does not guarantee behaviour. Under long context, odd inputs or adversarial text, the model may skip a step. A <code>canExecute()</code> check in code runs <i>every</i> time and cannot be argued out of. Use code gates where failure is costly (financial, security, regulatory, ordering that affects correctness); use prompts for style and judgement.
+</details>
+
+<details><summary>6.2 How would you make the validator more general than the linear <code>switch</code>?</summary>
+Data-driven prerequisites, so non-linear workflows (diamond dependencies) work:
+<pre><code>private static final Map&lt;WorkflowStep, Set&lt;WorkflowStep&gt;&gt; PREREQS = Map.of(
+    SEARCH_JOBS,              Set.of(),
+    ANALYZE_RESUME,           Set.of(SEARCH_JOBS),
+    MATCH_SKILLS,             Set.of(SEARCH_JOBS, ANALYZE_RESUME),
+    GENERATE_RECOMMENDATION,  Set.of(MATCH_SKILLS));
+
+boolean canExecute(WorkflowStep s, WorkflowState st) {
+    return st.completedSteps().containsAll(PREREQS.get(s));
+}</code></pre>
+Now the rule is declarative, testable by iterating the map, and MATCH_SKILLS checks all of its real prerequisites rather than only the previous step.
+</details>
+
+<details><summary>6.3 <code>completedSteps</code> is a <code>HashSet</code>. Is that a problem?</summary>
+Not for gating (membership only), but it loses order, which matters for audit trails and handoff summaries ("what was done, in what order"). Use <code>EnumSet</code> (compact, ordered by enum declaration) or <code>LinkedHashSet</code> (insertion order) &mdash; or keep a separate <code>List</code> of completion events with timestamps. For concurrent workflows, use a thread-safe structure.
+</details>
+
+<details><summary>6.4 Status becomes COMPLETED after <i>each</i> step. What's wrong?</summary>
+<code>WorkflowStatus</code> should describe the <b>workflow</b>, not the last step: IN_PROGRESS while steps remain, COMPLETED only when all required steps are done (or <code>GENERATE_RECOMMENDATION</code> finishes), BLOCKED on a failed gate. A consumer reading COMPLETED after step 1 would wrongly think the job is finished. Derive status from state instead of setting it ad hoc: <code>completed.containsAll(ALL_STEPS) ? COMPLETED : IN_PROGRESS</code>.
+</details>
+
+<details><summary>6.5 Should a blocked step throw <code>IllegalStateException</code>?</summary>
+Debatable. An exception is fine for programmer errors (calling steps out of order in code). But when the <i>model</i> proposes an out-of-order tool call, that is an expected event: return a structured "blocked: complete ANALYZE_RESUME first" tool result so the model can adapt, instead of crashing the loop. A custom checked/unchecked <code>PrerequisiteNotMetException</code> carrying the missing step is clearer than a generic <code>IllegalStateException</code>.
+</details>
+
+<details><summary>6.6 Design a self-contained escalation handoff. What fields and why?</summary>
+<table>
+<tr><th>Field</th><th>Why</th></tr>
+<tr><td>workflowId</td><td>Correlate with logs and tickets</td></tr>
+<tr><td>originalGoal / customer issue</td><td>Receiver has no conversation</td></tr>
+<tr><td>conversationSummary (actions taken)</td><td>Avoid repeating work</td></tr>
+<tr><td>rootCauseAnalysis (facts found)</td><td>Fast diagnosis</td></tr>
+<tr><td>recommendedAction</td><td>Clear next step</td></tr>
+</table>
+Possible additions: last completed step, timestamps, error details, confidence. Trigger it from code on defined conditions (policy gap, repeated failure, explicit user request for a human, no progress), not on sentiment guesses.
+</details>
+
+<details><summary>6.7 Hooks vs prompt vs gate: what is the Agent SDK "hook" equivalent of <code>WorkflowValidator</code>?</summary>
+A <code>PreToolUse</code>-style hook intercepts a tool call before execution and can allow, deny (with a message returned to the model) or modify it. <code>WorkflowValidator.canExecute</code> is the same idea hand-written: deterministic code between "model asked" and "tool ran". A <code>PostToolUse</code> hook is the counterpart for normalising or filtering tool output (e.g. trimming fields) before the model sees it.
+</details>
+</section>
+
+<!-- ============ 7 ============ -->
+<section id="t7">
+<h2><small>Topic 7</small>Java design questions</h2>
+
+<details><summary>7.1 Why use <code>record</code> for ToolCall, ToolResult, ResearchFinding, etc.?</summary>
+Records are concise immutable data carriers: final fields, canonical constructor, <code>equals/hashCode/toString</code> for free. Immutability makes them safe to share across threads and ideal for messages passed between agents. Limits: shallowly immutable (a <code>List</code> field can still be mutated unless you wrap it with <code>List.copyOf</code> in a compact constructor) and they cannot extend classes.
+</details>
+
+<details><summary>7.2 Would you model <code>StopReason</code> as an enum or something else? How would you use the compiler to protect against new values?</summary>
+An enum is right for a closed set. Use an exhaustive <code>switch</code> expression (no <code>default</code>) so adding a new constant produces a compile error wherever it is unhandled:
+<pre><code>String action = switch (reason) {
+    case TOOL_USE -&gt; "run tool";
+    case END_TURN -&gt; "finish";
+};</code></pre>
+For the real API, map unknown strings explicitly (an <code>UNKNOWN</code> value or an exception) instead of silently treating them as END_TURN.
+</details>
+
+<details><summary>7.3 Which SOLID principles do the classes demonstrate? Give one concrete example each.</summary>
+<ul>
+<li><b>S</b> &mdash; Planner plans, Executor executes, Evaluator evaluates.</li>
+<li><b>O</b> &mdash; new tool = new class + register; loop unchanged.</li>
+<li><b>L</b> &mdash; <code>MockClaudeClient</code> and a real client are interchangeable behind <code>LLMClient</code>.</li>
+<li><b>I</b> &mdash; small interfaces (<code>BaseTool</code> has two methods).</li>
+<li><b>D</b> &mdash; <code>AgentLoopV2</code> depends on <code>LLMClient</code>, not the mock.</li>
+</ul>
+</details>
+
+<details><summary>7.4 How would you add dependency injection / avoid hard-coded <code>new</code> calls in the loop?</summary>
+Pass collaborators through the constructor (<code>new AgentLoopV2(client, registry, maxIterations)</code>). That is plain constructor injection &mdash; no framework required. A framework (Spring) only helps when wiring becomes large. Also make <code>MAX_ITERATIONS</code> a constructor/config value so tests can use 2 and production 20 without editing code.
+</details>
+
+<details><summary>7.5 Is <code>AgentState</code> thread-safe? Does it need to be?</summary>
+No (plain mutable fields). A single-threaded loop does not need it. It becomes a concern if you parallelise subagents sharing state, or run several agents concurrently on one instance. Prefer one <code>AgentState</code> per run (no sharing) and immutable messages; if sharing is unavoidable, use confinement or concurrent collections / locks.
+</details>
+
+<details><summary>7.6 Logging: <code>System.out.println</code> vs a real logger?</summary>
+Use SLF4J/Logback (or <code>java.util.logging</code>) with levels and structured fields (runId, iteration, toolName, durationMs, stopReason). For agents, a per-iteration trace (request summary, stop_reason, tool, latency, token usage) is the primary debugging tool. Never log secrets or full user PII.
+</details>
+</section>
+
+<!-- ============ 8 ============ -->
+<section id="t8">
+<h2><small>Topic 8</small>Testing</h2>
+
+<details><summary>8.1 How do you test an agent whose real model is non-deterministic?</summary>
+Layered approach: (1) <b>unit tests</b> with the scripted mock for loop logic, tool flow, gates, parsing; (2) <b>contract tests</b> that the real-client adapter maps SDK JSON to <code>ClaudeResponse</code> correctly (use recorded fixtures); (3) a small set of <b>live evals</b> scored on properties (correct tool chosen, no forbidden call, answer contains required facts) rather than exact text, run on a schedule.
+</details>
+
+<details><summary>8.2 Write the test for the engine's untested blocked path.</summary>
+<pre><code>@Test
+void blockedStepSetsBlockedAndThrows() {
+    var engine = new WorkflowEngine(new WorkflowValidator());
+    var state  = new WorkflowState();
+
+    assertThrows(IllegalStateException.class,
+        () -&gt; engine.execute(WorkflowStep.MATCH_SKILLS, state));
+
+    assertEquals(WorkflowStatus.BLOCKED, state.getStatus());
+    assertFalse(state.getCompletedSteps().contains(WorkflowStep.MATCH_SKILLS));   // no side effect
+}</code></pre>
+Also test the happy path order and that a blocked attempt does not corrupt previously completed steps.
+</details>
+
+<details><summary>8.3 What tests would catch the "always 100% coverage" bug?</summary>
+A <b>negative</b> test: make one subagent return nothing (or a fake coordinator that skips "Market Trends") and assert <code>completeness &lt; 1.0</code> and that <code>gaps</code> contains that topic. If a metric has no test where it fails, it can silently become meaningless.
+</details>
+
+<details><summary>8.4 What does <code>SubagentIsolationTest</code> really prove, and what can't it prove?</summary>
+It proves the Java subagent's output depends only on the passed <code>ResearchContext</code> (change the context, output changes; nothing read from globals). With hard-coded subagents it is largely structural. It cannot prove isolation of a <i>real LLM</i> subagent &mdash; that is guaranteed by what you put in its prompt and tool set, which you verify by inspecting the prompt your code builds.
+</details>
+
+<details><summary>8.5 Why assert the number of mock calls in loop tests?</summary>
+To catch loops that ask the model too many or too few times (e.g. an off-by-one in the cap, or a path that skips END_TURN). <code>iterationCount</code>, history size and mock-call count together pin the behaviour precisely.
+</details>
+</section>
+
+<!-- ============ 9 ============ -->
+<section id="t9">
+<h2><small>Topic 9</small>Scenario &amp; debugging questions</h2>
+
+<details><summary>9.1 The agent keeps calling <code>job_search</code> with the same arguments until MAX_ITERATIONS. What do you check?</summary>
+<ol>
+<li>Is the <code>tool_result</code> actually appended to history (with the correct <code>tool_use_id</code>)? If not the model never sees an answer.</li>
+<li>Is the result empty/ambiguous or an unexplained error? The model may retry hoping for a different answer.</li>
+<li>Is the tool description unclear about what a successful result means?</li>
+<li>Is history being truncated or replaced by a summary that loses the earlier result?</li>
+<li>Add loop detection: same tool + same args N times -&gt; stop and escalate.</li>
+</ol>
+</details>
+
+<details><summary>9.2 The agent finishes early, before running the second tool. Likely causes?</summary>
+Terminating on text content (<code>content[0].type=="text"</code> or phrase matching) instead of <code>stop_reason</code>; treating <code>max_tokens</code> as done; or the loop breaking after the first tool because of a misplaced <code>break</code>/<code>return</code>. Check logged <code>stop_reason</code> for each iteration.
+</details>
+
+<details><summary>9.3 Your report says "all topics covered" but the Salary section is junk. Why, and what do you change?</summary>
+The <code>default</code> branch routed Salary Analysis to <code>SkillsMatchAgent</code>, which returned a hard-coded finding; the coverage metric counted it. Fixes: dedicated agent or explicit "unsupported" failure, a coverage check based on evidence (source present) and topic relevance, and a negative test.
+</details>
+
+<details><summary>9.4 Costs exploded after adding more tools. Why, and what do you do?</summary>
+Every call re-sends <code>tools[]</code> and the whole history; more tools means more input tokens per iteration, and more tools can also cause extra wrong-tool calls. Mitigate: fewer, sharper tools; split by subagent; <b>prompt caching</b> for the static prefix; trim large tool outputs; cap iterations; set a per-run token/cost budget.
+</details>
+
+<details><summary>9.5 A user asks for step 3 before step 2 is done. What happens in each design (prompt-only vs gate)?</summary>
+<b>Prompt-only:</b> the model may comply and skip a prerequisite &mdash; probabilistic. <b>Gate:</b> <code>canExecute</code> returns false, the step is BLOCKED, and the model (or caller) gets a message naming the missing prerequisite so it can run it first. The gate gives a guarantee; the prompt gives a hint.
+</details>
+
+<details><summary>9.6 Explain the whole architecture in 60 seconds.</summary>
+"An agent is a goal-driven loop. State holds the memory, a decision-maker picks the next action, an executor runs registered tools, and a stop condition ends the run. In Catalyst the decision-maker evolved from a rule-based Planner to a Claude-style client driven by <code>stop_reason</code> &mdash; <code>TOOL_USE</code> runs a tool and loops, <code>END_TURN</code> finishes, with an iteration cap only as a safety net. On top I built hub-and-spoke orchestration: a coordinator decomposes the goal, passes explicit context to specialist subagents, and aggregates findings that carry provenance. Finally, ordering rules live in code &mdash; a prerequisite gate plus structured handoff &mdash; because prompts aren't enforcement. Everything sits behind small interfaces, so swapping the mock for the real SDK is a one-class change, and the mock keeps tests deterministic."
+</details>
+</section>
+
+</main>
+</div>
+
+<div class="wrap panel" id="panel-mine">
+<main>
+<section id="mine">
+<h2><small>Personal</small>My Questions</h2>
+<div class="pr">
+  <div class="pr-top"><span class="pr-badge">THE CORE PRINCIPLE</span></div>
+  <p class="pr-quote">The LLM is the <span class="b">brain</span> for choosing and proposing. Code is the <span class="h">hands</span> and the <span class="v">veto</span>.</p>
+
+  <div class="pr-flow">
+    <div class="pr-card brain">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.9 5.6L19.5 9.5l-5.6 1.9L12 17l-1.9-5.6L4.5 9.5l5.6-1.9L12 2zm7 11l.9 2.6 2.6.9-2.6.9L19 20l-.9-2.6-2.6-.9 2.6-.9L19 13z"/></svg></div>
+      <span class="step">STEP 1</span>
+      <h4>BRAIN</h4><span class="who">LLM</span>
+      <p>Chooses and <b>proposes</b>. Understands language, picks a tool, drafts an answer. Its output is only <b>text</b>: a request. Nothing has happened yet.</p>
+    </div>
+    <div class="pr-link"><i>&#10140;</i>PROPOSAL</div>
+    <div class="pr-card veto">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V6l8-3z"/><path d="M9 12l2.2 2.2L15.5 10"/></svg></div>
+      <span class="step">STEP 2</span>
+      <h4>VETO</h4><span class="who">YOUR CODE</span>
+      <p><b>Allows or refuses.</b> Gates, hooks and validators block anything outside the rules, and tell the model why.</p>
+    </div>
+    <div class="pr-link"><i>&#10140;</i>IF ALLOWED</div>
+    <div class="pr-card hands">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg></div>
+      <span class="step">STEP 3</span>
+      <h4>HANDS</h4><span class="who">YOUR CODE</span>
+      <p><b>Executes.</b> Runs the tool, calls the API, changes the data, and returns a <code style="background:#262c6b;color:#fff">tool_result</code> to the model.</p>
+    </div>
+  </div>
+
+  <div class="pr-time">
+    <div class="d"><b>DESIGN TIME (HUMANS)</b>Write, review, test and version the rules</div>
+    <div class="r"><b>RUN TIME (EVERY REQUEST)</b>LLM proposes &rarr; code checks &rarr; execute or refuse</div>
+  </div>
+
+  <div class="pr-sec">MAPPING: ROLE &rarr; COMMON TERMS &rarr; WORKFLOW &rarr; CATALYST</div>
+  <div class="pr-map">
+  <table>
+    <tr><th>Role</th><th>Other names for it</th><th>In Claude / Agent SDK</th><th>In an orchestrated workflow</th><th class="cx">Catalyst class</th></tr>
+    <tr>
+      <td class="role b">BRAIN</td>
+      <td>LLM, model, decision-maker, planner, reasoner</td>
+      <td>The model's response: <code>tool_use</code> block, text, <code>stop_reason</code></td>
+      <td>An LLM-driven <b>coordinator</b> (decides what to delegate) and LLM-backed <b>subagents</b> (do the reasoning work)</td>
+      <td class="cx"><code>LLMClient</code> / <code>MockClaudeClient</code> on the single-agent path today. Coordinator and subagents are still code</td>
+    </tr>
+    <tr>
+      <td class="role v">VETO</td>
+      <td>Guardrail, policy gate, validator, referee, prerequisite check, control layer</td>
+      <td><code>PreToolUse</code> hook, permission rules, allowed-tools list, iteration limit</td>
+      <td>The <b>workflow engine</b>: prerequisites and ordering, limits, escalation. Sits above the coordinator</td>
+      <td class="cx"><code>WorkflowEngine</code>, <code>WorkflowValidator.canExecute</code>, registry lookup, <code>MAX_ITERATIONS</code></td>
+    </tr>
+    <tr>
+      <td class="role h">HANDS</td>
+      <td>Executor, tool runtime, harness, actuator, host application</td>
+      <td>Your app running the tool and sending a <code>tool_result</code>, an MCP server, a <code>PostToolUse</code> hook</td>
+      <td>Running a workflow step: the tool call, the delegation to a subagent, the API or database action</td>
+      <td class="cx"><code>Executor</code>, <code>tool.execute()</code>, <code>CoordinatorAgent.delegate()</code></td>
+    </tr>
+  </table>
+  </div>
+
+  <div class="pr-sec">ONE WORKFLOW STEP, END TO END</div>
+  <div class="pr-ex">
+    <div class="c b"><small>BRAIN</small>Coordinator proposes:<br>delegate <b>MATCH_SKILLS</b></div><span class="a">&rarr;</span>
+    <div class="c v"><small>VETO (workflow engine)</small>Is <b>ANALYZE_RESUME</b> completed?</div><span class="a">&rarr;</span>
+    <div class="c h"><small>HANDS, if yes</small>Subagent runs, finding returns, step marked done</div>
+    <span class="a">or</span>
+    <div class="c x"><small>VETO, if no</small>BLOCKED, reason sent back, nothing runs</div>
+  </div>
+
+  <div class="pr-rules">
+    <div class="pr-rule"><span class="n">1</span><span>The LLM <b>never executes anything</b>.</span></div>
+    <div class="pr-rule"><span class="n">2</span><span>Its rules are <b>written by humans before runtime</b>.</span></div>
+    <div class="pr-rule"><span class="n">3</span><span>So <b>enforcement belongs in code</b>, not in the prompt.</span></div>
+  </div>
+</div>
+
+<!-- MY-QUESTIONS-START -->
+<p style="font-size:.88rem;color:var(--mute)">Answers are written <b>generically</b> for the Claude Certified Architect (CCAR-F) exam. Anything about the Catalyst project is kept in a separate <span class="cat-chip">Catalyst-specific</span> box at the end of each answer. Exam details are as reported by community sources &mdash; verify against the official exam guide.</p>
+
+<details open><summary>Q1. An agent's decision-making can be rule-based or model-driven (LLM). Is that the right way to think about it?</summary>
+<p><b>Yes, with the precise vocabulary Anthropic uses.</b> In <i>Building Effective Agents</i> the distinction is:</p>
+<table>
+<tr><th></th><th>Workflow</th><th>Agent</th></tr>
+<tr><td>Who controls the path</td><td><b>Your code</b> (predefined paths; the LLM is called at fixed points)</td><td><b>The LLM</b> dynamically directs its own process and tool use</td></tr>
+<tr><td>Predictability</td><td>High, repeatable, easy to test</td><td>Lower; flexible, handles open-ended tasks</td></tr>
+<tr><td>Cost / latency</td><td>Lower</td><td>Higher (more model calls)</td></tr>
+<tr><td>Best for</td><td>Well-defined tasks with known steps</td><td>Problems where steps cannot be predicted in advance</td></tr>
+</table>
+<ul>
+<li>So "rule-based" = code decides the next step; "model-driven" = the LLM decides it, using <code>stop_reason</code> and tool results to loop.</li>
+<li>Model-driven <i>tool selection</i> is the <b>default</b> in agentic loops. Programmatic control is added <b>where compliance demands it</b> (financial, security, regulatory).</li>
+<li>Guidance: use the simplest thing that works (single call &rarr; workflow &rarr; agent). Don't build an agent when a workflow will do.</li>
+<li>Real systems are <b>hybrid</b>: the LLM decides within guardrails that code enforces.</li>
+</ul>
+<div class="cat"><span class="cat-chip">Catalyst-specific</span> Phase 1's <code>Planner</code> is the rule-based decision-maker (really workflow-style); Phase 2's <code>LLMClient</code> is the model-driven one. The rest of the skeleton (state, loop, registry, tools) is unchanged between them.</div>
+</details>
+
+<details open><summary>Q2. When should I use the LLM, and when rules? What is the difference between rule-based (programmatic) and prompt-based?</summary>
+<p><b>Rule-based and programmatic are the same thing: deterministic code. Prompt-based is different: it is an instruction to the LLM, so it is still model behaviour &mdash; probabilistic.</b> This is one of the most tested distinctions in the exam (programmatic enforcement vs prompt-based guidance).</p>
+<table>
+<tr><th></th><th>Programmatic (hooks, gates, validators)</th><th>Prompt-based (system prompt, instructions, few-shot)</th></tr>
+<tr><td>Executed by</td><td>Your application code</td><td>The model</td></tr>
+<tr><td>Guarantee</td><td><b>Deterministic</b> &mdash; cannot be skipped</td><td><b>Probabilistic</b> &mdash; usually followed, can be missed or overridden (e.g. by injected text)</td></tr>
+<tr><td>Right for</td><td>Rules where a single failure is unacceptable</td><td>Judgement, tone, format, preferences, guidance</td></tr>
+</table>
+<p>Prompt-based is how you <b>steer</b> the model; programmatic is how you <b>constrain</b> it. They complement each other.</p>
+
+<div class="dg">
+  <div class="dg-coord">
+    <span class="dg-tag">MODEL-DRIVEN &middot; flexible</span>
+    <div class="dg-title">Claude proposes an action</div>
+    <div class="dg-sub"><code>tool_use: process_refund(order=123)</code></div>
+  </div>
+  <div class="dg-arrow"><span>&#9660;</span><em>every proposal passes the gate</em></div>
+  <div class="dg-gate">
+    <span class="dg-tag">CODE &middot; guaranteed</span>
+    <div class="dg-title">Programmatic gate (e.g. PreToolUse hook)</div>
+    <div class="dg-sub">customer verified? &middot; order belongs to this user? &middot; amount within policy?</div>
+  </div>
+  <div class="dg-arrow"><span>&#9660; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &#9660;</span></div>
+  <div class="dg-side">
+    <div class="dg-sub-agent"><b>&#10003; Allow</b><div class="dg-sub">run the tool</div></div>
+    <div class="dg-deny"><b>&#10005; Deny</b><br>return a clear reason as the <code>tool_result</code> (or redirect to escalation); the model adapts</div>
+  </div>
+  <div class="dg-legend">
+    <span><i style="background:#16a34a"></i>Enforcement (code)</span>
+    <span><i style="background:#4f46e5"></i>Decision-maker (LLM)</span>
+  </div>
+</div>
+
+<h4>Use programmatic enforcement for</h4>
+<ul>
+<li><b>Security and identity:</b> authentication/OAuth, authorisation, permission checks.</li>
+<li><b>Prerequisite ordering:</b> e.g. block <code>process_refund</code> until <code>get_customer</code> has returned a verified customer.</li>
+<li><b>Business and compliance limits:</b> e.g. refunds over a threshold are blocked and redirected to a human.</li>
+<li><b>Data normalisation:</b> e.g. a <code>PostToolUse</code> hook converting inconsistent date/status formats before the model sees them.</li>
+<li><b>Hard limits:</b> iteration cap, budgets, allowed-tools list.</li>
+</ul>
+<h4>Use the LLM (steered by prompts) for</h4>
+<ul>
+<li>Unstructured input, ambiguous intent, free-text understanding.</li>
+<li>Choosing among tools when the right one depends on context.</li>
+<li>Summarising, extracting, classifying, drafting, explaining.</li>
+</ul>
+<h4>Related controls worth knowing</h4>
+<ul>
+<li><code>tool_choice</code> (<code>auto</code> / <code>any</code> / specific tool / <code>none</code>) can force a tool <i>within one request</i>: a soft control, not a cross-turn workflow guarantee.</li>
+<li>Few-shot examples and clearer instructions improve compliance but never make it guaranteed.</li>
+</ul>
+<h4>OAuth / credentials, concretely</h4>
+<ul>
+<li>The auth flow is 100% code. The LLM never decides who is allowed in.</li>
+<li>Keep tokens and secrets out of the prompt; the tool or client layer attaches credentials (for MCP, via configuration/environment variables, not model text).</li>
+<li>Authorise from the authenticated session identity, never from what the user or model claims.</li>
+</ul>
+<div class="tip"><b>Decision test:</b> "If the model gets this wrong once in 1,000 runs, is that acceptable?" No &rarr; programmatic. Yes and it needs language understanding &rarr; LLM with a good prompt. Both &rarr; the LLM proposes, code disposes.</div>
+<div class="cat"><span class="cat-chip">Catalyst-specific</span> <code>WorkflowValidator.canExecute</code>, the registered-tools-only lookup and <code>MAX_ITERATIONS</code> are the programmatic controls; the system prompt line "analyse the resume before matching skills" would be the prompt-based one.</div>
+</details>
+
+<details open><summary>Q3. A coordinator passes sub-tasks to subagents via context. How are subagent failures handled, and what governs the coordinator itself?</summary>
+<h4>Part A &mdash; Subagents and context (real mechanics)</h4>
+<ul>
+<li>In the Claude Agent SDK / Claude Code, a coordinator spawns subagents through the <b>Task</b> tool (named Agent in newer versions). The coordinator's allowed tools must include it.</li>
+<li>Each subagent has <b>isolated context</b>: it does <i>not</i> inherit the coordinator's conversation. It sees only its own prompt, so the goal, assigned sub-task, expected output format and any prior findings must be <b>passed explicitly in that prompt</b>.</li>
+<li>Subagents are defined with a description, system prompt and a <b>restricted tool set</b> (least privilege).</li>
+<li><b>Hub-and-spoke:</b> all communication goes through the coordinator; subagents don't talk to each other.</li>
+<li><b>Parallelism:</b> independent sub-tasks can run in parallel by emitting several Task calls in <b>one</b> response.</li>
+</ul>
+
+<h4>Part B &mdash; Handling subagent failure (error propagation)</h4>
+<ol>
+<li><b>Recover locally first.</b> The subagent retries transient errors (timeouts, rate limits) itself. Only unresolved failures go up to the coordinator.</li>
+<li><b>Return structured error context, not a bare failure:</b> failure type, what was attempted (query/inputs), any partial results, and possible alternatives. This lets the coordinator choose intelligently.</li>
+<li><b>Distinguish "failed" from "empty".</b> An access/timeout failure is different from a valid search that returned no results. Never report a failure as an empty success.</li>
+<li><b>Coordinator decides</b> (retry with adjusted instructions or more context, use an alternative source, or proceed with partial results).</li>
+<li><b>Proceed with partial results and annotate coverage gaps</b> in the final output, instead of hiding them.</li>
+</ol>
+<table>
+<tr><th>Anti-pattern</th><th>Why it's wrong</th></tr>
+<tr><td>Silently suppressing the error / returning empty as success</td><td>The coordinator can't recover and the final answer looks complete when it isn't</td></tr>
+<tr><td>Terminating the whole workflow on one subagent failure</td><td>Throws away good work from the other subagents</td></tr>
+<tr><td>Generic status like "operation failed"</td><td>No information to decide on recovery</td></tr>
+<tr><td>Unbounded "try again" loops</td><td>Just another runaway loop; cap retries</td></tr>
+</table>
+
+<h4>Part C &mdash; What about the coordinator itself?</h4>
+<p>Subagents are <i>workers</i>: they don't "follow the workflow", they are invoked by it. Ordering and policy are enforced by the layer that does the invoking. Two cases:</p>
+<table>
+<tr><th>Coordinator is&hellip;</th><th>Enforcement</th></tr>
+<tr><td><b>Code</b> (fixed control flow)</td><td>Follows the workflow by construction.</td></tr>
+<tr><td><b>An LLM</b> (decides what to delegate and when)</td><td>A prompt alone can't enforce order. Its delegation/tool calls must pass <b>programmatic gates (hooks)</b> that don't depend on its cooperation.</td></tr>
+</table>
+
+<div class="dg">
+  <div class="dg-gate">
+    <span class="dg-tag">CODE &middot; deterministic</span>
+    <div class="dg-title">Orchestration layer: gates and hooks</div>
+    <div class="dg-sub">The authority &mdash; knows required order, prerequisites and limits</div>
+  </div>
+  <div class="dg-arrow"><span>&#9660;</span><em>every step / delegation must pass the gate</em></div>
+  <div class="dg-side">
+    <div class="dg-coord">
+      <span class="dg-tag">CODE or gated LLM</span>
+      <div class="dg-title">Coordinator</div>
+      <div class="dg-sub">decompose &middot; delegate &middot; aggregate</div>
+    </div>
+    <div class="dg-deny"><b>&#10005; Gate says no</b><br>step blocked, reason returned, escalate if critical</div>
+  </div>
+  <div class="dg-arrow"><span>&#9660; &#9660; &#9660;</span><em>explicit context only</em></div>
+  <div class="dg-row">
+    <div class="dg-sub-agent"><div class="dg-title">Subagent A</div><div class="dg-sub">isolated</div></div>
+    <div class="dg-sub-agent"><div class="dg-title">Subagent B</div><div class="dg-sub">isolated</div></div>
+    <div class="dg-sub-agent"><div class="dg-title">Subagent C</div><div class="dg-sub">isolated</div></div>
+  </div>
+  <div class="dg-legend">
+    <span><i style="background:#16a34a"></i>Enforcement (code)</span>
+    <span><i style="background:#4f46e5"></i>Decision-maker</span>
+    <span><i style="background:#d97706"></i>Workers (see only their context)</span>
+  </div>
+</div>
+<p><b>Rule of thumb:</b> whoever decides is supervised by code that doesn't depend on that decider's cooperation.</p>
+
+<div class="cat"><span class="cat-chip">Catalyst-specific</span>
+<p style="margin:6px 0 4px"><b>Wired (verified in the code):</b> <code>JobApplicationWorkflow</code> owns a <code>CoordinatorAgent</code>. For every step it calls <code>engine.execute(step, state)</code> (the gate) and then <code>coordinator.research(goal)</code>. So the gate sits <i>above</i> the coordinator, which matches the design in this answer. <code>WorkflowCoordinatorIntegrationTest</code> runs the whole flow.</p>
+<p style="margin:4px 0"><b>Still open:</b></p>
+<ul style="margin:0">
+<li><b>Step is marked complete before the work runs.</b> <code>engine.execute()</code> calls <code>state.complete(step)</code> and sets COMPLETED, <i>then</i> the coordinator runs. If the coordinator throws, the step is already "completed" and the next step's gate would pass. The step should be marked complete only after a valid result returns.</li>
+<li><b>Steps are not mapped to subagents.</b> Each step calls the full <code>research(goal)</code>, which decomposes into all five sub-topics every time (20 subagent runs in total); only the goal text changes.</li>
+<li><b>No data flow between steps.</b> The report is only printed (findings count). The gate enforces <i>order</i>, but nothing from step 1 reaches step 2 (each coordinator call starts with empty <code>priorFindings</code>).</li>
+<li><b>Still no failure handling:</b> no retry/refine, no structured error result, and <code>evaluateCoverage()</code> always returns 1.0 with no gaps.</li>
+<li><b>Handoff is built on success</b> with hard-coded text, not derived from findings, and not triggered by a blocked/failed step.</li>
+</ul></div>
+</details>
+
+<details open><summary>Q4. Does workflow enforcement live inside the agent or outside of it?</summary>
+<p><b>Outside the model's control, inside your application.</b> The LLM proposes; the code that hosts the agent (the harness) decides whether the action runs. The model cannot be the referee for its own behaviour, because it may err or be manipulated by prompt injection.</p>
+
+<div class="dg">
+  <div class="dg-gate">
+    <span class="dg-tag">LAYER 3 &middot; outermost</span>
+    <div class="dg-title">Backend / API / database permissions</div>
+    <div class="dg-sub">Final authority: authorisation, rate limits, data rules &mdash; holds even if everything above is bypassed</div>
+  </div>
+  <div class="dg-arrow"><span>&#9650;</span></div>
+  <div class="dg-gate">
+    <span class="dg-tag">LAYER 2 &middot; host application</span>
+    <div class="dg-title">Hooks, gates, validators, limits</div>
+    <div class="dg-sub">e.g. <code>PreToolUse</code> / <code>PostToolUse</code> hooks, prerequisite checks, argument validation, iteration cap, allowed-tools list</div>
+  </div>
+  <div class="dg-arrow"><span>&#9650;</span><em>intercepts every action the agent proposes</em></div>
+  <div class="dg-coord">
+    <span class="dg-tag">LAYER 1 &middot; the agent</span>
+    <div class="dg-title">LLM + prompt + loop</div>
+    <div class="dg-sub">Proposes actions. Prompt rules live here &mdash; helpful, but only advisory</div>
+  </div>
+  <div class="dg-legend">
+    <span><i style="background:#16a34a"></i>Enforced by code (guaranteed)</span>
+    <span><i style="background:#4f46e5"></i>Decided by the model (probabilistic)</span>
+  </div>
+</div>
+
+<h4>Real mechanism: Agent SDK / Claude Code hooks</h4>
+<ul>
+<li>Hooks are code run by the <b>host application</b> at defined points in the agent lifecycle, e.g. before a tool runs (<code>PreToolUse</code>) and after (<code>PostToolUse</code>).</li>
+<li>A pre-tool hook can <b>allow, deny (with a reason returned to the model) or modify</b> the call. A post-tool hook can normalise or trim output before the model sees it.</li>
+<li>They are not part of the model or the prompt, so the model cannot talk its way past them.</li>
+</ul>
+
+<h4>"Inside" vs "outside" depends on what you call the agent</h4>
+<table>
+<tr><th>"Agent" means&hellip;</th><th>Where enforcement sits</th></tr>
+<tr><td>Just the LLM</td><td>Outside it: code wrapping the model.</td></tr>
+<tr><td>The whole program (LLM + loop + tools)</td><td>Inside the program, but in a part the model can't skip or edit &mdash; e.g. in the tool-execution step, <i>before</i> the tool runs.</td></tr>
+</table>
+<p>What matters is not the class or package; it is that <b>the model has no path around the gate</b>.</p>
+
+<h4>With multiple agents</h4>
+<ul>
+<li><b>Workflow rules</b> (order, prerequisites, limits): one engine above the coordinator, not copied into every subagent.</li>
+<li><b>Tool rules:</b> give each subagent only the tools it needs (least privilege), and validate arguments in the tool implementation.</li>
+<li><b>Data and permission rules:</b> in the backend, so they hold even if the agent layer is compromised (defence in depth).</li>
+</ul>
+<div class="tip"><b>One-liner:</b> "The agent proposes; the host application disposes. Enforce in deterministic code that wraps the agent, and repeat the most critical rules one layer further out in the backend."</div>
+
+<div class="cat"><span class="cat-chip">Catalyst-specific</span> <code>WorkflowEngine</code> / <code>WorkflowValidator</code> are separate classes from the agent classes, which matches Layer 2, and <code>JobApplicationWorkflow</code> now routes every step through <code>engine.execute()</code> before calling the coordinator. Two gaps: the coordinator and subagents themselves do not consult the validator (acceptable, since the gate is one level above them), and the engine creates its own <code>new WorkflowValidator()</code> and is created with <code>new</code> inside the workflow, so neither can be swapped or mocked in tests.</div>
+</details>
+
+<details open><summary>Q5. The workflow engine is outermost, the coordinator is inside it, and subagents sit inside the coordinator. Is each of these (coordinator, subagents) connected to an LLM, or rule-based?</summary>
+<p><b>Each component is chosen independently.</b> "Coordinator" and "subagent" are roles, not a statement about what powers them. Any of the three layers can be code or LLM-backed, with one fixed exception: <b>the outermost enforcement layer is always code</b> (an LLM can't enforce rules on itself).</p>
+
+<div class="dg">
+  <div class="dg-gate">
+    <span class="dg-tag">OUTERMOST &middot; always CODE</span>
+    <div class="dg-title">Workflow engine / gates / hooks</div>
+    <div class="dg-sub">Never an LLM. Enforces order, policy, limits</div>
+  </div>
+  <div class="dg-arrow"><span>&#9660;</span></div>
+  <div class="dg-coord">
+    <span class="dg-tag">MIDDLE &middot; CODE or LLM</span>
+    <div class="dg-title">Coordinator</div>
+    <div class="dg-sub">Rule-based: fixed decompose/delegate &nbsp;|&nbsp; LLM-driven: model decides what to delegate, to whom, and when it's done</div>
+  </div>
+  <div class="dg-arrow"><span>&#9660; &#9660; &#9660;</span><em>explicit context only</em></div>
+  <div class="dg-row">
+    <div class="dg-sub-agent"><div class="dg-title">Subagent A</div><div class="dg-sub">typically LLM<br>own prompt, tools, loop</div></div>
+    <div class="dg-sub-agent"><div class="dg-title">Subagent B</div><div class="dg-sub">typically LLM<br>different model if useful</div></div>
+    <div class="dg-sub-agent"><div class="dg-title">Subagent C</div><div class="dg-sub">can be plain code<br>(deterministic service)</div></div>
+  </div>
+  <div class="dg-legend">
+    <span><i style="background:#16a34a"></i>Always code</span>
+    <span><i style="background:#4f46e5"></i>Code or LLM</span>
+    <span><i style="background:#d97706"></i>Usually LLM, sometimes code</span>
+  </div>
+</div>
+
+<h4>What "connected to an LLM" actually means</h4>
+<p>An LLM-backed component has its <b>own</b> model calls, its <b>own</b> system prompt, its <b>own</b> tool set and its <b>own</b> context window. It is the same agentic loop (call model &rarr; <code>stop_reason</code> &rarr; run tools &rarr; repeat) as a single agent. A subagent is effectively an <b>agent that the coordinator calls like a tool</b>. There is no shared model "brain": coordinator and subagents don't share a conversation, only what the coordinator passes explicitly.</p>
+
+<table>
+<tr><th>Layer</th><th>Rule-based (code)</th><th>LLM-backed</th></tr>
+<tr><td><b>Workflow engine</b></td><td><b>Always.</b> Gates, hooks, prerequisites, limits.</td><td>Never (it would be a prompt, not enforcement).</td></tr>
+<tr><td><b>Coordinator</b></td><td>Fixed decomposition and routing; predictable, cheap. Anthropic's "workflow" patterns (prompt chaining, routing, parallelisation).</td><td>The model decomposes the task dynamically, picks subagents, reads results, decides on follow-ups and when coverage is enough. Anthropic's "orchestrator-workers" pattern. Needed when sub-tasks can't be predicted up front.</td></tr>
+<tr><td><b>Subagents</b></td><td>Deterministic work: lookup, calculation, validation, formatting, an API call.</td><td>Work needing judgement or language: research, analysis, summarisation, extraction. <b>This is the common case.</b></td></tr>
+</table>
+
+<h4>Common combinations</h4>
+<table>
+<tr><th>Combination</th><th>Character</th><th>Choose when</th></tr>
+<tr><td>Code engine + <b>code</b> coordinator + <b>LLM</b> subagents</td><td>Most predictable; LLM only where language/judgement is needed</td><td>Known process, regulated or high-stakes flows</td></tr>
+<tr><td>Code engine + <b>LLM</b> coordinator + <b>LLM</b> subagents</td><td>Most flexible; highest cost and variance. Enforcement via hooks on the coordinator's delegations</td><td>Open-ended research where the plan can't be fixed in advance</td></tr>
+<tr><td>Code engine + <b>LLM</b> coordinator + <b>code</b> "workers"</td><td>That is just an agent with ordinary <b>tools</b>, not really multi-agent</td><td>When no worker needs its own reasoning</td></tr>
+<tr><td>All code</td><td>A scripted pipeline; deterministic, no LLM cost</td><td>Learning scaffolds, tests, or fully rule-defined processes</td></tr>
+</table>
+
+<h4>Practical points the exam cares about</h4>
+<ul>
+<li><b>Different models per subagent</b> is allowed: e.g. a smaller, cheaper model for simple extraction, a stronger one for the coordinator or hard analysis. Each subagent is configured with its own prompt, tools and model.</li>
+<li><b>Least privilege:</b> each LLM subagent gets only the tools it needs.</li>
+<li><b>Cost:</b> every LLM-backed component adds model calls and tokens. Don't make a component an LLM agent if code does the job; don't add a coordinator layer if one agent with tools suffices.</li>
+<li><b>Failure and isolation</b> rules from Q3 apply to every LLM-backed subagent (explicit context in, structured result or error out).</li>
+</ul>
+<div class="tip"><b>One-liner:</b> "The engine is always code. The coordinator is code when the plan is known and an LLM when the plan must be discovered. Subagents are usually LLM agents with their own prompt, tools and context, and plain code where the work is deterministic."</div>
+
+<div class="cat"><span class="cat-chip">Catalyst-specific</span> Right now <b>nothing</b> in the engine &rarr; coordinator &rarr; subagent chain is LLM-backed. <code>WorkflowEngine</code> is code (correct, permanently); <code>CoordinatorAgent</code> is code (hard-coded <code>decompose()</code> and a <code>switch</code> in <code>delegate()</code>); the three subagents return hard-coded findings. <code>LLMClient</code> / <code>MockClaudeClient</code> are used only by the separate single-agent path (<code>AgentLoopV2</code>, <code>Phase2Runner</code>), not by the coordinator or subagents. Natural next steps: make each subagent's <code>research(context)</code> call an <code>LLMClient</code> with its own prompt and tools (combination 1 above), and only later consider an LLM-driven <code>decompose()</code>.</div>
+</details>
+
+<details open><summary>Q6. What is the difference between code and an LLM? In the end the LLM is the brain that decides and reasons, even by writing code &mdash; right?</summary>
+<p><b>Half right.</b> The LLM is the brain for <i>deciding what to try</i>. But it has no hands: <b>it never executes anything</b>. It only produces text (tokens). Something else &mdash; your code &mdash; reads that text and decides whether and how to act on it. The real difference is not "who thinks" but <b>who executes, who decides the rules, and when the rules were fixed</b>.</p>
+
+<div class="dg">
+  <div class="dg-coord">
+    <span class="dg-tag">THE BRAIN &middot; LLM</span>
+    <div class="dg-title">Produces text only</div>
+    <div class="dg-sub">a <code>tool_use</code> request, an answer, or code as text &mdash; a <b>proposal</b>, nothing has happened yet</div>
+  </div>
+  <div class="dg-arrow"><span>&#9660;</span><em>proposal crosses into your system</em></div>
+  <div class="dg-gate">
+    <span class="dg-tag">THE HANDS &middot; your code</span>
+    <div class="dg-title">Harness: validates, gates, executes</div>
+    <div class="dg-sub">Rules were written by humans <b>before</b> runtime, reviewed, tested, versioned. The model can't edit them.</div>
+  </div>
+  <div class="dg-arrow"><span>&#9660;</span></div>
+  <div class="dg-side">
+    <div class="dg-sub-agent"><b>Real effect</b><div class="dg-sub">tool runs, DB changes, email sent</div></div>
+    <div class="dg-deny"><b>Or refused</b><br>reason returned to the model as a <code>tool_result</code></div>
+  </div>
+  <div class="dg-legend">
+    <span><i style="background:#4f46e5"></i>Decides what to attempt (probabilistic)</span>
+    <span><i style="background:#16a34a"></i>Decides what may happen (deterministic)</span>
+  </div>
+</div>
+
+<h4>Code vs LLM, side by side</h4>
+<table>
+<tr><th></th><th>Code (rules)</th><th>LLM</th></tr>
+<tr><td>Authored by</td><td>A developer, in advance</td><td>Nobody; generated per request from the prompt and context</td></tr>
+<tr><td>When the logic is fixed</td><td>Design time (reviewed, tested, versioned)</td><td>Run time (each call can differ)</td></tr>
+<tr><td>Same input &rarr; ?</td><td>Same output, always</td><td>Usually similar; can vary</td></tr>
+<tr><td>Handles unseen input</td><td>Only what was anticipated</td><td>Generalises to new phrasing and situations</td></tr>
+<tr><td>Auditable / provable</td><td>Yes: read it, test it</td><td>Not fully: you can inspect outputs, not guarantee them</td></tr>
+<tr><td>Failure mode</td><td>Rigid: does the wrong thing consistently or fails on the unexpected</td><td>Plausible but wrong, skipped steps, or manipulated by injected text</td></tr>
+<tr><td>Can it act on the world?</td><td>Yes (it runs)</td><td><b>No.</b> Only via code that executes its output</td></tr>
+</table>
+
+<h4>"But the LLM can write code" &mdash; three different things</h4>
+<table>
+<tr><th>Case</th><th>What happens</th><th>Who has authority</th></tr>
+<tr><td><b>1. Tool call</b> (<code>tool_use</code>)</td><td>The model emits a structured request; <i>your</i> pre-written function runs it.</td><td>Your code. The request can be validated, blocked or modified.</td></tr>
+<tr><td><b>2. Model writes code to run</b> (code-execution tool, scripts)</td><td>The model's text is handed to an interpreter. Execution is deterministic, but <i>which</i> code was chosen is probabilistic.</td><td>The sandbox and permissions you configured. Treat model-written code as <b>untrusted</b>: run it in a sandbox, with least privilege, often with review.</td></tr>
+<tr><td><b>3. Model writes the enforcement rules at runtime</b></td><td>The rule is then only as reliable as the model that wrote it, so it is no longer an independent check.</td><td>Nobody independent. This defeats the purpose; keep gates human-authored, and don't give the model write access to them.</td></tr>
+</table>
+<p>So even when the LLM "writes code", the chain is: LLM proposes &rarr; <b>something you control</b> decides whether and where it runs. Exam wording to remember: <code>tool_use</code> is a <b>request</b>, not an execution; your application runs the tool and sends back a <code>tool_result</code>.</p>
+
+<h4>A useful analogy</h4>
+<p>The LLM is a skilled employee who can draft anything. Code is the company's systems and policies: the bank's approval workflow, access badges, audit log. The employee decides what to request; the systems decide what actually goes through. You wouldn't let the employee rewrite the approval system while using it.</p>
+
+<div class="tip"><b>One-liner:</b> "The LLM is the brain for choosing and proposing; code is the hands and the veto. The LLM never executes anything, and the rules it must obey are written by humans before runtime, which is why enforcement belongs in code."</div>
+
+<div class="cat"><span class="cat-chip">Catalyst-specific</span> This split is already visible in the code: <code>MockClaudeClient</code> only returns a <code>ClaudeResponse</code> containing a <code>ToolCall</code> (a request); <code>AgentLoopV2</code> / <code>Executor</code> look the tool up in the <code>ToolRegistry</code> and call <code>tool.execute()</code>. The model side never runs anything. The human-authored rules are <code>WorkflowValidator</code>, the registry lookup and <code>MAX_ITERATIONS</code>.</div>
+</details>
+</section>
+</main>
+</div>
+<footer>Technical Q&amp;A companion to Catalyst_Prep_Guide.html &middot; API details (stop reasons, tool_choice) should be checked against the current Anthropic documentation.</footer>
+<script>
+let open=false;
+document.getElementById('toggle').onclick=function(){
+  open=!open;
+  document.querySelectorAll('#panel-tech details').forEach(d=>d.open=open);
+  this.textContent=open?'Collapse all':'Expand all';
+};
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.id===b.dataset.p));
+});
+</script>
+</body>
+</html>

@@ -35,6 +35,65 @@
   .card{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:#fbfbfe}
   .card h4{margin:0 0 4px;color:var(--acc)}
   .card p{margin:0;font-size:.92rem;color:var(--mute)}
+  /* org diagram */
+  .org{display:flex;flex-direction:column;align-items:center;margin:14px 0;padding:16px;border:1px solid var(--line);border-radius:12px;background:#fafbff}
+  .org-n{border-radius:10px;padding:8px 14px;text-align:center;font-weight:700;border:2px solid;background:#fff}
+  .org-n small{display:block;font-weight:400;font-size:.76rem;color:var(--mute)}
+  .org-n.a{border-color:#4f46e5;background:#eef0ff}.org-n.b{border-color:#4f46e5;background:#eef0ff}
+  .org-n.c{border-color:#0ea5e9;background:#e6f6fe}.org-n.d{border-color:#16a34a;background:#e8f8ee}
+  .org-n.e,.org-n.f{border-color:#d97706;background:#fff4e0}.org-n.f{font-size:.82rem}
+  .org-v{color:var(--acc);line-height:1.4}
+  .org-row{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:flex-start}
+  .org-col{display:flex;flex-direction:column;align-items:center}
+  .org-col .org-row{gap:8px}
+  .org-leg{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-top:14px;font-size:.8rem;color:var(--mute)}
+  .org-leg i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+  /* core principle card v3 (clean, with mapping) */
+  .pr{margin:18px 0 24px;border-radius:18px;padding:28px 26px 22px;color:#e8ecff;background:#111735;border:1px solid #2a3470}
+  .pr-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .pr-badge{background:#fbbf24;color:#1c1405;font-size:.7rem;font-weight:800;letter-spacing:.1em;padding:4px 13px;border-radius:999px}
+  .pr-quote{font-size:1.65rem;line-height:1.3;font-weight:700;margin:14px 0 4px;letter-spacing:-.01em;color:#fff}
+  .pr-quote .b{color:#a5b4fc}.pr-quote .h{color:#6ee7b7}.pr-quote .v{color:#fca5a5}
+  .pr-flow{display:flex;align-items:stretch;gap:10px;margin:20px 0 6px}
+  .pr-card{flex:1;min-width:0;border-radius:14px;padding:15px 16px 14px;background:#1a2147;border:1px solid #333f85}
+  .pr-card .ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;margin-bottom:10px}
+  .pr-card .ic svg{width:25px;height:25px}
+  .pr-card .step{font-size:.66rem;font-weight:800;letter-spacing:.12em;opacity:.7}
+  .pr-card h4{margin:2px 0 0;font-size:1.2rem;letter-spacing:.05em;color:#fff}
+  .pr-card .who{display:inline-block;margin:6px 0 8px;font-size:.66rem;font-weight:700;letter-spacing:.1em;padding:2px 9px;border-radius:999px}
+  .pr-card p{margin:0;font-size:.9rem;line-height:1.5;color:#cfd6f6}
+  .pr-card.brain{border-color:#6366f1}.pr-card.brain .ic,.pr-card.brain .who{background:#312e81;color:#c7d2fe}
+  .pr-card.veto{border-color:#ef4444}.pr-card.veto .ic{background:#5b1d1d;color:#fecaca}.pr-card.veto .who{background:#064e3b;color:#a7f3d0}
+  .pr-card.hands{border-color:#10b981}.pr-card.hands .ic,.pr-card.hands .who{background:#064e3b;color:#a7f3d0}
+  .pr-link{flex:0 0 auto;align-self:center;text-align:center;font-size:.64rem;letter-spacing:.08em;color:#9aa6d6;max-width:72px;line-height:1.25}
+  .pr-link i{display:block;font-style:normal;font-size:1.4rem;color:#fcd34d;line-height:1}
+  .pr-time{display:flex;margin:16px 0 0;border-radius:10px;overflow:hidden;border:1px solid #333f85;font-size:.82rem}
+  .pr-time div{padding:9px 14px}
+  .pr-time .d{flex:0 0 38%;background:#0f3d33}
+  .pr-time .r{flex:1;background:#262c6b}
+  .pr-time b{display:block;font-size:.66rem;letter-spacing:.12em;opacity:.8}
+  .pr-sec{margin:22px 0 8px;font-size:.74rem;font-weight:800;letter-spacing:.12em;color:#fcd34d}
+  .pr-map{overflow-x:auto}
+  .pr-map table{width:100%;border-collapse:collapse;font-size:.84rem;color:#dfe5ff;margin:0}
+  .pr-map th{background:#1a2147;color:#9aa6d6;font-size:.68rem;letter-spacing:.09em;text-transform:uppercase;border:1px solid #333f85;padding:8px 10px;text-align:left}
+  .pr-map td{border:1px solid #333f85;padding:8px 10px;vertical-align:top;background:#141a3d}
+  .pr-map td.role{font-weight:800;white-space:nowrap}
+  .pr-map td.role.b{color:#a5b4fc}.pr-map td.role.v{color:#fca5a5}.pr-map td.role.h{color:#6ee7b7}
+  .pr-map th.cx{background:#831843;color:#fbcfe8}
+  .pr-map td.cx{background:#2a1020;color:#fbcfe8}
+  .pr-map code{background:#262c6b;color:#fff;padding:0 5px;border-radius:4px;font-size:.92em}
+  .pr-map td.cx code{background:#5b1a3b}
+  .pr-ex{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:.84rem}
+  .pr-ex .c{border-radius:9px;padding:7px 11px;border:1px solid #333f85;background:#1a2147}
+  .pr-ex .c.b{border-color:#6366f1}.pr-ex .c.v{border-color:#ef4444}.pr-ex .c.h{border-color:#10b981}
+  .pr-ex .c.x{border-style:dashed;border-color:#ef4444;background:#3a1620}
+  .pr-ex .a{color:#fcd34d;font-weight:800}
+  .pr-ex small{display:block;opacity:.7;font-size:.7rem;letter-spacing:.06em}
+  .pr-rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-top:20px}
+  .pr-rule{display:flex;gap:10px;align-items:flex-start;background:#0b1028;border-radius:10px;padding:10px 12px;font-size:.9rem;color:#e3e8ff}
+  .pr-rule .n{flex:0 0 26px;height:26px;border-radius:50%;background:#fbbf24;color:#1c1405;font-weight:800;font-size:.8rem;display:grid;place-items:center}
+  .pr-rule b{color:#fcd34d}
+  @media(max-width:760px){.pr-flow{flex-direction:column}.pr-link{max-width:none}.pr-link i{transform:rotate(90deg)}.pr-time{flex-direction:column}.pr-quote{font-size:1.3rem}}
   /* flow diagram */
   .flow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:14px 0}
   .box{padding:8px 14px;border-radius:9px;background:#eef0ff;border:1px solid #c7cafc;font-weight:600;font-size:.9rem}
@@ -67,7 +126,7 @@
 <body>
 <header>
   <h1>Catalyst: Agent Architecture &amp; Claude Tool Loop</h1>
-  <p>A plain-English prep guide for Phase 1 (agent architecture), Phase 2 (Claude-style tool loop), Phase 2.5 (sequential tool calls), Phase 3 (multi-agent orchestration) and Phase 4 (context passing &amp; provenance) &mdash; with concepts, an interactive simulator, interview Q&amp;A and a quiz.</p>
+  <p>A plain-English prep guide for Phase 1 (agent architecture), Phase 2 (Claude-style tool loop), Phase 2.5 (sequential tool calls), Phase 3 (multi-agent orchestration) and Phase 4 (context passing &amp; provenance) and Phase 5 (workflow enforcement &amp; handoff) &mdash; with concepts, an interactive simulator, interview Q&amp;A and a quiz.</p>
 </header>
 
 <div class="wrap">
@@ -81,12 +140,13 @@
   <a href="#sim">6. Try the loop</a>
   <a href="#p3">7. Phase 3 – multi-agent</a>
   <a href="#p4">8. Phase 4 – context passing</a>
-  <a href="#map">9. Cert mapping</a>
-  <a href="#tests">10. Testing</a>
-  <a href="#exam">11. CCAR-F exam link</a>
-  <a href="#qa">12. Interview Q&amp;A</a>
-  <a href="#quiz">13. Practice quiz</a>
-  <a href="#cheat">14. Cheat sheet</a>
+  <a href="#p5">9. Phase 5 – workflow gates</a>
+  <a href="#map">10. Cert mapping</a>
+  <a href="#tests">11. Testing</a>
+  <a href="#exam">12. CCAR-F exam link</a>
+  <a href="#qa">13. Interview Q&amp;A</a>
+  <a href="#quiz">14. Practice quiz</a>
+  <a href="#cheat">15. Cheat sheet</a>
 </nav>
 
 <main>
@@ -106,11 +166,12 @@
   <table>
     <tr><th>Phase</th><th>What you build</th><th>Who "decides"?</th></tr>
     <tr><td><b>1</b></td><td>Agent skeleton: Agent, AgentState, Planner, Executor, Evaluator, AgentLoop + tools</td><td>Your own <code>Planner</code> (simple rules)</td></tr>
-    <tr><td><b>2</b></td><td>Claude-style loop: <code>StopReason</code>, <code>ToolCall</code>, <code>ToolResult</code>, <code>ClaudeResponse</code>, <code>MockClaudeClient</code>, <code>AgentLoopV2</code></td><td>A <i>fake</i> Claude (<code>MockClaudeClient</code>)</td></tr>
+    <tr><td><b>2</b></td><td>Claude-style loop: <code>StopReason</code>, <code>ToolCall</code>, <code>ToolResult</code>, <code>ClaudeResponse</code>, <code>LLMClient</code> (interface), <code>MockClaudeClient</code>, <code>AgentLoopV2</code></td><td>A <i>fake</i> Claude (<code>MockClaudeClient</code> implements <code>LLMClient</code>)</td></tr>
     <tr><td><b>2.5</b></td><td>Multi-step: TOOL_USE → TOOL_USE → END_TURN</td><td>Fake Claude, scripted sequence</td></tr>
     <tr><td><b>3</b></td><td>Multi-agent, hub-and-spoke: <code>CoordinatorAgent</code> + <code>JobSearchAgent</code>, <code>ResumeAnalysisAgent</code>, <code>SkillsMatchAgent</code>; <code>SubTopic</code>, <code>ResearchFinding</code>, <code>ResearchReport</code>, <code>CoverageReport</code></td><td>The coordinator (hard-coded rules for now)</td></tr>
     <tr><td><b>4</b></td><td>Explicit context passing and provenance: <code>ResearchContext</code>, <code>ContextBuilder</code>, <code>ResearchMetadata</code>; subagents now take a context object</td><td>Coordinator builds and passes context</td></tr>
-    <tr><td><b>Later</b></td><td>Swap the mock for the real Anthropic SDK (<code>client.messages.create()</code>)</td><td>Real Claude</td></tr>
+    <tr><td><b>5</b></td><td>Workflow enforcement and handoff: <code>WorkflowValidator</code> (prerequisite gate), <code>WorkflowEngine</code>, <code>WorkflowState</code>, <code>JobApplicationWorkflow</code>, <code>WorkflowHandoff</code>, <code>HandoffBuilder</code></td><td>Plain code (deterministic gates)</td></tr>
+    <tr><td><b>Next</b></td><td>Phase 6 (per the Phase 5 doc): Agent SDK hooks (exam task 1.5). Then swap the mock for the real Anthropic SDK (<code>client.messages.create()</code>)</td><td>Real Claude</td></tr>
   </table>
   <div class="callout warn"><b>Note:</b> the Phase 2 document called the real SDK "Phase 3". In the project, Phase 3 became multi-agent orchestration, so the SDK swap is now a later step.</div>
   <div class="callout tip"><b>Key idea:</b> the architecture is built so that only the "decision maker" changes between phases. Everything else (state, loop, registry, tools) stays the same. That is good design &mdash; and a great interview talking point.</div>
@@ -129,15 +190,32 @@
   </div>
 
   <h3>How they connect</h3>
-<pre>Agent
- └── AgentLoop
-       ├── Planner      (what to do)
-       ├── Executor     (do it)
-       ├── Evaluator    (are we done?)
-       ├── AgentState   (memory)
-       └── ToolRegistry (available tools)
-             ├── JobSearchTool
-             └── ResumeAnalyzerTool</pre>
+<div class="org">
+    <div class="org-n a">Agent<small>entry point &middot; <code>run(goal)</code></small></div>
+    <div class="org-v">&#9660;</div>
+    <div class="org-n b">AgentLoop<small>Plan &rarr; Execute &rarr; Evaluate, repeat</small></div>
+    <div class="org-v">&#9660;</div>
+    <div class="org-row">
+      <div class="org-n c">Planner<small>what to do</small></div>
+      <div class="org-n c">Executor<small>do it</small></div>
+      <div class="org-n c">Evaluator<small>are we done?</small></div>
+      <div class="org-n d">AgentState<small>memory</small></div>
+      <div class="org-col">
+        <div class="org-n e">ToolRegistry<small>available tools</small></div>
+        <div class="org-v">&#9660;</div>
+        <div class="org-row">
+          <div class="org-n f">JobSearchTool</div>
+          <div class="org-n f">ResumeAnalyzerTool</div>
+        </div>
+      </div>
+    </div>
+    <div class="org-leg">
+      <span><i style="background:#4f46e5"></i>Orchestration</span>
+      <span><i style="background:#0ea5e9"></i>Decision &amp; action</span>
+      <span><i style="background:#16a34a"></i>Memory</span>
+      <span><i style="background:#d97706"></i>Tools</span>
+    </div>
+  </div>
 
   <h3>Separation of concerns</h3>
   <p>Each class has <b>one job</b>. Because the Planner only plans and the Executor only executes, you can replace the Planner with Claude later without touching the Executor. This is the Single Responsibility Principle in action.</p>
@@ -175,7 +253,8 @@
     <tr><td><code>ToolCall</code></td><td>Claude asking: "please run tool X with input Y"</td><td><code>tool_use</code> content block</td></tr>
     <tr><td><code>ToolResult</code></td><td>The output you send back to Claude</td><td><code>tool_result</code> content block</td></tr>
     <tr><td><code>ClaudeResponse</code></td><td>What Claude wants next (stop reason + tool call or final text)</td><td>the response of <code>messages.create()</code></td></tr>
-    <tr><td><code>MockClaudeClient</code></td><td>Scripted fake Claude</td><td><code>client.messages.create()</code></td></tr>
+    <tr><td><code>LLMClient</code> (interface)</td><td>The "what next?" slot: <code>nextResponse()</code>. <code>AgentLoopV2</code> depends on this, not on the mock</td><td><code>client.messages.create()</code> contract</td></tr>
+    <tr><td><code>MockClaudeClient</code></td><td>Scripted fake Claude; implements <code>LLMClient</code></td><td><code>client.messages.create()</code></td></tr>
     <tr><td><code>AgentLoopV2</code></td><td>The loop driven by stop reasons</td><td>the <code>while(true)</code> agent loop</td></tr>
   </table>
 
@@ -215,7 +294,7 @@
   <ul>
     <li><code>ToolCall</code> = <code>(id, toolName, input)</code>; <code>ToolResult</code> = <code>(toolCallId, content)</code>. The id links a result to its request, like <code>tool_use_id</code> in the API.</li>
     <li><code>AgentState</code> gained <code>stopReason</code> and <code>finalResponse</code> (besides goal, result, history, iterationCount, completed).</li>
-    <li><code>MockClaudeClient</code> is a step counter: step 1 &rarr; <code>TOOL_USE job_search</code>, step 2 &rarr; <code>TOOL_USE resume_analyzer</code>, step 3 &rarr; <code>END_TURN</code> (any later call also returns <code>END_TURN</code>).</li>
+    <li><code>AgentLoopV2</code> takes an <code>LLMClient</code>. <code>MockClaudeClient</code> (the implementation used today) is a step counter: step 1 &rarr; <code>TOOL_USE job_search</code>, step 2 &rarr; <code>TOOL_USE resume_analyzer</code>, step 3 &rarr; <code>END_TURN</code> (any later call also returns <code>END_TURN</code>).</li>
     <li>The cap is checked at the <b>top</b> of each iteration: if <code>iterationCount &gt;= MAX_ITERATIONS</code> it prints a warning and breaks.</li>
     <li><code>AgentLoopV2</code> and <code>Phase2Runner</code> hold the same loop. The runner also wraps output in a <code>ToolResult</code> and stops if the tool name is not in the registry.</li>
   </ul>
@@ -315,7 +394,7 @@
     <li>Subagents return hard-coded findings (e.g. claim "Java jobs found in Munich"), not real research. Delegation is a sequential loop, not parallel.</li>
     <li><b>Coverage logic drifted:</b> after the Phase 4 change <code>evaluateCoverage()</code> lists <code>metadata.retrievedBy</code> (agent names) as "covered", always returns an empty <code>gaps</code> list, and computes completeness as <code>findings.size() / topics.size()</code>. That is always 100% as long as every sub-topic returns something, so it can never report a gap. Good interview example of a metric that cannot fail.</li>
     <li>The "Refine" step (re-delegate for gaps) is in the docs but not coded.</li>
-    <li><code>Application.java</code> still only switches between PHASE_1 and PHASE_2, so <code>Phase3Runner</code> and <code>Phase4Runner</code> are not wired into <code>main</code>.</li>
+    <li><code>Application.java</code> now switches all five phases (<code>ACTIVE_PHASE</code> is currently PHASE_5), so the Phase 3 and 4 runners are wired in; change the constant to run them.</li>
   </ul>
   <div class="callout tip"><b>Interview angle:</b> hub-and-spoke gives observability and consistent error handling, but the coordinator can decompose too narrowly. If the decomposition misses a topic, no subagent will cover it &mdash; so coverage evaluation compares findings with the plan <i>and</i> should question whether the plan itself was complete.</div>
 </section>
@@ -355,6 +434,58 @@
   <div class="callout tip"><b>Exam angle:</b> the subagent prompt must contain the goal, its assigned sub-topic, the expected output format and any prior findings it needs. Do not rely on the subagent "knowing" the coordinator's conversation. Keep claims and their sources together so conflicts can be annotated instead of silently merged.</div>
 </section>
 
+<section id="p5">
+  <h2><small>Phase 5</small>Workflow enforcement &amp; handoff</h2>
+  <p>Some steps must happen in a fixed order. <b>Prompts are not enforcement; code is.</b> Telling the model "analyse the resume before matching skills" is a request it may ignore. A prerequisite gate in code cannot be ignored. Maps to exam task 1.4 <i>Enforcement &amp; Handoff Patterns</i> (deterministic gates) and escalation handoffs.</p>
+
+  <p><b>Workflow governs the agents:</b> <code>WorkflowEngine</code> decides <i>when</i> the <code>CoordinatorAgent</code> (and so the subagents) may run. Order is enforced by code; the agents do the work.</p>
+
+  <div class="flow">
+    <span class="box">SEARCH_JOBS</span><span class="arr">→ gate →</span>
+    <span class="box">ANALYZE_RESUME</span><span class="arr">→ gate →</span>
+    <span class="box">MATCH_SKILLS</span><span class="arr">→ gate →</span>
+    <span class="box g">GENERATE_RECOMMENDATION</span>
+  </div>
+
+  <table>
+    <tr><th>Class</th><th>Role</th></tr>
+    <tr><td><code>WorkflowStep</code> (enum)</td><td>SEARCH_JOBS, ANALYZE_RESUME, MATCH_SKILLS, GENERATE_RECOMMENDATION</td></tr>
+    <tr><td><code>WorkflowStatus</code> (enum)</td><td>NOT_STARTED, IN_PROGRESS, COMPLETED, BLOCKED</td></tr>
+    <tr><td><code>WorkflowState</code></td><td>Set of completed steps, current status, optional handoff</td></tr>
+    <tr><td><code>WorkflowValidator</code></td><td>The gate: <code>canExecute(step, state)</code>. A <code>switch</code> that requires the previous step to be completed</td></tr>
+    <tr><td><code>WorkflowEngine</code></td><td><code>execute(step, state)</code>: ask the validator; if blocked set BLOCKED and throw <code>IllegalStateException</code>; otherwise mark the step complete</td></tr>
+    <tr><td><code>JobApplicationWorkflow</code></td><td>Runs the four steps in order. For each step: gate via <code>engine.execute()</code>, then call <code>CoordinatorAgent.research(goal)</code>; at the end it builds and stores the handoff</td></tr>
+    <tr><td><code>WorkflowHandoff</code> (record)</td><td>workflowId, originalGoal, conversationSummary, rootCauseAnalysis, recommendedAction</td></tr>
+    <tr><td><code>HandoffBuilder</code></td><td><code>build(...)</code> returns a self-contained handoff</td></tr>
+    <tr><td><code>WorkflowExecutionResult</code> (record)</td><td>step, success, output (defined, not used yet)</td></tr>
+  </table>
+
+  <h3>Try it: the prerequisite gate</h3>
+  <div class="sim">
+    <p style="margin:0 0 8px">Click a step to try to run it. Completed steps are green.</p>
+    <div id="wfBtns"></div>
+    <pre id="wfOut" style="margin-top:10px"></pre>
+    <button id="wfReset" type="button">Reset</button>
+  </div>
+
+  <h3>Structured handoff</h3>
+  <p>When a human (or another agent) takes over, they do not see the conversation. The handoff must be <b>self-contained</b>: the original goal, a summary of what was done, the root cause found, and the recommended next action. This matches the exam's escalation guidance (issue, actions taken, facts, recommended step).</p>
+
+  <h3>Current implementation &ndash; honest notes</h3>
+  <ul>
+    <li>The engine itself still only validates and marks the step complete. The real work is the coordinator call added in <code>JobApplicationWorkflow</code> (Phase 3/4 code, hard-coded findings).</li>
+    <li><b>The step is marked complete before the coordinator runs.</b> <code>engine.execute()</code> calls <code>state.complete(step)</code> first, then <code>JobApplicationWorkflow</code> calls the coordinator. If the coordinator throws, the step already counts as completed. It should be marked complete only after a valid result comes back.</li>
+    <li><b>Every step calls the same full research</b> (<code>coordinator.research(goal)</code> decomposes into all five sub-topics each time), only the goal text differs. The step is not mapped to a specific subagent, and the report is only printed (findings count), not stored or used by the next step.</li>
+    <li>The gate is strictly linear and only checks the <i>immediately previous</i> step. It works because every step is only reachable through the chain.</li>
+    <li>A blocked step sets BLOCKED and throws. Status is set to COMPLETED after <i>each</i> step, not once at the end of the workflow.</li>
+    <li>The handoff is now created after the last step and stored with <code>state.setHandoff()</code>, but its text is hard-coded (e.g. "Candidate lacks advanced Spring Boot experience"), not derived from the findings.</li>
+    <li><code>WorkflowExecutionResult</code> is unused. <code>WorkflowState.completedSteps</code> is a <code>HashSet</code>, so it does not keep order.</li>
+    <li>Tests: the validator gate (2 cases), the handoff builder, and one integration test of the full workflow. The engine's throw-on-block path is still untested, and the handoff content is not asserted.</li>
+  </ul>
+
+  <div class="callout tip"><b>Exam angle:</b> use <b>programmatic enforcement</b> (hooks, prerequisite gates) when order or policy must be guaranteed; prompt instructions only give probabilistic compliance. Typical example: block a refund tool until the customer is verified.</div>
+</section>
+
 <section id="map">
   <h2><small>Cheat map</small>Claude certification mapping</h2>
   <table>
@@ -370,7 +501,7 @@
     <tr><td><code>tool_use</code></td><td>StopReason.TOOL_USE / ToolCall</td><td>2</td></tr>
     <tr><td><code>tool_result</code></td><td>ToolResult</td><td>2</td></tr>
     <tr><td><code>end_turn</code></td><td>StopReason.END_TURN</td><td>2</td></tr>
-    <tr><td><code>client.messages.create()</code></td><td>MockClaudeClient</td><td>2</td></tr>
+    <tr><td><code>client.messages.create()</code></td><td>LLMClient (MockClaudeClient today)</td><td>2</td></tr>
     <tr><td>Iteration guard</td><td>MAX_ITERATIONS = 20</td><td>2</td></tr>
     <tr><td>Research coordinator / hub-and-spoke</td><td>CoordinatorAgent</td><td>3</td></tr>
     <tr><td>Task decomposition</td><td>CoordinatorAgent.decompose()</td><td>3</td></tr>
@@ -381,6 +512,10 @@
     <tr><td>Explicit context passing</td><td>ResearchContext + ContextBuilder</td><td>4</td></tr>
     <tr><td>Information provenance</td><td>ResearchMetadata (source, confidence, retrievedBy)</td><td>4</td></tr>
     <tr><td>Subagent isolation</td><td>Agents use only the ResearchContext they are given</td><td>4</td></tr>
+    <tr><td>Programmatic enforcement / prerequisite gate</td><td>WorkflowValidator.canExecute()</td><td>5</td></tr>
+    <tr><td>Deterministic workflow</td><td>WorkflowEngine + JobApplicationWorkflow</td><td>5</td></tr>
+    <tr><td>Workflow state tracking</td><td>WorkflowState + WorkflowStatus</td><td>5</td></tr>
+    <tr><td>Structured handoff / escalation summary</td><td>WorkflowHandoff + HandoffBuilder</td><td>5</td></tr>
   </table>
 </section>
 
@@ -403,6 +538,9 @@
     <tr><td>ContextPassingTest</td><td>A subagent accepts and uses the passed context</td></tr>
     <tr><td>SubagentIsolationTest</td><td>A subagent works from only the context it was given</td></tr>
     <tr><td>ResearchMetadataTest / MetadataPreservationTest</td><td>Provenance fields are created and survive in the finding</td></tr>
+    <tr><td>WorkflowValidatorTest</td><td>MATCH_SKILLS is blocked before ANALYZE_RESUME; ANALYZE_RESUME allowed after SEARCH_JOBS</td></tr>
+    <tr><td>WorkflowHandoffTest</td><td>HandoffBuilder fills all five handoff fields</td></tr>
+    <tr><td>WorkflowCoordinatorIntegrationTest</td><td>Full workflow runs, all four steps are completed and a handoff is stored in the state</td></tr>
   </table>
   <div class="callout tip">Testing agents is hard with real LLMs because outputs vary. A <b>mock client</b> makes the loop logic fully deterministic &mdash; a pattern worth mentioning in interviews.</div>
 </section>
@@ -442,6 +580,7 @@
   <ul>
     <li><b>1.2 Multi-agent orchestration:</b> hub-and-spoke &mdash; the coordinator owns all communication; subagents have isolated context.</li>
     <li><b>1.3 Subagent invocation &amp; context passing:</b> pass findings and goals explicitly in the subagent prompt (<code>ResearchContext</code>); independent subtasks can run in parallel via several Task calls in one response.</li>
+    <li><b>1.4 Enforcement &amp; handoff:</b> hard ordering and policy rules belong in code (prerequisite gates, hooks), not prompts; escalations carry a self-contained structured summary (<code>WorkflowHandoff</code>).</li>
     <li><b>5.6 Information provenance:</b> keep claim&ndash;source mappings (<code>ResearchMetadata</code>) and annotate conflicting values with their sources.</li>
     <li><b>1.6 Task decomposition:</b> a too-narrow decomposition is a classic failure; check coverage against the real goal.</li>
   </ul>
@@ -488,7 +627,13 @@
   <details><summary>How could Phase 3 delegation be made faster?</summary>
     The sub-topics are independent, so launch the subagents in parallel (several Task calls in one response) instead of looping sequentially.</details>
   <details><summary>What are the known limitations of the current Phase 3/4 code?</summary>
-    Hard-coded decomposition, hard-coded subagent output, unknown sub-topics routed to SkillsMatchAgent by the default branch, no refine step, sequential delegation, runners not wired into <code>Application</code>, and a coverage metric that always reports 100% with no gaps.</details>
+    Hard-coded decomposition, hard-coded subagent output, unknown sub-topics routed to SkillsMatchAgent by the default branch, no refine step, sequential delegation, and a coverage metric that always reports 100% with no gaps.</details>
+  <details><summary>Why enforce workflow order in code instead of the prompt?</summary>
+    Prompt instructions are followed probabilistically; a gate (<code>WorkflowValidator.canExecute</code>) is deterministic. If the prerequisite is not completed the step is blocked no matter what the model says.</details>
+  <details><summary>What does a good handoff contain and why?</summary>
+    Original goal, summary of what happened, root cause and recommended action (<code>WorkflowHandoff</code>). The receiver has no access to the conversation, so it must stand alone.</details>
+  <details><summary>What are the gaps in the current Phase 5 code?</summary>
+    The workflow now calls the coordinator and creates a handoff, but the step is marked complete before the coordinator runs, each step runs the same full research, the report is not passed on, the handoff text is hard-coded, <code>WorkflowExecutionResult</code> is unused, status becomes COMPLETED after every step, and the blocked path (exception) has no test.</details>
   <details><summary>Why is the current completeness metric weak?</summary>
     It divides the number of findings by the number of planned sub-topics, and every sub-topic always produces a finding, so the result is always 1.0 and gaps is always empty. A useful metric must be able to fail: compare required topics against findings that actually contain evidence.</details>
   <details><summary>What goes into a good subagent context?</summary>
@@ -496,7 +641,7 @@
   <details><summary>Why does a finding carry metadata?</summary>
     Provenance: source URL or document, page, confidence and which agent retrieved it. It lets a synthesis step trace claims, show confidence, and annotate conflicts between sources. Unknown fields stay null instead of being invented.</details>
   <details><summary>What changes when the real SDK replaces the mock?</summary>
-    Only the client: <code>MockClaudeClient</code> is replaced by the Anthropic SDK's <code>client.messages.create()</code>. AgentState, AgentLoopV2, ToolRegistry, ToolCall, ToolResult and StopReason stay unchanged &mdash; the benefit of the abstraction.</details>
+    Only the client: write a real <code>LLMClient</code> implementation that wraps the Anthropic SDK's <code>client.messages.create()</code> and pass it instead of <code>MockClaudeClient</code>; <code>AgentLoopV2</code> needs no change. AgentState, AgentLoopV2, ToolRegistry, ToolCall, ToolResult and StopReason stay unchanged &mdash; the benefit of the abstraction.</details>
   <details><summary>What is the role of tool_result in the conversation?</summary>
     After the model requests a tool, you run it and send back a <code>tool_result</code> tied to that request. Claude uses it to decide the next step. Without it Claude cannot continue reasoning.</details>
   <details><summary>How would you add a third tool?</summary>
@@ -520,6 +665,82 @@
 
 <section id="cheat">
   <h2><small>Last-minute revision</small>One-page cheat sheet</h2>
+<div class="pr">
+  <div class="pr-top"><span class="pr-badge">THE CORE PRINCIPLE</span></div>
+  <p class="pr-quote">The LLM is the <span class="b">brain</span> for choosing and proposing. Code is the <span class="h">hands</span> and the <span class="v">veto</span>.</p>
+
+  <div class="pr-flow">
+    <div class="pr-card brain">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.9 5.6L19.5 9.5l-5.6 1.9L12 17l-1.9-5.6L4.5 9.5l5.6-1.9L12 2zm7 11l.9 2.6 2.6.9-2.6.9L19 20l-.9-2.6-2.6-.9 2.6-.9L19 13z"/></svg></div>
+      <span class="step">STEP 1</span>
+      <h4>BRAIN</h4><span class="who">LLM</span>
+      <p>Chooses and <b>proposes</b>. Understands language, picks a tool, drafts an answer. Its output is only <b>text</b>: a request. Nothing has happened yet.</p>
+    </div>
+    <div class="pr-link"><i>&#10140;</i>PROPOSAL</div>
+    <div class="pr-card veto">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V6l8-3z"/><path d="M9 12l2.2 2.2L15.5 10"/></svg></div>
+      <span class="step">STEP 2</span>
+      <h4>VETO</h4><span class="who">YOUR CODE</span>
+      <p><b>Allows or refuses.</b> Gates, hooks and validators block anything outside the rules, and tell the model why.</p>
+    </div>
+    <div class="pr-link"><i>&#10140;</i>IF ALLOWED</div>
+    <div class="pr-card hands">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg></div>
+      <span class="step">STEP 3</span>
+      <h4>HANDS</h4><span class="who">YOUR CODE</span>
+      <p><b>Executes.</b> Runs the tool, calls the API, changes the data, and returns a <code style="background:#262c6b;color:#fff">tool_result</code> to the model.</p>
+    </div>
+  </div>
+
+  <div class="pr-time">
+    <div class="d"><b>DESIGN TIME (HUMANS)</b>Write, review, test and version the rules</div>
+    <div class="r"><b>RUN TIME (EVERY REQUEST)</b>LLM proposes &rarr; code checks &rarr; execute or refuse</div>
+  </div>
+
+  <div class="pr-sec">MAPPING: ROLE &rarr; COMMON TERMS &rarr; WORKFLOW &rarr; CATALYST</div>
+  <div class="pr-map">
+  <table>
+    <tr><th>Role</th><th>Other names for it</th><th>In Claude / Agent SDK</th><th>In an orchestrated workflow</th><th class="cx">Catalyst class</th></tr>
+    <tr>
+      <td class="role b">BRAIN</td>
+      <td>LLM, model, decision-maker, planner, reasoner</td>
+      <td>The model's response: <code>tool_use</code> block, text, <code>stop_reason</code></td>
+      <td>An LLM-driven <b>coordinator</b> (decides what to delegate) and LLM-backed <b>subagents</b> (do the reasoning work)</td>
+      <td class="cx"><code>LLMClient</code> / <code>MockClaudeClient</code> on the single-agent path today. Coordinator and subagents are still code</td>
+    </tr>
+    <tr>
+      <td class="role v">VETO</td>
+      <td>Guardrail, policy gate, validator, referee, prerequisite check, control layer</td>
+      <td><code>PreToolUse</code> hook, permission rules, allowed-tools list, iteration limit</td>
+      <td>The <b>workflow engine</b>: prerequisites and ordering, limits, escalation. Sits above the coordinator</td>
+      <td class="cx"><code>WorkflowEngine</code>, <code>WorkflowValidator.canExecute</code>, registry lookup, <code>MAX_ITERATIONS</code></td>
+    </tr>
+    <tr>
+      <td class="role h">HANDS</td>
+      <td>Executor, tool runtime, harness, actuator, host application</td>
+      <td>Your app running the tool and sending a <code>tool_result</code>, an MCP server, a <code>PostToolUse</code> hook</td>
+      <td>Running a workflow step: the tool call, the delegation to a subagent, the API or database action</td>
+      <td class="cx"><code>Executor</code>, <code>tool.execute()</code>, <code>CoordinatorAgent.delegate()</code></td>
+    </tr>
+  </table>
+  </div>
+
+  <div class="pr-sec">ONE WORKFLOW STEP, END TO END</div>
+  <div class="pr-ex">
+    <div class="c b"><small>BRAIN</small>Coordinator proposes:<br>delegate <b>MATCH_SKILLS</b></div><span class="a">&rarr;</span>
+    <div class="c v"><small>VETO (workflow engine)</small>Is <b>ANALYZE_RESUME</b> completed?</div><span class="a">&rarr;</span>
+    <div class="c h"><small>HANDS, if yes</small>Subagent runs, finding returns, step marked done</div>
+    <span class="a">or</span>
+    <div class="c x"><small>VETO, if no</small>BLOCKED, reason sent back, nothing runs</div>
+  </div>
+
+  <div class="pr-rules">
+    <div class="pr-rule"><span class="n">1</span><span>The LLM <b>never executes anything</b>.</span></div>
+    <div class="pr-rule"><span class="n">2</span><span>Its rules are <b>written by humans before runtime</b>.</span></div>
+    <div class="pr-rule"><span class="n">3</span><span>So <b>enforcement belongs in code</b>, not in the prompt.</span></div>
+  </div>
+</div>
+
 <pre>AGENT  = goal -> loop(plan, execute, evaluate) -> answer
 STATE  = goal, result, history, iterationCount, completed   (~ messages[])
 TOOLS  = BaseTool + ToolDefinition(name, description, inputSchema) in ToolRegistry (~ tools[])
@@ -529,17 +750,21 @@ PHASE 2  Claude decides (stop_reason)    TOOL_USE -> run tool & continue
                                          END_TURN -> done, break
 PHASE 2.5 TOOL_USE, TOOL_USE, END_TURN   iterations=3, history=2, completed=true
 GUARD    MAX_ITERATIONS = 20  (safety only; END_TURN is the real exit)
-MOCK     MockClaudeClient = scripted fake of client.messages.create()
+MOCK     LLMClient (interface) <- MockClaudeClient = scripted fake of client.messages.create()
 PHASE 3  CoordinatorAgent: decompose -> delegate -> evaluateCoverage -> aggregate
          hub-and-spoke: subagents never talk to each other
          completeness = covered / planned sub-topics
 PHASE 4  ContextBuilder -> ResearchContext -> agent.research(context) -> ResearchFinding(claim, analysis, metadata)
          priorFindings flow through the coordinator only; metadata = provenance
+PHASE 5  WorkflowValidator.canExecute(step,state) gate -> WorkflowEngine.execute -> CoordinatorAgent.research(goal)
+         per step; after step 4 HandoffBuilder.build -> WorkflowState.handoff
+         blocked => BLOCKED + IllegalStateException; WorkflowHandoff = self-contained summary
+         prompts are not enforcement, code is
 LATER    swap Mock -> Anthropic SDK; loop, state, registry stay unchanged
 EXAM     stop_reason is THE signal. Never: parse "I'm done", cap-as-primary, content[0]==text.
          Keep full history incl. tool results. D1 = 27% of CCAR-F.</pre>
   <h3>Words to be able to define</h3>
-  <p>Agent · Agent loop · State · Planner · Executor · Evaluator · Tool · Tool definition · Input schema · Registry · stop_reason · tool_use · tool_result · end_turn · Sequential tool calls · Multi-step reasoning · Mock client · Iteration cap · Separation of concerns · Hub-and-spoke · Decomposition · Delegation · Aggregation · Coverage · Context isolation · Provenance</p>
+  <p>Agent · Agent loop · State · Planner · Executor · Evaluator · Tool · Tool definition · Input schema · Registry · stop_reason · tool_use · tool_result · end_turn · Sequential tool calls · Multi-step reasoning · Mock client · Iteration cap · Separation of concerns · Hub-and-spoke · Decomposition · Delegation · Aggregation · Coverage · Context isolation · Provenance · Prerequisite gate · Programmatic enforcement · Handoff</p>
 </section>
 
 </main>
@@ -610,6 +835,30 @@ $('resetBtn').onclick=reset;$('cap').onchange=reset;reset();
   t.onchange=upd;upd();
 })();
 
+/* ---------- workflow gate widget ---------- */
+(function(){
+  const steps=['SEARCH_JOBS','ANALYZE_RESUME','MATCH_SKILLS','GENERATE_RECOMMENDATION'];
+  const box=document.getElementById('wfBtns'),out=document.getElementById('wfOut');
+  let done=new Set(),log=[];
+  function can(i){return i===0||done.has(steps[i-1]);}
+  function draw(){
+    box.innerHTML='';
+    steps.forEach((st,i)=>{
+      const b=document.createElement('button');b.type='button';b.textContent=st;
+      if(done.has(st))b.style.background='#d1fadf';
+      b.onclick=()=>{
+        if(can(i)){done.add(st);log.push('Completed: '+st);}
+        else log.push('BLOCKED: '+st+' (needs '+steps[i-1]+')');
+        draw();
+      };
+      box.appendChild(b);box.appendChild(document.createTextNode(' '));
+    });
+    out.textContent=log.length?log.join('\n'):'(nothing run yet)';
+  }
+  document.getElementById('wfReset').onclick=()=>{done=new Set();log=[];draw();};
+  draw();
+})();
+
 /* ---------- generic CCAR-F style quiz ---------- */
 const DOMAINS={1:'D1 Agentic Architecture',2:'D2 Tools & MCP',3:'D3 Claude Code',4:'D4 Prompts & Structured Output',5:'D5 Context & Reliability'};
 const bank=[
@@ -655,6 +904,10 @@ const bank=[
 {d:5,q:'A subagent\'s search returns nothing. How should it report this?',o:['Distinguish a valid empty result from an access/tool failure','Treat both as "no data"','Silently retry forever','Fill in plausible results'],a:0,e:'Conflating failures with empty results hides problems. Propagate the error type so the coordinator can react.'},
 {d:5,q:'Overall extraction accuracy is 97%, yet one document type fails badly. What practice reveals this?',o:['Stratified sampling and per-segment accuracy measurement','Looking only at the aggregate metric','Sampling only high-confidence outputs at random','Increasing the batch size'],a:0,e:'Aggregate numbers mask weak segments. Measure by segment and sample across strata.'},
 {d:5,q:'Two sources give conflicting statistics for the same claim. How should a synthesis agent handle this?',o:['Keep claim-to-source mapping and annotate the conflict with both sources','Silently average the numbers','Pick one at random','Drop both claims'],a:0,e:'Preserve provenance and surface the conflict rather than hiding it.'},
+{d:1,q:'A refund tool must never run before the customer identity is verified. Which approach gives a guarantee?',o:['A prerequisite gate in code that blocks the tool until verification is recorded','A system prompt line saying "always verify first"','Few-shot examples showing verification first','Asking the model to double-check before refunding'],a:0,e:'Prompts and examples give probabilistic compliance. A programmatic gate or hook is deterministic.'},
+{d:1,q:'When is programmatic enforcement preferred over prompt instructions?',o:['When a rule must hold every time, such as required ordering or a compliance policy','When wording is a matter of style','When the task has only one tool','When output length needs to be shorter'],a:0,e:'Use code (hooks, gates) for rules that cannot be allowed to fail; use prompts for guidance.'},
+{d:1,q:'An agent hands a case to a human who cannot see the conversation. What should the handoff include?',o:['Goal, actions taken, key findings and a recommended next step','The full raw transcript only','Just the customer id','Nothing; the human will ask the customer again'],a:0,e:'A structured, self-contained summary lets the receiver act without the history.'},
+{d:1,q:'A workflow step is requested before its prerequisite is complete. Best behaviour?',o:['Block it deterministically and report why','Run it anyway and log a warning','Let the model decide','Retry it three times'],a:0,e:'The gate must refuse regardless of what the model asks for.'},
 {d:5,q:'Where should the most important instructions or facts go in a very long prompt?',o:['At the beginning (and/or end), not buried in the middle','Exactly in the middle','Anywhere, position never matters','Hidden in the last tool result only'],a:0,e:'Models attend less reliably to the middle of long contexts ("lost in the middle"). Put key information at the edges.'}
 ];
 

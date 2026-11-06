@@ -18,3 +18,6 @@ D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\test\java\com\catalys
 D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\test\java\com\catalyst\context\SubagentIsolationTest.java
 D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\test\java\com\catalyst\PlannerTest.java
 D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\test\java\com\catalyst\ToolRegistryTest.java
+D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\test\java\com\catalyst\workflow\WorkflowCoordinatorIntegrationTest.java
+D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\test\java\com\catalyst\workflow\WorkflowHandoffTest.java
+D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\test\java\com\catalyst\workflow\WorkflowValidatorTest.java

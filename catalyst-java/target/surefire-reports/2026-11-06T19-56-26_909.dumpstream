@@ -1,4 +1,4 @@
-# Created at 2026-11-06T01:39:50.854
+# Created at 2026-11-06T19:56:27.206
 Boot Manifest-JAR contains absolute paths in classpath 'D:\Personal\Claude\agent-engineering-lab\catalyst-java\target\test-classes'
 Hint: <argLine>-Djdk.net.URLClassPath.disableClassPathURLCheck=true</argLine>
 'other' has different root

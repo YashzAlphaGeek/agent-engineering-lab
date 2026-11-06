@@ -377,7 +377,83 @@ Every finding carries `ResearchMetadata` (source, document, page, confidence, wh
 
 ---
 
-## 6. Phases
+## 6. Workflow Enforcement and Handoff (deterministic gates)
+
+**Prompts are not enforcement. Code is.** When steps must happen in a fixed order, or a policy must never be broken, do not ask the model nicely: block the step in code.
+
+```mermaid
+flowchart LR
+    S1["Step A"] --> G1{"Gate:<br/>A done?"}
+    G1 -- yes --> S2["Step B"]
+    G1 -- no --> X["BLOCKED<br/>step refused"]
+    S2 --> G2{"Gate:<br/>B done?"}
+    G2 -- yes --> S3["Step C"]
+    G2 -- no --> X
+    S3 --> H["Handoff<br/>self-contained summary"]
+```
+
+```mermaid
+classDiagram
+    class WorkflowEngine {
+        +execute(step, state)
+    }
+    class WorkflowValidator {
+        +canExecute(step, state) boolean
+    }
+    class WorkflowState {
+        completedSteps
+        status
+        handoff
+    }
+    class WorkflowStep {
+        <<enumeration>>
+    }
+    class WorkflowStatus {
+        <<enumeration>>
+        NOT_STARTED
+        IN_PROGRESS
+        COMPLETED
+        BLOCKED
+    }
+    class WorkflowHandoff {
+        <<record>>
+        workflowId
+        originalGoal
+        conversationSummary
+        rootCauseAnalysis
+        recommendedAction
+    }
+    class HandoffBuilder {
+        +build(...) WorkflowHandoff
+    }
+    WorkflowEngine --> WorkflowValidator : asks gate
+    WorkflowEngine --> WorkflowState : updates
+    WorkflowValidator --> WorkflowState : reads completed
+    WorkflowState --> WorkflowStatus
+    WorkflowState --> WorkflowHandoff
+    HandoffBuilder ..> WorkflowHandoff : creates
+    WorkflowValidator ..> WorkflowStep
+```
+
+| Component | Responsibility |
+|-----------|----------------|
+| `WorkflowStep` | Enum of the ordered steps |
+| `WorkflowStatus` | `NOT_STARTED`, `IN_PROGRESS`, `COMPLETED`, `BLOCKED` |
+| `WorkflowState` | Completed steps, current status, optional handoff |
+| `WorkflowValidator` | The prerequisite gate: `canExecute(step, state)` |
+| `WorkflowEngine` | Validate, then execute and update state; if blocked set `BLOCKED` and throw |
+| `WorkflowHandoff` / `HandoffBuilder` | Self-contained summary for the next human or agent: goal, summary, root cause, recommended action |
+| `WorkflowExecutionResult` | Per-step result record (step, success, output); defined, not used yet |
+
+**Handoff rule:** the receiver cannot see the conversation, so the handoff must stand alone.
+
+**Workflow governs the agents:** for each step the workflow first asks the gate (`WorkflowEngine`), and only then calls the coordinator. After the last step it builds a handoff and stores it in the state.
+
+**Current limits:** every step runs the same full coordinator research (not mapped to one subagent), the report is not passed to the next step, the handoff text is fixed rather than derived from findings, and the engine's blocked path is untested.
+
+---
+
+## 7. Phases
 
 | Phase | Focus | Decision maker |
 |-------|-------|----------------|
@@ -386,14 +462,15 @@ Every finding carries `ResearchMetadata` (source, document, page, confidence, wh
 | 2.5 | Sequential tool calls: `TOOL_USE` -> `TOOL_USE` -> `END_TURN` | Mock `LLMClient` |
 | 3 | Multi-agent: coordinator, subagents, decomposition, delegation, aggregation, coverage | Coordinator |
 | 4 | Context passing and provenance: `ResearchContext`, `ContextBuilder`, `ResearchMetadata` | Coordinator passes context |
+| 5 | Workflow enforcement and handoff: `WorkflowValidator` gate, `WorkflowEngine` governing the coordinator, `WorkflowState`, `WorkflowHandoff` | Code (deterministic gates) |
 | Next | Replace the mock with the real SDK (`client.messages.create()`) | Real model |
 
-Phase documents: `catalyst-java/Catalyst_Phase1_Agent_Architecture.md`, `Catalyst_Phase2_Claude_Tool_Loop.md`, `Catalyst_Phase3_MultiAgent_Orchestration.md`.
+Phase documents: `catalyst-java/Catalyst_Phase1_Agent_Architecture.md`, `Catalyst_Phase2_Claude_Tool_Loop.md`, `Catalyst_Phase3_MultiAgent_Orchestration.md`, `Catalyst_Phase4_Context.md`, `Catalyst_Phase5_Workflow_Enforcement_and_Handoff.md`.
 Study guide: `catalyst-java/go-to/Catalyst_Prep_Guide.html`.
 
 ---
 
-## 7. Rules That Keep an Agent Reliable
+## 8. Rules That Keep an Agent Reliable
 
 1. **`stop_reason` is the loop signal.** `tool_use` -> run the tool and continue. `end_turn` -> finish.
 2. **Never** decide completion by parsing the model's text, by checking only the first content block, or by an iteration cap.
@@ -412,7 +489,7 @@ Study guide: `catalyst-java/go-to/Catalyst_Prep_Guide.html`.
 
 ---
 
-## 8. Claude Concept Mapping
+## 9. Claude Concept Mapping
 
 | Claude concept | Component |
 |----------------|-----------|
@@ -430,10 +507,13 @@ Study guide: `catalyst-java/go-to/Catalyst_Prep_Guide.html`.
 | Subagent context passing | `ResearchContext` |
 | Provenance | `ResearchMetadata` |
 | Coverage evaluation | `CoverageReport` |
+| Programmatic enforcement / prerequisite gate | `WorkflowValidator` |
+| Deterministic workflow | `WorkflowEngine` |
+| Escalation / handoff summary | `WorkflowHandoff` |
 
 ---
 
-## 9. Testing Strategy
+## 10. Testing Strategy
 
 | Area | What to verify |
 |------|----------------|
@@ -447,10 +527,14 @@ Study guide: `catalyst-java/go-to/Catalyst_Prep_Guide.html`.
 | Context | Context built correctly and passed unchanged |
 | Isolation | A subagent uses only the context it was given |
 | Metadata | Provenance survives into the finding |
+| Workflow gate | A step is blocked until its prerequisite is completed; allowed after |
+| Handoff | Builder fills every handoff field |
+| Workflow + coordinator | Full run completes all steps and stores a handoff |
+| Workflow engine | Blocked step sets `BLOCKED` and throws (add a test for this) |
 
 ---
 
-## 10. Module Layout (generic)
+## 11. Module Layout (generic)
 
 ```text
 project/
@@ -459,6 +543,8 @@ project/
     tools/       BaseTool, ToolDefinition, ToolRegistry, <your tools>
     agents/      Coordinator, <your subagents>
     context/     ContextBuilder
+    workflow/    WorkflowStep, WorkflowStatus, WorkflowState, WorkflowValidator,
+                 WorkflowEngine, WorkflowHandoff, HandoffBuilder
     model/       SubTopic, ResearchContext, ResearchFinding, ResearchMetadata,
                  ResearchReport, CoverageReport
     phases/      runnable demos per phase
@@ -467,10 +553,10 @@ project/
 
 ---
 
-## 11. Learning Objective (1.1 Agentic Loops and beyond)
+## 12. Learning Objective (1.1 Agentic Loops and beyond)
 
 ```text
 Goal -> Plan -> Select Tool -> Execute Tool -> Observe Result -> Evaluate -> Respond
 ```
 
-Everything later in the Claude Certified Architect material builds on: Agent, AgentState, Planner / LLMClient, Executor, Evaluator, AgentLoop, ToolRegistry, StopReason, Coordinator, context passing and provenance.
+Everything later in the Claude Certified Architect material builds on: Agent, AgentState, Planner / LLMClient, Executor, Evaluator, AgentLoop, ToolRegistry, StopReason, Coordinator, context passing, provenance and workflow gates.

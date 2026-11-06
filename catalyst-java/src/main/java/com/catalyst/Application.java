@@ -4,11 +4,12 @@ import com.catalyst.phases.Phase1Runner;
 import com.catalyst.phases.Phase2Runner;
 import com.catalyst.phases.Phase3Runner;
 import com.catalyst.phases.Phase4Runner;
+import com.catalyst.phases.Phase5Runner;
 
 public class Application {
 
     private static final String ACTIVE_PHASE =
-            "PHASE_4";
+            "PHASE_5";
 
     public static void main(
             String[] args
@@ -30,6 +31,10 @@ public class Application {
 
             case "PHASE_4" -> {
                 new Phase4Runner().run();
+            }
+
+            case "PHASE_5" -> {
+                new Phase5Runner().run();
             }
 
             default ->
