@@ -101,6 +101,12 @@ classDiagram
     }
 
     class AgentLoop {
+        <<Phase 1 loop>>
+        +run(state)
+    }
+
+    class AgentLoopV2 {
+        <<Phase 2 loop>>
         +run(state)
     }
 
@@ -115,7 +121,7 @@ classDiagram
     }
 
     class Planner {
-        <<Phase 1 - rules>>
+        <<rule-based>>
         +createPlan(state)
     }
 
@@ -151,11 +157,13 @@ classDiagram
 
     Agent --> AgentLoop
     AgentLoop --> AgentState
-    AgentLoop --> Planner : Phase 1
-    AgentLoop --> LLMClient : Phase 2
+    AgentLoop --> Planner
     AgentLoop --> ToolRegistry
     AgentLoop --> Executor
     AgentLoop --> Evaluator
+    AgentLoopV2 --> AgentState
+    AgentLoopV2 --> LLMClient
+    AgentLoopV2 --> ToolRegistry
     ToolRegistry --> BaseTool
     BaseTool --> ToolDefinition
     Executor --> BaseTool
@@ -164,7 +172,8 @@ classDiagram
 | Component | Responsibility |
 |-----------|----------------|
 | `Agent` | Entry point: `run(goal)` creates the state and starts the loop |
-| `AgentLoop` | Repeats decide -> act -> observe until finished or capped |
+| `AgentLoop` | Phase 1 loop: `Planner` decides, `Executor` acts, `Evaluator` judges |
+| `AgentLoopV2` | Phase 2 loop: `LLMClient` decides, `StopReason` drives it, capped by `MAX_ITERATIONS`; used directly (not through `Agent`) |
 | `AgentState` | Memory of the run (goal, history, counters, stop reason, final answer) |
 | `Planner` | Rule-based "what next?" (Phase 1, no model) |
 | `LLMClient` | Model-based "what next?" (Phase 2+; a mock first, real SDK later) |
@@ -219,7 +228,7 @@ The model decides. The loop reacts to the **stop reason**.
 ```mermaid
 flowchart TD
 
-    G["Goal<br/><i>what the user wants</i>"] --> L["AgentLoop<br/><i>calls the model each turn</i>"]
+    G["Goal<br/><i>what the user wants</i>"] --> L["AgentLoopV2<br/><i>calls the model each turn</i>"]
     L --> M["LLMClient<br/><i>asks the model what to do next</i>"]
     M --> CR["ClaudeResponse<br/><i>stop reason + tool request or text</i>"]
     CR --> D{"StopReason<br/><i>why the model stopped</i>"}
@@ -240,7 +249,7 @@ flowchart TD
 while not completed:
     if iterationCount >= MAX_ITERATIONS: warn, break      # safety cap only
     iterationCount++
-    response = client.nextResponse(history, tools)
+    response = client.nextResponse()      # a real client also sends history + tools
     state.stopReason = response.stopReason
 
     if response.stopReason == END_TURN:
@@ -340,6 +349,8 @@ flowchart TD
 
 **Key rule:** subagents never talk to each other. All communication and context flows through the coordinator.
 
+Each specialist is its own class with a `research(context)` method; there is no shared subagent interface in the code. The coordinator picks the class by sub-topic name.
+
 | Step | Coordinator action |
 |------|--------------------|
 | Decompose | Split the goal into sub-topics |
@@ -362,7 +373,7 @@ classDiagram
     }
 
     class Subagent {
-        <<interface>>
+        <<one class per specialist>>
         +research(context)
     }
 
@@ -450,18 +461,26 @@ Every finding carries `ResearchMetadata` (source, document, page, confidence, wh
 **Prompts are not enforcement. Code is.** When steps must happen in a fixed order, or a policy must never be broken, do not ask the model nicely: block the step in code.
 
 ```mermaid
-flowchart LR
-    S1["Step A"] --> G1{"Gate:<br/>A done?"}
-    G1 -- yes --> S2["Step B"]
-    G1 -- no --> X["BLOCKED<br/>step refused"]
-    S2 --> G2{"Gate:<br/>B done?"}
-    G2 -- yes --> S3["Step C"]
-    G2 -- no --> X
-    S3 --> H["Handoff<br/>self-contained summary"]
+flowchart TD
+    W["Workflow<br/><i>runs the steps in order</i>"] --> G{"Gate<br/><i>previous step completed?</i>"}
+    G -->|no| X["BLOCKED<br/><i>status set, exception thrown</i>"]
+    G -->|yes| M["Mark step complete<br/><i>WorkflowState</i>"]
+    M --> C["Coordinator<br/><i>runs the subagents for this step</i>"]
+    C --> N{"More steps?"}
+    N -->|yes| G
+    N -->|no| H["Handoff<br/><i>built and stored in WorkflowState</i>"]
 ```
+
+Step order: Step A -> Step B -> Step C -> Step D. A step may only run when the one before it is completed.
 
 ```mermaid
 classDiagram
+    class Workflow {
+        +executeWorkflow()
+    }
+    class Coordinator {
+        +research(goal)
+    }
     class WorkflowEngine {
         +execute(step, state)
     }
@@ -469,12 +488,16 @@ classDiagram
         +canExecute(step, state) boolean
     }
     class WorkflowState {
-        completedSteps
-        status
-        handoff
+        +completedSteps
+        +status
+        +handoff
     }
     class WorkflowStep {
         <<enumeration>>
+        STEP_A
+        STEP_B
+        STEP_C
+        STEP_D
     }
     class WorkflowStatus {
         <<enumeration>>
@@ -494,6 +517,10 @@ classDiagram
     class HandoffBuilder {
         +build(...) WorkflowHandoff
     }
+    Workflow --> WorkflowEngine : 1 gate each step
+    Workflow --> Coordinator : 2 run agents
+    Workflow --> HandoffBuilder : 3 after last step
+    Workflow --> WorkflowState : owns
     WorkflowEngine --> WorkflowValidator : asks gate
     WorkflowEngine --> WorkflowState : updates
     WorkflowValidator --> WorkflowState : reads completed
@@ -505,6 +532,7 @@ classDiagram
 
 | Component | Responsibility |
 |-----------|----------------|
+| `Workflow` | Runs the steps in order: gate, then coordinator, then a handoff at the end |
 | `WorkflowStep` | Enum of the ordered steps |
 | `WorkflowStatus` | `NOT_STARTED`, `IN_PROGRESS`, `COMPLETED`, `BLOCKED` |
 | `WorkflowState` | Completed steps, current status, optional handoff |
@@ -531,7 +559,8 @@ classDiagram
 | 3 | Multi-agent: coordinator, subagents, decomposition, delegation, aggregation, coverage | Coordinator |
 | 4 | Context passing and provenance: `ResearchContext`, `ContextBuilder`, `ResearchMetadata` | Coordinator passes context |
 | 5 | Workflow enforcement and handoff: `WorkflowValidator` gate, `WorkflowEngine` governing the coordinator, `WorkflowState`, `WorkflowHandoff` | Code (deterministic gates) |
-| Next | Replace the mock with the real SDK (`client.messages.create()`) | Real model |
+| 6 (next) | Agent SDK hooks (exam task 1.5) | Hooks |
+| Later | Replace the mock with the real SDK (`client.messages.create()`) | Real model |
 
 Phase documents: `catalyst-java/Catalyst_Phase1_Agent_Architecture.md`, `Catalyst_Phase2_Claude_Tool_Loop.md`, `Catalyst_Phase3_MultiAgent_Orchestration.md`, `Catalyst_Phase4_Context.md`, `Catalyst_Phase5_Workflow_Enforcement_and_Handoff.md`.
 Study material in `catalyst-java/go-to/`:
@@ -619,7 +648,7 @@ project/
     tools/       BaseTool, ToolDefinition, ToolRegistry, <your tools>
     agents/      Coordinator, <your subagents>
     context/     ContextBuilder
-    workflow/    WorkflowStep, WorkflowStatus, WorkflowState, WorkflowValidator,
+    workflow/    Workflow, WorkflowStep, WorkflowStatus, WorkflowState, WorkflowValidator,
                  WorkflowEngine, WorkflowHandoff, HandoffBuilder
     model/       SubTopic, ResearchContext, ResearchFinding, ResearchMetadata,
                  ResearchReport, CoverageReport
