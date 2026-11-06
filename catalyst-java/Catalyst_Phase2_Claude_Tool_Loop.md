@@ -11,6 +11,7 @@ StopReason
 ClaudeResponse
 ToolCall
 ToolResult
+LLMClient (interface)
 MockClaudeClient
 AgentLoopV2
 ```
@@ -35,9 +36,11 @@ flowchart TD
 
     Goal --> AgentLoopV2
 
-    AgentLoopV2 --> MockClaudeClient
+    AgentLoopV2 --> LLMClient
 
-    MockClaudeClient --> Response[ClaudeResponse]
+    MockClaudeClient -.implements.-> LLMClient
+
+    LLMClient --> Response[ClaudeResponse]
 
     Response --> Decision{Stop Reason}
 
@@ -126,9 +129,45 @@ END_TURN
 
 ---
 
+## LLMClient
+
+The interface for the "what next?" slot of the loop.
+
+```java
+public interface LLMClient {
+
+    ClaudeResponse nextResponse();
+}
+```
+
+`AgentLoopV2` depends on `LLMClient`, not on a concrete class.
+
+Implementations:
+
+```text
+MockClaudeClient   scripted responses (learning / tests)
+real SDK client    client.messages.create() (later phase)
+```
+
+Swapping the mock for the real client needs no change to the loop.
+
+```mermaid
+classDiagram
+    class LLMClient {
+        <<interface>>
+        +nextResponse() ClaudeResponse
+    }
+    class MockClaudeClient
+    class AgentLoopV2
+    LLMClient <|.. MockClaudeClient
+    AgentLoopV2 --> LLMClient
+```
+
+---
+
 ## MockClaudeClient
 
-Simulates Claude behaviour locally.
+Implements `LLMClient`. Simulates Claude behaviour locally.
 
 Purpose:
 
@@ -157,6 +196,7 @@ anthropic/
 ├── ToolCall.java
 ├── ToolResult.java
 ├── ClaudeResponse.java
+├── LLMClient.java
 └── MockClaudeClient.java
 ```
 
@@ -188,6 +228,7 @@ Catalyst Version:
 ```java
 while (!state.isCompleted()) {
 
+    // client is an LLMClient
     ClaudeResponse response =
             client.nextResponse();
 
@@ -240,7 +281,7 @@ END_TURN
 | tool_result | ToolResult |
 | end_turn | StopReason.END_TURN |
 | messages[] | AgentState |
-| client.messages.create() | MockClaudeClient |
+| client.messages.create() | LLMClient (MockClaudeClient today) |
 | while(true) | AgentLoopV2 |
 | MAX_ITERATIONS | AgentLoopV2 |
 
@@ -357,20 +398,16 @@ Claude Style Agent Loops
 
 ---
 
-# Transition To Phase 3
+# Transition To The Real SDK (later phase)
 
-Replace:
-
-```text
-MockClaudeClient
-```
-
-with:
+Add a real `LLMClient` implementation:
 
 ```text
-Anthropic SDK
-client.messages.create()
+class ... implements LLMClient
+    wraps Anthropic SDK client.messages.create()
 ```
+
+and pass it to `AgentLoopV2` instead of `MockClaudeClient`.
 
 while keeping:
 

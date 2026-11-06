@@ -466,7 +466,15 @@ classDiagram
 | Next | Replace the mock with the real SDK (`client.messages.create()`) | Real model |
 
 Phase documents: `catalyst-java/Catalyst_Phase1_Agent_Architecture.md`, `Catalyst_Phase2_Claude_Tool_Loop.md`, `Catalyst_Phase3_MultiAgent_Orchestration.md`, `Catalyst_Phase4_Context.md`, `Catalyst_Phase5_Workflow_Enforcement_and_Handoff.md`.
-Study guide: `catalyst-java/go-to/Catalyst_Prep_Guide.html`.
+Study material in `catalyst-java/go-to/`:
+
+| File | Purpose |
+|------|---------|
+| `Catalyst_Prep_Guide.html` | Concepts per phase, simulators, Q&A, practice quiz, cheat sheet |
+| `Catalyst_Golden_Design.html` | The whole agent architecture on one page |
+| `golden-design-template.html` | Blank/generic version of the one-page design |
+| `agent-elements.html` | Core agent elements, bubble view |
+| `Catalyst_Technical_QA.html` | Technical questions and answers |
 
 ---
 
