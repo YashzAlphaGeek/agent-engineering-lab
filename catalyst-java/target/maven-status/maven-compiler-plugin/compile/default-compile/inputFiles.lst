@@ -3,6 +3,7 @@ D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\main\java\com\catalys
 D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\main\java\com\catalyst\agents\ResumeAnalysisAgent.java
 D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\main\java\com\catalyst\agents\SkillsMatchAgent.java
 D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\main\java\com\catalyst\anthropic\ClaudeResponse.java
+D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\main\java\com\catalyst\anthropic\LLMClient.java
 D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\main\java\com\catalyst\anthropic\MockClaudeClient.java
 D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\main\java\com\catalyst\anthropic\StopReason.java
 D:\Personal\Claude\agent-engineering-lab\catalyst-java\src\main\java\com\catalyst\anthropic\ToolCall.java

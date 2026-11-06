@@ -8,12 +8,12 @@ public class AgentLoopV2 {
     private static final int
             MAX_ITERATIONS = 20;
 
-    private final MockClaudeClient client;
+    private final LLMClient client;
 
     private final ToolRegistry registry;
 
     public AgentLoopV2(
-            MockClaudeClient client,
+            LLMClient client,
             ToolRegistry registry
     ) {
 

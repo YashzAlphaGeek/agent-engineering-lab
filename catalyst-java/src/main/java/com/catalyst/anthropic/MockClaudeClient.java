@@ -1,9 +1,10 @@
 package com.catalyst.anthropic;
 
-public class MockClaudeClient {
+public class MockClaudeClient implements LLMClient {
 
     private int step = 0;
 
+    @Override
     public ClaudeResponse nextResponse() {
 
         step++;

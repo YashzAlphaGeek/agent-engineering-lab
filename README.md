@@ -47,16 +47,17 @@ classDiagram
     }
 
     class DecisionMaker {
-        <<role>>
-        decides the next action
+        <<interface>>
+        +decideNextAction(state)
     }
 
     class Planner {
+        <<rule based>>
         +createPlan(state)
     }
 
     class LLMClient {
-        <<interface>>
+        <<model based>>
         +nextResponse(messages, tools)
     }
 
@@ -91,8 +92,8 @@ classDiagram
     AgentLoop --> ToolRegistry
     AgentLoop --> Executor
     AgentLoop --> Evaluator
-    DecisionMaker <|.. Planner : rule based
-    DecisionMaker <|.. LLMClient : model based
+    DecisionMaker <|.. Planner : implements (fixed rules)
+    DecisionMaker <|.. LLMClient : implements (the model decides)
     ToolRegistry --> BaseTool
     BaseTool --> ToolDefinition
     Executor --> BaseTool
@@ -103,14 +104,28 @@ classDiagram
 | `Agent` | Entry point: `run(goal)` creates the state and starts the loop |
 | `AgentLoop` | Repeats decide -> act -> observe until finished or capped |
 | `AgentState` | Memory of the run (goal, history, counters, stop reason, final answer) |
-| `Planner` | Rule-based decision maker (no model) |
-| `LLMClient` | Model-based decision maker (replaceable by a mock) |
+| `Planner` | Rule-based "what next?" (Phase 1, no model) |
+| `LLMClient` | Model-based "what next?" (Phase 2+; a mock first, real SDK later) |
 | `Executor` | Runs the selected tool; does no thinking |
 | `Evaluator` | Decides whether to continue (rule based) |
 | `ToolRegistry` | Lookup of the tools the agent is allowed to use (a safety boundary) |
 | `BaseTool` / `ToolDefinition` | Tool behaviour and the metadata (name, description, input schema) the model reads |
 
-**Principle:** only the decision maker changes between a rule-based and a model-based agent. State, loop, registry and tools stay the same.
+**Principle:** only the "what next?" part (Planner, then LLMClient) changes between phases. State, loop, registry and tools stay the same.
+
+### Planner vs LLMClient (the one part that changes)
+
+`Planner` is a plain class. `LLMClient` is a real interface (`MockClaudeClient` implements it; the real SDK client will too). They are used by two separate loops and share no common parent, because their outputs differ:
+
+| | `Planner` | `LLMClient` (implemented by `MockClaudeClient`) |
+|---|---|---|
+| Used by | `AgentLoop` (Phase 1) | `AgentLoopV2` (Phase 2) |
+| How it decides | Fixed rules in code (goal text -> tool name) | The model chooses; the mock replays a script |
+| Output | The tool to run | `ClaudeResponse` with a `StopReason` |
+| Who says "finished" | `Evaluator` | `StopReason.END_TURN` |
+
+Both answer the same question on every iteration: **"what should the agent do next?"** Phase 2 replaces the rule-based answer with the model's answer. Later phases keep the Phase 2 loop and swap the mock for the real SDK.
+
 
 ---
 
@@ -119,18 +134,18 @@ classDiagram
 ```mermaid
 flowchart TD
 
-    G[Goal] --> A[Agent]
-    A --> L[AgentLoop]
-    L --> P[Planner]
-    P --> R[ToolRegistry]
-    R --> T[Tool]
-    T --> E[Executor]
-    E --> RES[Result]
-    RES --> EV[Evaluator]
-    EV --> S[AgentState]
-    S --> C{Completed?}
+    G["Goal<br/><i>what the user wants</i>"] --> A["Agent<br/><i>entry point</i>"]
+    A --> L["AgentLoop<br/><i>repeats until done</i>"]
+    L --> P["Planner<br/><i>picks the next tool by rules</i>"]
+    P --> R["ToolRegistry<br/><i>finds the tool by name</i>"]
+    R --> T["Tool<br/><i>does the actual work</i>"]
+    T --> E["Executor<br/><i>runs the tool</i>"]
+    E --> RES["Result<br/><i>tool output</i>"]
+    RES --> EV["Evaluator<br/><i>is the result good enough?</i>"]
+    EV --> S["AgentState<br/><i>records progress</i>"]
+    S --> C{"Completed?"}
     C -->|No| P
-    C -->|Yes| F[Final Response]
+    C -->|Yes| F["Final Response<br/><i>answer to the user</i>"]
 ```
 
 ---
@@ -142,19 +157,19 @@ The model decides. The loop reacts to the **stop reason**.
 ```mermaid
 flowchart TD
 
-    G[Goal] --> L[AgentLoop]
-    L --> M[LLMClient]
-    M --> CR[ClaudeResponse]
-    CR --> D{StopReason}
+    G["Goal<br/><i>what the user wants</i>"] --> L["AgentLoop<br/><i>calls the model each turn</i>"]
+    L --> M["LLMClient<br/><i>asks the model what to do next</i>"]
+    M --> CR["ClaudeResponse<br/><i>stop reason + tool request or text</i>"]
+    CR --> D{"StopReason<br/><i>why the model stopped</i>"}
 
-    D -->|TOOL_USE| TC[ToolCall]
-    TC --> R[ToolRegistry]
-    R --> T[Tool.execute]
-    T --> TR[ToolResult]
-    TR --> S[AgentState: append to history]
+    D -->|TOOL_USE| TC["ToolCall<br/><i>model asks for a tool</i>"]
+    TC --> R["ToolRegistry<br/><i>finds the tool by name</i>"]
+    R --> T["Tool.execute<br/><i>runs the tool</i>"]
+    T --> TR["ToolResult<br/><i>answer sent back to the model</i>"]
+    TR --> S["AgentState<br/><i>append to history, then loop again</i>"]
     S --> L
 
-    D -->|END_TURN| F[Final Response]
+    D -->|END_TURN| F["Final Response<br/><i>model is finished</i>"]
 ```
 
 ### Loop in pseudocode
@@ -218,6 +233,11 @@ classDiagram
     ClaudeResponse --> StopReason
     ClaudeResponse --> ToolCall
     ToolCall .. ToolResult : linked by id
+
+    note for ClaudeResponse "What the model returned: why it stopped, plus a tool request or final text."
+    note for StopReason "TOOL_USE = run a tool and continue. END_TURN = finished."
+    note for ToolCall "The model asking for a tool: id, tool name, input."
+    note for ToolResult "Our answer to a ToolCall. Carries the same id back."
 ```
 
 ### Sequential tool calls
@@ -239,21 +259,21 @@ Iterations = tool calls + 1 (the final `END_TURN` call is counted but runs no to
 ```mermaid
 flowchart TD
 
-    G[Goal] --> C[Coordinator]
+    G["Goal<br/><i>overall objective</i>"] --> C["Coordinator<br/><i>the hub: owns all communication</i>"]
 
-    C -->|1 decompose| ST[SubTopics]
-    ST -->|2 delegate with ResearchContext| SA1[Subagent A]
-    ST --> SA2[Subagent B]
-    ST --> SA3[Subagent C]
+    C -->|1 decompose| ST["SubTopics<br/><i>the goal split into slices</i>"]
+    ST -->|2 delegate with ResearchContext| SA1["Subagent A<br/><i>specialist, isolated context</i>"]
+    ST --> SA2["Subagent B<br/><i>specialist, isolated context</i>"]
+    ST --> SA3["Subagent C<br/><i>specialist, isolated context</i>"]
 
     SA1 -->|Finding + Metadata| C
     SA2 -->|Finding + Metadata| C
     SA3 -->|Finding + Metadata| C
 
-    C -->|3 evaluate| CR[CoverageReport]
-    C -->|4 aggregate| RP[ResearchReport]
+    C -->|3 evaluate| CR["CoverageReport<br/><i>covered, gaps, completeness</i>"]
+    C -->|4 aggregate| RP["ResearchReport<br/><i>all findings combined</i>"]
     CR --> RP
-    RP --> F[Final Response]
+    RP --> F["Final Response<br/><i>answer to the user</i>"]
 ```
 
 **Key rule:** subagents never talk to each other. All communication and context flows through the coordinator.
@@ -334,6 +354,16 @@ classDiagram
     Subagent --> ResearchFinding : returns
     ResearchFinding --> ResearchMetadata
     ResearchReport --> ResearchFinding
+
+    note for Coordinator "The hub. Splits the goal, delegates, checks coverage, combines results."
+    note for Subagent "A specialist. Sees only the context it is given."
+    note for ContextBuilder "Builds the context passed to one subagent."
+    note for ResearchContext "Everything a subagent may know: goal, its sub-topic, expected output, prior findings."
+    note for SubTopic "One slice of the goal."
+    note for ResearchFinding "One result: the claim, the analysis and where it came from."
+    note for ResearchMetadata "Provenance: source, document, page, confidence, which agent found it."
+    note for ResearchReport "The final combined result of all findings."
+    note for CoverageReport "Which sub-topics were covered, which are gaps, and the completeness ratio."
 ```
 
 ### Context passing
@@ -449,4 +479,4 @@ project/
 Goal -> Plan -> Select Tool -> Execute Tool -> Observe Result -> Evaluate -> Respond
 ```
 
-Everything later in the Claude Certified Architect material builds on: Agent, AgentState, decision maker, Executor, Evaluator, AgentLoop, ToolRegistry, StopReason, Coordinator, context passing and provenance.
+Everything later in the Claude Certified Architect material builds on: Agent, AgentState, Planner / LLMClient, Executor, Evaluator, AgentLoop, ToolRegistry, StopReason, Coordinator, context passing and provenance.
