@@ -237,7 +237,7 @@
 <pre><span class="c">// Shape of the contract</span>
 <span class="k">interface</span> BaseTool {
     ToolDefinition definition();      <span class="c">// name + description + inputSchema</span>
-    String execute(String input);     <span class="c">// do the work</span>
+    Object execute(Object input);     <span class="c">// do the work</span>
 }</pre>
   <div class="callout"><b>Why a description matters:</b> with a real LLM, the <code>description</code> and <code>inputSchema</code> are the <i>only</i> way the model knows what a tool does. Vague descriptions = wrong tool choices.</div>
   <div class="callout tip"><b>Why a registry?</b> It decouples "which tools exist" from "who uses them". Adding a third tool = register it; no loop changes needed (Open/Closed Principle).</div>

@@ -91,6 +91,31 @@
   .retlane span.ar{color:var(--red);font-weight:800}
   @media(max-width:900px){.arch2{grid-template-columns:1fr}}
 
+
+  /* connectors between layers */
+  .cx{border:2px solid var(--ink);border-radius:12px;background:#fff;margin:8px 0;overflow:hidden}
+  .cx-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--ink);color:#fff;padding:4px 12px;font-size:.78rem}
+  .cx-top .cid{background:#fbbf24;color:#1c1405;font-weight:800;border-radius:6px;padding:0 8px;letter-spacing:.05em}
+  .cx-top .ft{font-weight:700}
+  .cx-top .gp{margin-left:auto;background:var(--grn);color:#fff;font-weight:800;font-size:.64rem;letter-spacing:.08em;border-radius:999px;padding:1px 9px}
+  .cx-cols{display:grid;grid-template-columns:1fr 1fr}
+  .cx-d,.cx-u{padding:8px 12px;font-size:.8rem}
+  .cx-d{background:var(--indl);border-right:1px solid var(--line)}
+  .cx-u{background:#fff5f5}
+  .cx-d b,.cx-u b{display:block;font-size:.66rem;letter-spacing:.1em;margin-bottom:2px}
+  .cx-d b{color:var(--ind)}.cx-u b{color:var(--red)}
+  .cx-c{padding:6px 12px;font-size:.78rem;background:#f8fafc;border-top:1px solid var(--line);color:var(--mute)}
+  .cx-c b{color:var(--ink)}
+  .cx2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px}
+  .nodirect{text-align:center;font-size:.8rem;background:#fff7e0;border:1px dashed var(--amb);border-radius:10px;padding:6px 10px;margin:8px 0}
+  .seq{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:10px 0;font-size:.8rem}
+  .seq .q{border:1px solid var(--line);background:#fafbff;border-radius:8px;padding:4px 9px}
+  .seq .q b{color:var(--ind)}
+  .seq .q.g{border-color:var(--grn);background:var(--grnl)}
+  .seq .q.r{border-color:var(--red);background:var(--redl)}
+  .seq .z{color:var(--mute);font-weight:800}
+  @media(max-width:700px){.cx-cols{grid-template-columns:1fr}.cx-d{border-right:0}}
+
   /* loop strip */
   .loop{display:flex;flex-wrap:wrap;align-items:stretch;gap:8px;margin:12px 0}
   .ls{flex:1;min-width:150px;border-radius:10px;padding:9px 12px;border:1px solid var(--line);background:#fafbff;font-size:.85rem}
@@ -205,7 +230,7 @@
 <!-- 2 -->
 <section id="arch">
   <h2><small>Big picture</small>The complete layered architecture</h2>
-  <p>The main stack runs top to bottom, one layer per row (L0 to L6). The right-hand rail lists the concerns that cut across every layer. A coverage checklist at the end of this section shows where each concern lives, so nothing is left out.</p>
+  <p>The main stack runs top to bottom, one layer per row (L0 to L6), and the labelled connectors C1 to C6 between layers define exactly what travels down, what comes back up and which contract applies. The right-hand rail lists the concerns that cut across every layer. A coverage checklist at the end of this section shows where each concern lives, so nothing is left out.</p>
 
   <div class="arch2">
   <div class="stack">
@@ -217,19 +242,19 @@
       <div class="chips"><span class="chip">goal or request</span><span class="chip">authentication (for example OAuth)</span><span class="chip">input validation</span><span class="chip">session and identity</span></div>
     </div>
 
-    <div class="flowdown"><span>&#9660;</span>authenticated request enters the application</div>
+    <div class="cx"><div class="cx-top"><span class="cid">C1</span><span class="ft">L0 Intake &harr; L1 Workflow engine</span></div><div class="cx-cols"><div class="cx-d"><b>&#9660; TRAVELS DOWN</b>Authenticated request: the goal plus the identity taken from the session</div><div class="cx-u"><b>&#9650; COMES BACK UP</b>Final answer, or a rejection reason, or a handoff for a human</div></div><div class="cx-c"><b>Contract:</b> Identity is fixed here and is never read from model text. Invalid input is rejected before any LLM is called.</div></div>
 
     <div class="band gate">
       <span class="tag code">Always programmatic: the VETO</span>
       <h4><span class="ln">L1</span>Workflow engine with gates and hooks</h4>
-      <div class="sub">The outermost authority over behaviour. It decides when each step may run, and the model cannot talk its way past it.</div>
+      <div class="sub">The outermost authority over behaviour. It decides when each step may run, and the model cannot talk its way past it. It supervises the connections marked GATE POINT (C2, C3, C5).</div>
       <div class="chips">
         <span class="chip">prerequisites and ordering</span><span class="chip">workflow state and status</span><span class="chip">PreToolUse hook</span><span class="chip">PostToolUse hook</span>
         <span class="chip">allowed-tools list</span><span class="chip">iteration, cost and time limits</span><span class="chip">escalation rules</span><span class="chip">human checkpoint</span>
       </div>
     </div>
 
-    <div class="flowdown"><span>&#9660;</span>every step and every delegation must pass the gate</div>
+    <div class="cx"><div class="cx-top"><span class="cid">C2</span><span class="ft">L1 Workflow engine &harr; L2 Coordinator</span><span class="gp">GATE POINT: L1 supervises</span></div><div class="cx-cols"><div class="cx-d"><b>&#9660; TRAVELS DOWN</b>An allowed step together with its limits (iterations, budget, time)</div><div class="cx-u"><b>&#9650; COMES BACK UP</b>Step outcome: a report with gaps, or a structured failure</div></div><div class="cx-c"><b>Contract:</b> The gate returns allow, or deny with a reason. A step is marked complete only after a valid outcome returns.</div></div>
 
     <div class="band coord">
       <span class="tag mix">Programmatic or LLM: the main AI agent</span>
@@ -242,7 +267,7 @@
       <div class="sub" style="margin-top:8px"><b>Brain:</b> fixed programmatic logic when the plan is known (an LLM-backed workflow), an LLM when the plan must be discovered (an LLM-driven orchestrator).</div>
     </div>
 
-    <div class="flowdown"><span>&#9660; &#9660; &#9660;</span>explicit context only: goal, assigned sub-task, expected output format, prior findings with sources</div>
+    <div class="cx"><div class="cx-top"><span class="cid">C3</span><span class="ft">L2 Coordinator &harr; L3 Sub agents</span><span class="gp">GATE POINT: L1 supervises</span></div><div class="cx-cols"><div class="cx-d"><b>&#9660; TRAVELS DOWN</b>Explicit context only: goal, assigned sub-task, expected output format, prior findings with their sources</div><div class="cx-u"><b>&#9650; COMES BACK UP</b>A finding with provenance (claim, source, confidence), or a structured error (type, what was tried, partial results, alternatives)</div></div><div class="cx-c"><b>Contract:</b> Hub-and-spoke: subagents never talk to each other and share no conversation. Every delegation passes the gate.</div></div>
 
     <div class="subs">
       <div class="sa"><span class="tag work">Usually LLM</span><h5><span class="ln">L3</span>Sub agent A</h5>
@@ -256,24 +281,25 @@
         <div class="brain"><b>Brain:</b> none, a plain programmatic function</div></div>
     </div>
 
-    <div class="flowdown"><span>&#9660; &#9650;</span>subagents use both of the next two layers: tool_use goes out, tool_result comes back, and every model call goes through the client</div>
+    <div class="cx2"><div class="cx"><div class="cx-top"><span class="cid">C4</span><span class="ft">L3 Sub agents &harr; L5 Model layer</span></div><div class="cx-cols"><div class="cx-d"><b>&#9660; TRAVELS DOWN</b>System prompt, the full messages[] history and the tools[] list</div><div class="cx-u"><b>&#9650; COMES BACK UP</b>A response: text and tool_use blocks plus a stop_reason</div></div><div class="cx-c"><b>Contract:</b> Only through the client interface. A coordinator uses this same connection when it is LLM-driven.</div></div><div class="cx"><div class="cx-top"><span class="cid">C5</span><span class="ft">L3 Sub agents &harr; L4 Tool layer</span><span class="gp">GATE POINT: L1 supervises</span></div><div class="cx-cols"><div class="cx-d"><b>&#9660; TRAVELS DOWN</b>A tool_use request (tool name and validated input), released only after the PreToolUse hook allows it</div><div class="cx-u"><b>&#9650; COMES BACK UP</b>A tool_result (content, with is_error when it failed), after the PostToolUse hook has filtered it</div></div><div class="cx-c"><b>Contract:</b> Registered tools only, with arguments validated. The application makes this call, never the LLM.</div></div></div>
+    <div class="nodirect"><b>No direct line between L5 and L4.</b> The LLM proposes a tool call, the sub agent (application) runs it through the gate. The LLM never executes anything.</div>
 
     <div class="tworow">
-      <div class="band hands">
-        <span class="tag code">Always programmatic: the HANDS</span>
-        <h4><span class="ln">L4</span>Tool layer</h4>
-        <div class="sub">Where real effects happen. Only registered tools can run.</div>
-        <div class="chips"><span class="chip">tool registry</span><span class="chip">name, description, input schema</span><span class="chip">argument validation</span><span class="chip">MCP servers</span><span class="chip">APIs and databases</span><span class="chip">tool_choice setting</span></div>
-      </div>
       <div class="band model">
         <span class="tag llm">The BRAIN lives here</span>
         <h4><span class="ln">L5</span>Model layer</h4>
         <div class="sub">The only place an LLM is reached. Hidden behind one client interface so the provider can be swapped.</div>
         <div class="chips"><span class="chip">LLM client interface</span><span class="chip">system prompt and examples</span><span class="chip">messages[] sent each call</span><span class="chip">stop_reason handling</span><span class="chip">Anthropic API, Bedrock, Vertex</span><span class="chip">retry with backoff</span></div>
       </div>
+      <div class="band hands">
+        <span class="tag code">Always programmatic: the HANDS</span>
+        <h4><span class="ln">L4</span>Tool layer</h4>
+        <div class="sub">Where real effects happen. Only registered tools can run.</div>
+        <div class="chips"><span class="chip">tool registry</span><span class="chip">name, description, input schema</span><span class="chip">argument validation</span><span class="chip">MCP servers</span><span class="chip">APIs and databases</span><span class="chip">tool_choice setting</span></div>
+      </div>
     </div>
 
-    <div class="flowdown"><span>&#9660;</span>tool effects reach real systems</div>
+    <div class="cx"><div class="cx-top"><span class="cid">C6</span><span class="ft">L4 Tool layer &harr; L6 Backend</span></div><div class="cx-cols"><div class="cx-d"><b>&#9660; TRAVELS DOWN</b>An authorised API or database call</div><div class="cx-u"><b>&#9650; COMES BACK UP</b>The data, or a denial</div></div><div class="cx-c"><b>Contract:</b> The backend enforces permissions and rate limits whatever the upper layers decided. This is defence in depth.</div></div>
 
     <div class="band back">
       <span class="tag gray">Final authority</span>
@@ -281,17 +307,16 @@
       <div class="sub">Authorisation, rate limits and data rules enforced even if every layer above is bypassed. This is defence in depth.</div>
     </div>
 
-    <div class="flowdown"><span>&#9650;</span>results travel back up</div>
-
-    <div class="band ret">
-      <span class="tag red">Return path</span>
+    <div class="band ret" style="margin-top:12px">
+      <span class="tag red">Return path summary</span>
       <h4>What flows back up the stack</h4>
       <div class="retlane">
-        <span class="n">tool_result</span><span class="ar">&rarr;</span>
-        <span class="n">finding with source, or structured error</span><span class="ar">&rarr;</span>
-        <span class="n">aggregate, coverage report, gaps</span><span class="ar">&rarr;</span>
-        <span class="n">step marked complete only on success</span><span class="ar">&rarr;</span>
-        <span class="n">final answer</span><span class="ar">or</span><span class="n">handoff to a human</span>
+        <span class="n">data or denial (C6)</span><span class="ar">&rarr;</span>
+        <span class="n">tool_result (C5)</span><span class="ar">&rarr;</span>
+        <span class="n">finding with source, or structured error (C3)</span><span class="ar">&rarr;</span>
+        <span class="n">aggregate, coverage, gaps (C2)</span><span class="ar">&rarr;</span>
+        <span class="n">step complete only on success (C2)</span><span class="ar">&rarr;</span>
+        <span class="n">final answer or handoff (C1)</span>
       </div>
     </div>
 
@@ -307,6 +332,40 @@
     <div class="rc r"><b>Observability</b>Logs, traces per iteration, token usage, audit trail of every gate decision.</div>
     <div class="rc"><b>Testing and evaluation</b>Mock client for deterministic unit tests, contract tests for the model client, a few live evals.</div>
   </div>
+  </div>
+
+  <h3>Connection contracts: how every pair of layers is joined</h3>
+  <table>
+    <tr><th>ID</th><th>Between</th><th>Travels down</th><th>Comes back up</th><th>Enforced by</th><th>Typical failure and response</th></tr>
+    <tr><td>C1</td><td>L0 and L1</td><td>Authenticated goal and identity</td><td>Answer, rejection or handoff</td><td>Authentication and input validation</td><td>Invalid input is rejected before any LLM call</td></tr>
+    <tr><td>C2</td><td>L1 and L2</td><td>Allowed step and limits</td><td>Report with gaps or structured failure</td><td>Workflow gate (prerequisites)</td><td>Gate denies: step BLOCKED with a reason, nothing runs</td></tr>
+    <tr><td>C3</td><td>L2 and L3</td><td>Explicit context object</td><td>Finding with provenance or structured error</td><td>Delegation gate and context isolation</td><td>Subagent fails: coordinator retries with adjusted context, continues with partial results or escalates</td></tr>
+    <tr><td>C4</td><td>L3 and L5</td><td>Prompt, messages[], tools[]</td><td>Response with stop_reason</td><td>Client interface and stop_reason loop</td><td>Rate limit or overload: retry with backoff. max_tokens: not finished, investigate</td></tr>
+    <tr><td>C5</td><td>L3 and L4</td><td>Validated tool_use request</td><td>tool_result, with is_error on failure</td><td>PreToolUse and PostToolUse hooks, registry</td><td>Unknown tool or bad arguments: error result the model can read and correct</td></tr>
+    <tr><td>C6</td><td>L4 and L6</td><td>Authorised API or database call</td><td>Data or denial</td><td>Backend permissions</td><td>Denied regardless of the upper layers, surfaced as an error result</td></tr>
+  </table>
+  <p class="mute">Rules that hold on every connection: information only crosses a boundary through its defined contract, the LLM never reaches L4 or L6 directly, and each gate decision is logged for the audit trail.</p>
+
+  <h3>One request through every connection</h3>
+  <div class="seq">
+    <span class="q"><b>C1</b> authenticate goal</span><span class="z">&rarr;</span>
+    <span class="q g"><b>C2</b> gate: prerequisite met?</span><span class="z">&rarr;</span>
+    <span class="q"><b>C3</b> coordinator sends context</span><span class="z">&rarr;</span>
+    <span class="q"><b>C4</b> sub agent asks the model</span><span class="z">&rarr;</span>
+    <span class="q">model replies tool_use</span><span class="z">&rarr;</span>
+    <span class="q g"><b>C5</b> PreToolUse hook allows</span><span class="z">&rarr;</span>
+    <span class="q"><b>C5</b> tool runs</span><span class="z">&rarr;</span>
+    <span class="q"><b>C6</b> backend checks and serves data</span><span class="z">&rarr;</span>
+    <span class="q">tool_result back up</span><span class="z">&rarr;</span>
+    <span class="q"><b>C4</b> model says end_turn</span><span class="z">&rarr;</span>
+    <span class="q"><b>C3</b> finding with source returns</span><span class="z">&rarr;</span>
+    <span class="q"><b>C2</b> step marked complete</span><span class="z">&rarr;</span>
+    <span class="q"><b>C1</b> answer to the user</span>
+  </div>
+  <div class="seq">
+    <span class="q r"><b>Blocked path:</b> at C2 or C5 the gate denies</span><span class="z">&rarr;</span>
+    <span class="q r">reason returned up the same connection</span><span class="z">&rarr;</span>
+    <span class="q r">model adapts, or coordinator retries or escalates</span>
   </div>
 
   <h3>Layer by layer</h3>
@@ -477,6 +536,19 @@
       <tr><td>Intake, authentication, backend permissions (L0 and L6)</td><td>none</td><td><span class="st no">NOT YET</span></td><td>Out of scope for the learning project</td></tr>
       <tr><td>Hooks (Agent SDK style)</td><td>none</td><td><span class="st no">NOT YET</span></td><td>Planned as a later phase</td></tr>
       <tr><td>Failure handling and refine step</td><td>none</td><td><span class="st no">NOT YET</span></td><td>No retry, no structured error, <code>evaluateCoverage()</code> always reports 100 percent</td></tr>
+    </table>
+  </div>
+
+  <h3>Which connections exist in the repo</h3>
+  <div class="catbox">
+    <table>
+      <tr><th>Connection</th><th>Status</th><th>How it is done today</th></tr>
+      <tr><td>C1 L0 and L1</td><td><span class="st no">NOT YET</span></td><td>No intake or authentication. <code>Application</code> starts a phase directly</td></tr>
+      <tr><td>C2 L1 and L2</td><td><span class="st ok">BUILT</span></td><td><code>JobApplicationWorkflow</code> calls <code>engine.execute()</code> then <code>coordinator.research(goal)</code>. It is a plain method call that returns a report, with no structured failure</td></tr>
+      <tr><td>C3 L2 and L3</td><td><span class="st ok">BUILT</span></td><td><code>ContextBuilder.build()</code> then <code>agent.research(context)</code>. Returns a <code>ResearchFinding</code> with <code>ResearchMetadata</code>. No structured error type</td></tr>
+      <tr><td>C4 L3 and L5</td><td><span class="st no">NOT YET</span></td><td>Subagents do not call any <code>LLMClient</code>. Only <code>AgentLoopV2</code> uses it, on the separate single-agent path</td></tr>
+      <tr><td>C5 L3 and L4</td><td><span class="st no">NOT YET</span></td><td>Subagents do not use tools or the registry. Only the single-agent path (<code>AgentLoopV2</code>, <code>Executor</code>) does, and it has no hooks</td></tr>
+      <tr><td>C6 L4 and L6</td><td><span class="st no">NOT YET</span></td><td>No real backend. Tools return canned data</td></tr>
     </table>
   </div>
 

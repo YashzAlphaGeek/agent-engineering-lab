@@ -328,8 +328,8 @@ The model sees only name, description and schema. Good definitions: a specific v
 Two tools with overlapping descriptions cause mis-selection &mdash; fix the descriptions first, not the prompt.
 </details>
 
-<details><summary>3.2 Why is <code>execute(String input)</code> a weak signature, and how would you improve it?</summary>
-A raw String forces every tool to parse its own input and gives no compile-time safety. Better: a typed input (record) validated against the schema, and a structured result.
+<details><summary>3.2 Why is <code>Object execute(Object input)</code> a weak signature, and how would you improve it?</summary>
+An untyped <code>Object</code> in and out (the shape used by Catalyst's <code>BaseTool</code>) forces every tool to cast and parse its own input and gives no compile-time safety. The tool's own code, for example <code>String.valueOf(input)</code>, decides what the input means. Better: a typed input (record) validated against the schema, and a structured result.
 <pre><code>interface BaseTool&lt;I, O&gt; {
     ToolDefinition definition();
     O execute(I input) throws ToolException;
