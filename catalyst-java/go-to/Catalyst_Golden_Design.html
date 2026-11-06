@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Golden Design – Agent Architecture Big Picture</title>
+<style>
+  :root{--bg:#f4f6fb;--card:#fff;--ink:#1d2433;--mute:#5d6678;--line:#dde2ee;--ind:#4f46e5;--indl:#eef0ff;--grn:#16a34a;--grnl:#e8f8ee;--amb:#d97706;--ambl:#fff4e0;--red:#dc2626;--redl:#fde8e8;--vio:#8b5cf6;--viol:#f3effd;--pink:#db2777;--pinkl:#fdf2f8}
+  *{box-sizing:border-box}
+  body{margin:0;font:16px/1.6 system-ui,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+  header{background:#111735;color:#fff;padding:34px 24px 26px}
+  .hwrap{max-width:1180px;margin:0 auto}
+  header h1{margin:0 0 6px;font-size:2rem}
+  header p{margin:0;color:#c9d1f5;max-width:820px}
+  .topnav{max-width:1180px;margin:0 auto;padding:12px 24px 0;display:flex;flex-wrap:wrap;gap:8px}
+  .topnav a{background:#fff;border:1px solid var(--line);border-radius:999px;padding:5px 14px;font-size:.85rem;color:var(--ink);text-decoration:none}
+  .topnav a:hover{border-color:var(--ind);color:var(--ind)}
+  main{max-width:1180px;margin:0 auto;padding:18px 24px 40px}
+  section{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px 26px;margin-bottom:22px}
+  h2{margin:0 0 4px;font-size:1.45rem}
+  h2 small{display:block;font-size:.74rem;font-weight:700;color:var(--ind);text-transform:uppercase;letter-spacing:.09em}
+  h3{margin:20px 0 6px;font-size:1.05rem}
+  p{margin:8px 0}
+  code{background:#eef0f6;padding:1px 6px;border-radius:5px;font:.88em ui-monospace,Consolas,monospace}
+  .mute{color:var(--mute)}
+  .tag{display:inline-block;font-size:.64rem;font-weight:800;letter-spacing:.1em;padding:2px 9px;border-radius:999px;color:#fff;text-transform:uppercase}
+  .tag.code{background:var(--grn)}.tag.llm{background:var(--ind)}.tag.work{background:var(--amb)}.tag.mix{background:var(--vio)}.tag.cat{background:var(--pink)}.tag.red{background:var(--red)}.tag.gray{background:#64748b}
+
+
+  /* naming key */
+  .keygrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin:12px 0 6px}
+  .kc{border-radius:14px;padding:14px 16px;border:2px solid}
+  .kc h3{margin:6px 0 4px;font-size:1.2rem}
+  .kc p{margin:4px 0;font-size:.88rem}
+  .kc .aka{font-size:.78rem;color:var(--mute)}
+  .kc .eg{font-size:.8rem;background:rgba(255,255,255,.7);border-radius:8px;padding:5px 9px;margin-top:6px}
+  .kc.p{background:var(--grnl);border-color:var(--grn)}
+  .kc.l{background:var(--indl);border-color:var(--ind)}
+  .kc.a{background:#f1f5f9;border-color:#94a3b8}
+  .keyrule{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+  .keyrule div{flex:1;min-width:230px;border-radius:10px;padding:8px 12px;font-size:.88rem;background:#fafbff;border:1px solid var(--line)}
+
+  /* principle strip */
+  .pstrip{display:flex;flex-wrap:wrap;align-items:stretch;gap:10px;margin:14px 0 4px}
+  .pbox{flex:1;min-width:220px;border-radius:12px;padding:12px 14px;border:2px solid}
+  .pbox h4{margin:2px 0 2px;font-size:1.1rem}
+  .pbox p{margin:0;font-size:.88rem}
+  .pbox.b{background:var(--indl);border-color:var(--ind)}.pbox.v{background:var(--redl);border-color:var(--red)}.pbox.h{background:var(--grnl);border-color:var(--grn)}
+  .parrow{align-self:center;font-weight:800;color:var(--mute);font-size:.72rem;text-align:center;letter-spacing:.06em}
+
+  /* master architecture */
+  .arch{max-width:960px;margin:16px auto 6px}
+  .band{border-radius:14px;padding:16px 18px 14px;border:2px solid;position:relative}
+  .band>.tag{position:absolute;top:-10px;left:16px}
+  .band h4{margin:4px 0 2px;font-size:1.05rem}
+  .band .sub{font-size:.84rem;color:var(--mute)}
+  .band.gate{background:var(--grnl);border-color:var(--grn)}
+  .band.coord{background:var(--indl);border-color:var(--ind)}
+  .band.hands{background:var(--grnl);border-color:var(--grn);border-style:dashed}
+  .band.back{background:#f1f5f9;border-color:#94a3b8}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .chip{background:#fff;border:1px solid var(--line);border-radius:8px;padding:3px 10px;font-size:.78rem}
+  .flowdown{text-align:center;color:var(--mute);font-size:.78rem;padding:6px 0;line-height:1.3}
+  .flowdown span{display:block;color:var(--ind);font-size:1.15rem}
+  .subs{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+  .sa{border:2px solid var(--amb);background:var(--ambl);border-radius:12px;padding:12px 14px;position:relative}
+  .sa h5{margin:0 0 2px;font-size:1rem}
+  .sa ul{margin:6px 0 0;padding-left:18px;font-size:.82rem}
+  .sa .brain{margin-top:8px;font-size:.78rem;border-top:1px dashed var(--amb);padding-top:6px}
+  .two{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+  .ends{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:.84rem;font-weight:700;margin:2px 0 8px}
+  .ends span{background:var(--ink);color:#fff;border-radius:999px;padding:3px 14px}
+
+
+  /* complete layered architecture */
+  .arch2{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:16px;margin:16px 0 6px;align-items:start}
+  .stack>.band{margin:0}
+  .ln{display:inline-block;background:var(--ink);color:#fff;font-size:.66rem;font-weight:800;letter-spacing:.08em;padding:1px 8px;border-radius:6px;margin-right:6px;vertical-align:1px}
+  .band.edge{background:#fff;border-color:var(--ink)}
+  .band.model{background:var(--indl);border-color:var(--ind)}
+  .band.ret{background:#fff7f7;border-color:var(--red);border-style:dashed}
+  .rail{display:flex;flex-direction:column;gap:10px}
+  .rail h4{margin:0 0 2px;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+  .rc{border:1px solid var(--line);border-left:4px solid var(--vio);border-radius:10px;padding:8px 12px;background:#fcfbff;font-size:.82rem}
+  .rc b{display:block;font-size:.88rem}
+  .rc ul{margin:4px 0 0;padding-left:16px}
+  .rc.g{border-left-color:var(--grn)}.rc.i{border-left-color:var(--ind)}.rc.a{border-left-color:var(--amb)}.rc.r{border-left-color:var(--red)}.rc.s{border-left-color:#64748b}
+  .tworow{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+  .retlane{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px;font-size:.78rem}
+  .retlane span.n{background:#fff;border:1px solid #f3b6b6;border-radius:8px;padding:3px 9px}
+  .retlane span.ar{color:var(--red);font-weight:800}
+  @media(max-width:900px){.arch2{grid-template-columns:1fr}}
+
+  /* loop strip */
+  .loop{display:flex;flex-wrap:wrap;align-items:stretch;gap:8px;margin:12px 0}
+  .ls{flex:1;min-width:150px;border-radius:10px;padding:9px 12px;border:1px solid var(--line);background:#fafbff;font-size:.85rem}
+  .ls b{display:block;margin-bottom:2px}
+  .ls.m{border-color:var(--ind);background:var(--indl)}.ls.c{border-color:var(--grn);background:var(--grnl)}.ls.w{border-color:var(--amb);background:var(--ambl)}.ls.x{border-color:var(--red);background:var(--redl)}
+  .la{align-self:center;color:var(--mute);font-weight:800}
+
+  /* glossary */
+  .gl{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px;margin-top:10px}
+  .gc{border:1px solid var(--line);border-radius:12px;padding:10px 13px;background:#fcfcff}
+  .gc h4{margin:4px 0 2px;font-size:.98rem}
+  .gc p{margin:0;font-size:.85rem;color:var(--mute)}
+  .gh{margin:20px 0 4px;font-size:.78rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+
+  /* matrix */
+  .px{overflow-x:auto;margin:12px 0}
+  .px-g{display:grid;grid-template-columns:132px minmax(210px,1fr) minmax(210px,1fr);gap:8px;min-width:560px}
+  .px-corner{font-size:.68rem;color:var(--mute);line-height:1.5;align-self:end;padding:0 4px 4px}
+  .px-h{border-radius:10px;padding:9px 12px;text-align:center}
+  .px-h.path{background:var(--indl);border:1px solid #c7cafc}
+  .px-h.res{background:var(--grnl);border:1px solid #b6e5c7;text-align:left}
+  .px-h b.t2{display:inline-block;font-size:.64rem;letter-spacing:.12em;padding:2px 9px;border-radius:999px;color:#fff;margin-bottom:4px}
+  .px-h.path b.t2{background:var(--ind)}.px-h.res b.t2{background:var(--grn)}
+  .px-h .t{display:block;font-weight:700}.px-h .s{display:block;font-size:.76rem;color:var(--mute)}
+  .px-c{border-radius:12px;padding:11px 13px;border:2px solid;font-size:.84rem}
+  .px-c .k{display:inline-block;font-size:.6rem;font-weight:800;letter-spacing:.08em;padding:2px 8px;border-radius:999px;margin-bottom:5px;color:#fff}
+  .px-c h5{margin:0 0 3px;font-size:.98rem}
+  .px-c.a{background:var(--ambl);border-color:var(--amb)}.px-c.a .k{background:var(--amb)}
+  .px-c.m{background:var(--viol);border-color:var(--vio)}.px-c.m .k{background:var(--vio)}
+  .px-c.o{background:var(--indl);border-color:var(--ind)}.px-c.o .k{background:var(--ind)}
+
+  /* ladder */
+  .ladder{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:12px 0}
+  .lad{border-radius:12px;padding:10px 13px;border:2px solid;font-size:.85rem}
+  .lad h5{margin:3px 0 2px;font-size:.98rem}
+  .lad.a{background:var(--ambl);border-color:var(--amb)}.lad.m{background:var(--viol);border-color:var(--vio)}.lad.o{background:var(--indl);border-color:var(--ind)}
+
+  /* tables */
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:.9rem}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+  th{background:#f0f2f9}
+  .st{display:inline-block;font-size:.66rem;font-weight:800;letter-spacing:.07em;padding:2px 9px;border-radius:999px;color:#fff;white-space:nowrap}
+  .st.ok{background:var(--grn)}.st.part{background:var(--amb)}.st.no{background:var(--red)}
+  .catbox{border-left:4px solid var(--pink);background:var(--pinkl);border-radius:0 12px 12px 0;padding:12px 16px;margin:14px 0}
+  .catbox th{background:#fbe0ee}
+  .catbox td,.catbox th{border-color:#f3c3da}
+  .tip{border-left:4px solid var(--grn);background:var(--grnl);padding:9px 14px;border-radius:0 10px 10px 0;margin:12px 0}
+  .warn{border-left:4px solid var(--amb);background:var(--ambl);padding:9px 14px;border-radius:0 10px 10px 0;margin:12px 0}
+  footer{text-align:center;color:var(--mute);padding:10px 20px 30px;font-size:.85rem}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hwrap">
+    <h1>Golden Design: the whole agent architecture on one page</h1>
+    <p>One big picture that connects every core term: AI agent, coordinator, sub agents, workflow engine, tools, LLM-driven vs LLM-backed, open vs closed tasks (path and result), context, failure handling and handoff. Generic first, with the Catalyst project mapped separately at the end.</p>
+  </div>
+</header>
+
+<div class="topnav">
+  <a href="#key">0. Naming key</a>
+  <a href="#principle">1. Principle</a>
+  <a href="#arch">2. Architecture</a>
+  <a href="#loop">3. The loop</a>
+  <a href="#terms">4. Terms</a>
+  <a href="#shape">5. Task shape</a>
+  <a href="#fail">6. Failure</a>
+  <a href="#catalyst">7. Catalyst mapping</a>
+</div>
+
+<main>
+
+<!-- 0 -->
+<section id="key">
+  <h2><small>Read this first</small>Naming key: three words used everywhere on this page</h2>
+  <p>The word "code" is vague because the LLM can also write code. So this page uses three clearer words instead.</p>
+  <div class="keygrid">
+    <div class="kc p"><span class="tag code">Green</span><h3>PROGRAMMATIC</h3>
+      <p>Deterministic logic that a developer wrote, tested and versioned before runtime. It gives the same output for the same input and cannot be skipped.</p>
+      <p class="aka">Also called: rule-based, code, deterministic.</p>
+      <div class="eg">Examples: validators, gates, hooks, tool functions, retry limits</div></div>
+    <div class="kc l"><span class="tag llm">Indigo</span><h3>LLM</h3>
+      <p>The language model. It reasons over text and decides what to attempt. It produces text only, so a proposal, never an action.</p>
+      <p class="aka">Also called: model, brain, probabilistic.</p>
+      <div class="eg">Examples: choosing a tool, drafting an answer, planning sub-tasks</div></div>
+    <div class="kc a"><span class="tag gray">Gray</span><h3>APPLICATION</h3>
+      <p>The overall program that hosts both. It runs the loop, executes tools, holds the state and contains every programmatic part.</p>
+      <p class="aka">Also called: host app, harness, runtime.</p>
+      <div class="eg">Examples: the agent loop, the workflow engine, the tool runner</div></div>
+  </div>
+  <div class="keyrule">
+    <div><b>PROGRAMMATIC</b> is guaranteed but rigid.</div>
+    <div><b>LLM</b> is flexible but only probabilistic.</div>
+    <div><b>Workers</b> (amber) are the sub agents. Each one can be LLM-backed or programmatic.</div>
+  </div>
+</section>
+
+<!-- 1 -->
+<section id="principle">
+  <h2><small>Start here</small>The one principle behind everything</h2>
+  <div class="pstrip">
+    <div class="pbox b"><span class="tag llm">LLM</span><h4>BRAIN</h4><p>Chooses and proposes. Its output is only text, a request. Nothing has happened yet.</p></div>
+    <div class="parrow">PROPOSAL<br>&rarr;</div>
+    <div class="pbox v"><span class="tag code">PROGRAMMATIC</span><h4>VETO</h4><p>Allows or refuses. Gates, hooks and validators enforce rules written by humans before runtime.</p></div>
+    <div class="parrow">IF ALLOWED<br>&rarr;</div>
+    <div class="pbox h"><span class="tag code">PROGRAMMATIC</span><h4>HANDS</h4><p>Executes the tool and sends a <code>tool_result</code> back to the model.</p></div>
+  </div>
+  <p class="mute">The LLM never executes anything. Rules it must obey live in programmatic logic, not in the prompt. Everything below is this principle applied at larger scale.</p>
+</section>
+
+<!-- 2 -->
+<section id="arch">
+  <h2><small>Big picture</small>The complete layered architecture</h2>
+  <p>The main stack runs top to bottom, one layer per row (L0 to L6). The right-hand rail lists the concerns that cut across every layer. A coverage checklist at the end of this section shows where each concern lives, so nothing is left out.</p>
+
+  <div class="arch2">
+  <div class="stack">
+
+    <div class="band edge">
+      <span class="tag gray">Application boundary</span>
+      <h4><span class="ln">L0</span>User, client and goal intake</h4>
+      <div class="sub">Where the goal enters. Identity is established here by programmatic authentication, never by the LLM.</div>
+      <div class="chips"><span class="chip">goal or request</span><span class="chip">authentication (for example OAuth)</span><span class="chip">input validation</span><span class="chip">session and identity</span></div>
+    </div>
+
+    <div class="flowdown"><span>&#9660;</span>authenticated request enters the application</div>
+
+    <div class="band gate">
+      <span class="tag code">Always programmatic: the VETO</span>
+      <h4><span class="ln">L1</span>Workflow engine with gates and hooks</h4>
+      <div class="sub">The outermost authority over behaviour. It decides when each step may run, and the model cannot talk its way past it.</div>
+      <div class="chips">
+        <span class="chip">prerequisites and ordering</span><span class="chip">workflow state and status</span><span class="chip">PreToolUse hook</span><span class="chip">PostToolUse hook</span>
+        <span class="chip">allowed-tools list</span><span class="chip">iteration, cost and time limits</span><span class="chip">escalation rules</span><span class="chip">human checkpoint</span>
+      </div>
+    </div>
+
+    <div class="flowdown"><span>&#9660;</span>every step and every delegation must pass the gate</div>
+
+    <div class="band coord">
+      <span class="tag mix">Programmatic or LLM: the main AI agent</span>
+      <h4><span class="ln">L2</span>Coordinator (orchestrator agent)</h4>
+      <div class="sub">Hub of hub-and-spoke. Subagents never talk to each other, everything goes through here.</div>
+      <div class="chips">
+        <span class="chip">decompose the goal</span><span class="chip">build context for each subagent</span><span class="chip">delegate (sequential or parallel)</span>
+        <span class="chip">aggregate findings</span><span class="chip">evaluate coverage and gaps</span><span class="chip">retry, refine or escalate</span>
+      </div>
+      <div class="sub" style="margin-top:8px"><b>Brain:</b> fixed programmatic logic when the plan is known (an LLM-backed workflow), an LLM when the plan must be discovered (an LLM-driven orchestrator).</div>
+    </div>
+
+    <div class="flowdown"><span>&#9660; &#9660; &#9660;</span>explicit context only: goal, assigned sub-task, expected output format, prior findings with sources</div>
+
+    <div class="subs">
+      <div class="sa"><span class="tag work">Usually LLM</span><h5><span class="ln">L3</span>Sub agent A</h5>
+        <ul><li>own system prompt</li><li>own restricted tools</li><li>own isolated context</li><li>returns a finding with source or a structured error</li></ul>
+        <div class="brain"><b>Brain:</b> an LLM running its own loop</div></div>
+      <div class="sa"><span class="tag work">Usually LLM</span><h5><span class="ln">L3</span>Sub agent B</h5>
+        <ul><li>can use a different, cheaper model</li><li>least-privilege tools</li><li>never sees the coordinator's chat</li><li>recovers locally from transient errors</li></ul>
+        <div class="brain"><b>Brain:</b> an LLM, or an LLM-backed single call</div></div>
+      <div class="sa"><span class="tag work">Sometimes programmatic</span><h5><span class="ln">L3</span>Sub agent C</h5>
+        <ul><li>deterministic work</li><li>lookup, calculate, validate</li><li>same input gives the same output</li><li>returns the same result shape</li></ul>
+        <div class="brain"><b>Brain:</b> none, a plain programmatic function</div></div>
+    </div>
+
+    <div class="flowdown"><span>&#9660; &#9650;</span>subagents use both of the next two layers: tool_use goes out, tool_result comes back, and every model call goes through the client</div>
+
+    <div class="tworow">
+      <div class="band hands">
+        <span class="tag code">Always programmatic: the HANDS</span>
+        <h4><span class="ln">L4</span>Tool layer</h4>
+        <div class="sub">Where real effects happen. Only registered tools can run.</div>
+        <div class="chips"><span class="chip">tool registry</span><span class="chip">name, description, input schema</span><span class="chip">argument validation</span><span class="chip">MCP servers</span><span class="chip">APIs and databases</span><span class="chip">tool_choice setting</span></div>
+      </div>
+      <div class="band model">
+        <span class="tag llm">The BRAIN lives here</span>
+        <h4><span class="ln">L5</span>Model layer</h4>
+        <div class="sub">The only place an LLM is reached. Hidden behind one client interface so the provider can be swapped.</div>
+        <div class="chips"><span class="chip">LLM client interface</span><span class="chip">system prompt and examples</span><span class="chip">messages[] sent each call</span><span class="chip">stop_reason handling</span><span class="chip">Anthropic API, Bedrock, Vertex</span><span class="chip">retry with backoff</span></div>
+      </div>
+    </div>
+
+    <div class="flowdown"><span>&#9660;</span>tool effects reach real systems</div>
+
+    <div class="band back">
+      <span class="tag gray">Final authority</span>
+      <h4><span class="ln">L6</span>Backend and data permissions</h4>
+      <div class="sub">Authorisation, rate limits and data rules enforced even if every layer above is bypassed. This is defence in depth.</div>
+    </div>
+
+    <div class="flowdown"><span>&#9650;</span>results travel back up</div>
+
+    <div class="band ret">
+      <span class="tag red">Return path</span>
+      <h4>What flows back up the stack</h4>
+      <div class="retlane">
+        <span class="n">tool_result</span><span class="ar">&rarr;</span>
+        <span class="n">finding with source, or structured error</span><span class="ar">&rarr;</span>
+        <span class="n">aggregate, coverage report, gaps</span><span class="ar">&rarr;</span>
+        <span class="n">step marked complete only on success</span><span class="ar">&rarr;</span>
+        <span class="n">final answer</span><span class="ar">or</span><span class="n">handoff to a human</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="rail">
+    <h4>Cross-cutting concerns</h4>
+    <div class="rc"><b>Prompts</b>Steer the LLM only. System prompt, examples, expected output format. Advisory, never enforcement.</div>
+    <div class="rc g"><b>Security</b><ul><li>secrets never in the prompt</li><li>tool output treated as data, not instructions</li><li>least-privilege tools per agent</li><li>identity from the session, not from text</li></ul></div>
+    <div class="rc s"><b>State and memory</b><ul><li>messages[] history (the API is stateless)</li><li>workflow state</li><li>prior findings passed on</li></ul></div>
+    <div class="rc a"><b>Limits and resilience</b><ul><li>iteration cap, token and cost budget</li><li>timeouts</li><li>bounded retries with backoff</li></ul></div>
+    <div class="rc i"><b>Provenance and trust</b>Every claim keeps its source, page and confidence. Conflicts are annotated, not merged silently.</div>
+    <div class="rc r"><b>Observability</b>Logs, traces per iteration, token usage, audit trail of every gate decision.</div>
+    <div class="rc"><b>Testing and evaluation</b>Mock client for deterministic unit tests, contract tests for the model client, a few live evals.</div>
+  </div>
+  </div>
+
+  <h3>Layer by layer</h3>
+  <table>
+    <tr><th>Layer</th><th>Purpose</th><th>Powered by</th><th>Receives</th><th>Returns</th><th>If it fails</th></tr>
+    <tr><td>L0 Intake</td><td>Authenticate and validate the request</td><td>Programmatic</td><td>Goal and credentials</td><td>Authenticated request</td><td>Reject, nothing reaches the LLM</td></tr>
+    <tr><td>L1 Workflow engine</td><td>Enforce order, policy and limits</td><td>Programmatic</td><td>A proposed step or delegation</td><td>Allow, or deny with a reason</td><td>Mark BLOCKED, escalate with a handoff</td></tr>
+    <tr><td>L2 Coordinator</td><td>Plan, delegate, aggregate, check coverage</td><td>Programmatic or LLM</td><td>An allowed step and the goal</td><td>Aggregated report with gaps</td><td>Retry, refine, continue with partial results</td></tr>
+    <tr><td>L3 Sub agents</td><td>Do one specialist task</td><td>Usually LLM</td><td>Explicit context only</td><td>Finding with source</td><td>Recover locally, else a structured error upward</td></tr>
+    <tr><td>L4 Tool layer</td><td>Perform real actions</td><td>Programmatic</td><td>A validated tool call</td><td>tool_result</td><td>Return an error result the model can read</td></tr>
+    <tr><td>L5 Model layer</td><td>Reach the LLM</td><td>LLM behind a client</td><td>History and tools</td><td>Response with stop_reason</td><td>Retry with backoff, handle non end_turn reasons</td></tr>
+    <tr><td>L6 Backend</td><td>Final data and permission checks</td><td>Programmatic</td><td>Tool effects</td><td>Data or a denial</td><td>Deny, regardless of upper layers</td></tr>
+  </table>
+
+  <h3>Coverage checklist: where each concern lives</h3>
+  <table>
+    <tr><th>Concern</th><th>Where it lives</th><th>Powered by</th></tr>
+    <tr><td>Goal intake and authentication</td><td>L0</td><td>Programmatic</td></tr>
+    <tr><td>Prerequisites, ordering, policy gates</td><td>L1</td><td>Programmatic</td></tr>
+    <tr><td>Hooks (before and after a tool)</td><td>L1</td><td>Programmatic</td></tr>
+    <tr><td>Human checkpoint and escalation handoff</td><td>L1 and the return path</td><td>Programmatic</td></tr>
+    <tr><td>Task decomposition</td><td>L2</td><td>Programmatic or LLM</td></tr>
+    <tr><td>Context passing to subagents</td><td>L2 to L3</td><td>Programmatic</td></tr>
+    <tr><td>Delegation, sequential or parallel</td><td>L2</td><td>Programmatic or LLM</td></tr>
+    <tr><td>Aggregation and coverage evaluation</td><td>L2</td><td>Programmatic</td></tr>
+    <tr><td>Specialist reasoning and research</td><td>L3</td><td>LLM</td></tr>
+    <tr><td>Subagent isolation and least privilege</td><td>L3 and L4</td><td>Programmatic</td></tr>
+    <tr><td>Tool definitions, registry, argument validation</td><td>L4</td><td>Programmatic</td></tr>
+    <tr><td>Tool execution and tool_result</td><td>L4</td><td>Programmatic</td></tr>
+    <tr><td>LLM calls, stop_reason loop, model choice</td><td>L5</td><td>LLM behind a client</td></tr>
+    <tr><td>Prompts and examples</td><td>L5 and rail</td><td>Advisory text</td></tr>
+    <tr><td>Data permissions and rate limits</td><td>L6</td><td>Programmatic</td></tr>
+    <tr><td>State and message history</td><td>Rail, used by L1, L2 and L5</td><td>Programmatic</td></tr>
+    <tr><td>Provenance of claims</td><td>Rail, carried L3 to L2</td><td>Programmatic</td></tr>
+    <tr><td>Failure handling and structured errors</td><td>Return path, L2 policy</td><td>Programmatic</td></tr>
+    <tr><td>Limits, timeouts, retries</td><td>Rail, enforced in L1 and L5</td><td>Programmatic</td></tr>
+    <tr><td>Security: secrets, injection, identity</td><td>Rail, enforced in L0, L1, L4, L6</td><td>Programmatic</td></tr>
+    <tr><td>Observability and audit trail</td><td>Rail, written by every layer</td><td>Programmatic</td></tr>
+    <tr><td>Testing and evaluation</td><td>Rail, mock client at L5</td><td>Programmatic</td></tr>
+  </table>
+</section>
+
+<!-- 3 -->
+<section id="loop">
+  <h2><small>Inside any LLM-driven agent</small>The agent loop</h2>
+  <p>Every LLM-driven component, the coordinator or a subagent, runs this same loop. <code>stop_reason</code> is the only reliable signal that controls it.</p>
+  <div class="loop">
+    <div class="ls w"><b>1. Send</b>Full message history plus the tools list.</div><div class="la">&rarr;</div>
+    <div class="ls m"><b>2. Model responds</b>Text and maybe <code>tool_use</code> blocks, plus a <code>stop_reason</code>.</div><div class="la">&rarr;</div>
+    <div class="ls c"><b>3. Gate</b>Programmatic check of the proposed tool call.</div><div class="la">&rarr;</div>
+    <div class="ls w"><b>4. Run tool</b>The application executes it.</div><div class="la">&rarr;</div>
+    <div class="ls w"><b>5. Append</b>Assistant turn, then <code>tool_result</code> in a user message. Loop to step 1.</div>
+  </div>
+  <table>
+    <tr><th><code>stop_reason</code></th><th>Meaning</th><th>Action</th></tr>
+    <tr><td><code>tool_use</code></td><td>Model wants a tool run</td><td>Gate, execute, append result, loop</td></tr>
+    <tr><td><code>end_turn</code></td><td>Model is finished</td><td>Return the final response</td></tr>
+    <tr><td>anything else, such as <code>max_tokens</code></td><td>Not finished</td><td>Find out why before continuing</td></tr>
+  </table>
+  <div class="warn"><b>Three anti-patterns:</b> parsing text such as "I'm done", using an iteration cap as the primary stop (it is only a guard rail), and treating a leading text block as completion.</div>
+</section>
+
+<!-- 4 -->
+<section id="terms">
+  <h2><small>Vocabulary</small>Every core term in one place</h2>
+
+  <div class="gh">Roles</div>
+  <div class="gl">
+    <div class="gc"><span class="tag llm">Brain</span><h4>LLM</h4><p>Proposes actions and reasons over results. Produces text only.</p></div>
+    <div class="gc"><span class="tag code">Veto</span><h4>Gate, guardrail, hook</h4><p>Deterministic programmatic logic that allows, denies or modifies an action.</p></div>
+    <div class="gc"><span class="tag code">Hands</span><h4>Executor, harness</h4><p>The application layer that runs the tool and feeds back the result.</p></div>
+  </div>
+
+  <div class="gh">Components</div>
+  <div class="gl">
+    <div class="gc"><span class="tag mix">Main agent</span><h4>AI agent</h4><p>A goal-driven loop with state, a decision-maker, tools and a stop condition.</p></div>
+    <div class="gc"><span class="tag mix">Hub</span><h4>Coordinator</h4><p>Decomposes, delegates, aggregates and checks coverage. Owns all communication.</p></div>
+    <div class="gc"><span class="tag work">Spoke</span><h4>Sub agent</h4><p>A specialist worker with isolated context, its own prompt and a restricted tool set.</p></div>
+    <div class="gc"><span class="tag code">Outermost</span><h4>Workflow engine</h4><p>Enforces order, prerequisites and limits above the coordinator.</p></div>
+    <div class="gc"><span class="tag code">Hands</span><h4>Tool and registry</h4><p>A callable capability with a definition. The registry means only registered tools can run.</p></div>
+    <div class="gc"><span class="tag gray">Memory</span><h4>State, messages[]</h4><p>The history sent on every call. The API itself is stateless.</p></div>
+    <div class="gc"><span class="tag gray">Handoff</span><h4>Context object</h4><p>Everything a subagent may know, passed explicitly in its prompt.</p></div>
+    <div class="gc"><span class="tag gray">Trust</span><h4>Provenance</h4><p>Each claim travels with its source, page and confidence so conflicts can be annotated.</p></div>
+    <div class="gc"><span class="tag gray">Escalation</span><h4>Structured handoff</h4><p>A self-contained summary for a human: goal, actions taken, root cause, recommended action.</p></div>
+  </div>
+
+  <div class="gh">How control is exercised</div>
+  <div class="gl">
+    <div class="gc"><span class="tag code">Deterministic</span><h4>Programmatic (rule-based)</h4><p>Fixed logic decides. Same input, same output. Cannot be skipped.</p></div>
+    <div class="gc"><span class="tag llm">Probabilistic</span><h4>Prompt-based</h4><p>An instruction to the model. Steers behaviour but never guarantees it.</p></div>
+    <div class="gc"><span class="tag work">Logic in charge</span><h4>LLM-backed</h4><p>Programmatic logic controls the flow and calls the LLM at fixed points. Anthropic calls this a workflow.</p></div>
+    <div class="gc"><span class="tag llm">Model in charge</span><h4>LLM-driven</h4><p>The model chooses the next step and tool and decides when done. Anthropic calls this an agent.</p></div>
+  </div>
+
+  <div class="gh">Task shape</div>
+  <div class="gl">
+    <div class="gc"><span class="tag mix">Path</span><h4>Closed or open path</h4><p>Closed: you can list the steps in advance. Open: steps depend on what is found.</p></div>
+    <div class="gc"><span class="tag mix">Result</span><h4>Closed or open result</h4><p>Closed: automated checks or tests can verify it. Open: judged by quality, not exact match.</p></div>
+    <div class="gc"><span class="tag gray">Rule</span><h4>Simplest first</h4><p>Use the simplest architecture that meets the requirement, and add agency only when needed.</p></div>
+  </div>
+</section>
+
+<!-- 5 -->
+<section id="shape">
+  <h2><small>Choosing the architecture</small>Task shape decides it: path and result</h2>
+  <div class="px">
+    <div class="px-g">
+      <div class="px-corner">Columns = the <b>PATH</b><br>Rows = the <b>RESULT</b></div>
+      <div class="px-h path"><b class="t2">PATH</b><span class="t">Closed (predictable)</span><span class="s">steps known up front</span></div>
+      <div class="px-h path"><b class="t2">PATH</b><span class="t">Open (unpredictable)</span><span class="s">steps depend on what is found</span></div>
+
+      <div class="px-h res"><b class="t2">RESULT</b><span class="t">Closed (verifiable)</span><span class="s">automated checks or tests can verify it</span></div>
+      <div class="px-c a"><span class="k">CLOSED PATH + CLOSED RESULT</span><h5>Closed-ended</h5>Extract, classify, route.<br><b>Single call or LLM-backed workflow</b> plus programmatic validation.</div>
+      <div class="px-c m"><span class="k">OPEN PATH + CLOSED RESULT</span><h5>Agent with a checker</h5>Fix a failing test.<br><b>LLM-driven agent</b> using the check as feedback.</div>
+
+      <div class="px-h res"><b class="t2">RESULT</b><span class="t">Open (subjective)</span><span class="s">judged by quality</span></div>
+      <div class="px-c m"><span class="k">CLOSED PATH + OPEN RESULT</span><h5>Pipeline with review</h5>Draft or summarise in a set pipeline.<br><b>LLM-backed workflow</b> plus evaluator and human review.</div>
+      <div class="px-c o"><span class="k">OPEN PATH + OPEN RESULT</span><h5>Open-ended</h5>Deep research.<br><b>LLM-driven orchestrator with subagents</b>, strong gates, coverage checks.</div>
+    </div>
+  </div>
+
+  <h3>The simplest-first ladder</h3>
+  <div class="ladder">
+    <div class="lad a"><span class="tag work">Stage 1</span><h5>Single LLM call</h5>Good prompt, maybe retrieval. Often enough.</div>
+    <div class="lad a"><span class="tag work">Stage 2</span><h5>LLM-backed workflow</h5>Fixed steps in programmatic logic. Chain, route, parallelise.</div>
+    <div class="lad m"><span class="tag mix">Stage 3</span><h5>Hybrid</h5>The workflow is programmatic, one open step is an agent.</div>
+    <div class="lad o"><span class="tag llm">Stage 4</span><h5>LLM-driven agent</h5>Model plans and loops, with gates around it.</div>
+  </div>
+  <div class="tip">Moving up a stage never removes the programmatic layer. You change who chooses the next step, not who is allowed to act.</div>
+</section>
+
+<!-- 6 -->
+<section id="fail">
+  <h2><small>Reliability</small>How failures travel through the design</h2>
+  <div class="loop">
+    <div class="ls w"><b>Sub agent</b>Retries transient errors locally (timeouts, rate limits).</div><div class="la">&rarr;</div>
+    <div class="ls x"><b>Unresolved failure</b>Returns structured error context: type, what was tried, partial results, alternatives.</div><div class="la">&rarr;</div>
+    <div class="ls m"><b>Coordinator</b>Retries with adjusted context, tries another source, or continues with partial results.</div><div class="la">&rarr;</div>
+    <div class="ls c"><b>Workflow engine</b>Failed step is never marked complete, so downstream steps stay blocked. Critical failure produces a handoff.</div>
+  </div>
+  <table>
+    <tr><th>Anti-pattern</th><th>Why it is wrong</th></tr>
+    <tr><td>Returning an empty result as success</td><td>The coordinator cannot tell failure from "nothing found"</td></tr>
+    <tr><td>Stopping everything on one failure</td><td>Throws away good work from other subagents</td></tr>
+    <tr><td>A generic "operation failed"</td><td>No information to choose a recovery</td></tr>
+    <tr><td>Unbounded retries</td><td>Another runaway loop, cap them</td></tr>
+  </table>
+</section>
+
+<!-- 7 -->
+<section id="catalyst">
+  <h2><small>Catalyst project</small>Mapping the golden design to the repo</h2>
+  <p class="mute">Checked against the source in <code>catalyst-java/src</code>. Update this section whenever the repo changes.</p>
+  <div class="catbox">
+    <table>
+      <tr><th>Golden design component</th><th>Catalyst class</th><th>Status</th><th>Notes</th></tr>
+      <tr><td>Workflow engine and gate (VETO)</td><td><code>WorkflowEngine</code>, <code>WorkflowValidator</code>, <code>WorkflowState</code></td><td><span class="st ok">BUILT</span></td><td>Linear prerequisite gate. Wired to the coordinator through <code>JobApplicationWorkflow</code></td></tr>
+      <tr><td>Coordinator (main agent)</td><td><code>CoordinatorAgent</code></td><td><span class="st part">PARTIAL</span></td><td>Programmatic only, no LLM. Hard-coded <code>decompose()</code> with five sub-topics and a <code>switch</code> in <code>delegate()</code></td></tr>
+      <tr><td>Sub agents</td><td><code>JobSearchAgent</code>, <code>ResumeAnalysisAgent</code>, <code>SkillsMatchAgent</code></td><td><span class="st part">PARTIAL</span></td><td>Programmatic only, no LLM. Hard-coded findings</td></tr>
+      <tr><td>Context handoff and provenance</td><td><code>ResearchContext</code>, <code>ContextBuilder</code>, <code>ResearchMetadata</code></td><td><span class="st ok">BUILT</span></td><td><code>priorFindings</code> is a plain String that drops source details</td></tr>
+      <tr><td>Agent loop (LLM-driven shape)</td><td><code>AgentLoopV2</code>, <code>StopReason</code>, <code>ToolCall</code>, <code>ToolResult</code></td><td><span class="st ok">BUILT</span></td><td>Single-agent path, separate from the coordinator</td></tr>
+      <tr><td>Model backend interface</td><td><code>LLMClient</code>, <code>MockClaudeClient</code></td><td><span class="st part">MOCK</span></td><td>Scripted fake. No real Anthropic SDK client yet</td></tr>
+      <tr><td>Tools (HANDS)</td><td><code>BaseTool</code>, <code>ToolDefinition</code>, <code>ToolRegistry</code>, plus job search and resume tools</td><td><span class="st ok">BUILT</span></td><td>Registered-tools-only lookup</td></tr>
+      <tr><td>Structured handoff</td><td><code>WorkflowHandoff</code>, <code>HandoffBuilder</code></td><td><span class="st part">PARTIAL</span></td><td>Built at the end of the workflow, but the text is hard-coded</td></tr>
+      <tr><td>State and memory</td><td><code>AgentState</code>, <code>WorkflowState</code></td><td><span class="st ok">BUILT</span></td><td>Two separate state objects for the two paths</td></tr>
+      <tr><td>Limits and resilience</td><td><code>MAX_ITERATIONS</code></td><td><span class="st part">PARTIAL</span></td><td>Iteration cap only. No token or cost budget, timeouts or retries</td></tr>
+      <tr><td>Observability</td><td><code>System.out.println</code></td><td><span class="st part">PARTIAL</span></td><td>Console prints only. No logger, tracing or audit trail</td></tr>
+      <tr><td>Intake, authentication, backend permissions (L0 and L6)</td><td>none</td><td><span class="st no">NOT YET</span></td><td>Out of scope for the learning project</td></tr>
+      <tr><td>Hooks (Agent SDK style)</td><td>none</td><td><span class="st no">NOT YET</span></td><td>Planned as a later phase</td></tr>
+      <tr><td>Failure handling and refine step</td><td>none</td><td><span class="st no">NOT YET</span></td><td>No retry, no structured error, <code>evaluateCoverage()</code> always reports 100 percent</td></tr>
+    </table>
+  </div>
+
+  <h3>Open gaps in the Java source</h3>
+  <div class="catbox">
+    <ol style="margin:0;padding-left:20px">
+      <li><b>Step is marked complete before the work runs.</b> <code>engine.execute()</code> completes the step, then the coordinator is called. If the coordinator throws, the step already counts as done.</li>
+      <li><b>Steps are not mapped to subagents.</b> Every step runs the full five sub-topic research.</li>
+      <li><b>No data flows between steps.</b> The report is only printed.</li>
+      <li><b>No failure handling</b> and no parallel delegation.</li>
+      <li><b>No dependency injection.</b> The engine and workflow create their collaborators with <code>new</code>.</li>
+    </ol>
+  </div>
+
+  <h3>Where Catalyst sits on the design</h3>
+  <div class="catbox">
+    <p style="margin:0">Task shape: the four-step job flow is a <b>closed path</b>. Today every layer below the workflow engine is plain programmatic logic, so the whole system is a scripted pipeline. The recommended next move is <b>Stage 2</b>: keep the workflow engine in charge and make each subagent LLM-backed through <code>LLMClient</code>. An LLM-driven coordinator is only justified if different goals need different sub-topics.</p>
+  </div>
+</section>
+
+</main>
+<footer>Golden Design companion to Catalyst_Prep_Guide.html and Catalyst_Technical_QA.html. Exam facts are as reported by community sources, verify against the official guide.</footer>
+</body>
+</html>

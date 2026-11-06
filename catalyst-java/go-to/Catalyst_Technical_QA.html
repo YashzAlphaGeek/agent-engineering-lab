@@ -101,6 +101,27 @@
   .pr-rule .n{flex:0 0 26px;height:26px;border-radius:50%;background:#fbbf24;color:#1c1405;font-weight:800;font-size:.8rem;display:grid;place-items:center}
   .pr-rule b{color:#fcd34d}
   @media(max-width:760px){.pr-flow{flex-direction:column}.pr-link{max-width:none}.pr-link i{transform:rotate(90deg)}.pr-time{flex-direction:column}.pr-quote{font-size:1.3rem}}
+  /* path x result matrix */
+  .px{overflow-x:auto;margin:14px 0}
+  .px-g{display:grid;grid-template-columns:132px minmax(210px,1fr) minmax(210px,1fr);gap:8px;min-width:560px}
+  .px-corner{font-size:.68rem;color:var(--mute);line-height:1.5;align-self:end;padding:0 4px 4px}
+  .px-h{border-radius:10px;padding:9px 12px;text-align:center}
+  .px-h.path{background:#eef0ff;border:1px solid #c7cafc}
+  .px-h.res{background:#e8f8ee;border:1px solid #b6e5c7;text-align:left}
+  .px-h b.tag{display:inline-block;font-size:.66rem;letter-spacing:.12em;padding:2px 9px;border-radius:999px;color:#fff;margin-bottom:4px}
+  .px-h.path b.tag{background:#4f46e5}.px-h.res b.tag{background:#16a34a}
+  .px-h .t{display:block;font-weight:700}
+  .px-h .s{display:block;font-size:.76rem;color:var(--mute)}
+  .px-c{border-radius:12px;padding:12px 14px;border:2px solid;font-size:.86rem}
+  .px-c .k{display:inline-block;font-size:.62rem;font-weight:800;letter-spacing:.09em;padding:2px 8px;border-radius:999px;margin-bottom:6px;color:#fff}
+  .px-c h5{margin:0 0 4px;font-size:1rem}
+  .px-c.a{background:#fff4e0;border-color:#d97706}.px-c.a .k{background:#d97706}
+  .px-c.m{background:#f3effd;border-color:#8b5cf6}.px-c.m .k{background:#8b5cf6}
+  .px-c.o{background:#eef0ff;border-color:#4f46e5}.px-c.o .k{background:#4f46e5}
+  .px-arrow{display:flex;justify-content:space-between;font-size:.75rem;color:var(--mute);margin-top:8px;min-width:560px}
+  .px-def{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin-top:12px}
+  .px-def div{border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:.88rem;background:#fcfcff}
+  .px-def b.p{color:#4f46e5}.px-def b.r{color:#16a34a}
   .empty{color:var(--mute);font-style:italic}
   footer{text-align:center;color:var(--mute);padding:20px;font-size:.85rem}
   @media(max-width:860px){.wrap{flex-direction:column}nav{position:static}}
@@ -987,6 +1008,161 @@ Every call re-sends <code>tools[]</code> and the whole history; more tools means
 <div class="tip"><b>One-liner:</b> "The LLM is the brain for choosing and proposing; code is the hands and the veto. The LLM never executes anything, and the rules it must obey are written by humans before runtime, which is why enforcement belongs in code."</div>
 
 <div class="cat"><span class="cat-chip">Catalyst-specific</span> This split is already visible in the code: <code>MockClaudeClient</code> only returns a <code>ClaudeResponse</code> containing a <code>ToolCall</code> (a request); <code>AgentLoopV2</code> / <code>Executor</code> look the tool up in the <code>ToolRegistry</code> and call <code>tool.execute()</code>. The model side never runs anything. The human-authored rules are <code>WorkflowValidator</code>, the registry lookup and <code>MAX_ITERATIONS</code>.</div>
+</details>
+
+<details open><summary>Q7. What is the difference between "LLM-driven" and "LLM-backed" (or "LLM backend")?</summary>
+<p>These are informal industry terms, not official Anthropic or exam vocabulary, so what matters is the idea behind them. The difference is <b>who controls the flow</b>.</p>
+
+<div class="dg">
+  <div class="dg-side">
+    <div class="dg-sub-agent" style="text-align:left">
+      <span class="dg-tag">LLM-BACKED</span>
+      <div class="dg-title" style="margin-top:6px">Code is in charge, the LLM is a worker</div>
+      <div class="dg-sub">Your code decides the steps and calls the LLM at fixed points, like calling a function.</div>
+      <div class="dg-sub" style="margin-top:8px"><code>text = llm("summarise this")</code><br><code>save(text)</code></div>
+    </div>
+    <div class="dg-coord" style="text-align:left">
+      <span class="dg-tag">LLM-DRIVEN</span>
+      <div class="dg-title" style="margin-top:6px">The LLM is in charge, code is the executor</div>
+      <div class="dg-sub">The model decides the next step, picks tools and decides when it is done. Your code loops on <code>stop_reason</code>.</div>
+      <div class="dg-sub" style="margin-top:8px"><code>while not end_turn:</code><br><code>&nbsp;&nbsp;run the tool the model chose</code></div>
+    </div>
+  </div>
+  <div class="dg-legend">
+    <span><i style="background:#d97706"></i>Control flow written by a developer</span>
+    <span><i style="background:#4f46e5"></i>Control flow chosen by the model at run time</span>
+  </div>
+</div>
+
+<table>
+<tr><th></th><th>LLM-backed</th><th>LLM-driven</th></tr>
+<tr><td>Who decides the next step</td><td>Your code</td><td>The LLM</td></tr>
+<tr><td>Role of the LLM</td><td>A capability inside a step: summarise, classify, extract, draft</td><td>The decision-maker: plans, chooses tools, judges when done</td></tr>
+<tr><td>Number of LLM calls</td><td>Fixed and known in advance</td><td>Variable, depends on the task</td></tr>
+<tr><td>Predictability and cost</td><td>High and low variance</td><td>Lower, higher variance</td></tr>
+<tr><td>Anthropic's term</td><td>A <b>workflow</b> built from LLM calls (prompt chaining, routing, parallelisation)</td><td>An <b>agent</b> (also the "orchestrator" in the orchestrator-workers pattern)</td></tr>
+<tr><td>Typical use</td><td>Known process, language work at some steps</td><td>Open-ended task, steps cannot be predicted</td></tr>
+<tr><td>Where enforcement lives</td><td>In your fixed code path already</td><td>In gates and hooks around the loop</td></tr>
+</table>
+
+<p><b>They are not exclusive.</b> A single system often mixes them. For example, a code-driven workflow engine (no LLM control) calls an LLM-driven subagent for the research step, and inside that subagent one tool is itself an LLM-backed summariser. Each component can be placed on this spectrum:</p>
+<p style="text-align:center"><b>Plain code</b> &rarr; <b>LLM-backed</b> (LLM as a function) &rarr; <b>LLM-driven</b> (LLM runs the loop)</p>
+
+<h4>If "LLM backend" means something else</h4>
+<p>Some people say "LLM backend" for the <b>model provider or inference service</b> behind the app: the Anthropic API, Amazon Bedrock, Google Vertex AI, or a self-hosted model. That is a deployment question (which model, which endpoint, what limits and cost), separate from who controls the flow. In a well-designed system the backend sits behind one interface so you can swap it without touching the loop.</p>
+
+<div class="tip"><b>Quick test:</b> remove the LLM and ask "does the program's path still exist?" If the path is fixed by code and the LLM only fills in text at certain steps, it is <b>LLM-backed</b>. If the LLM chooses which step or tool comes next, it is <b>LLM-driven</b>.</div>
+
+<div class="cat"><span class="cat-chip">Catalyst-specific</span>
+<ul style="margin:6px 0 0">
+<li><code>AgentLoopV2</code> has the <b>LLM-driven</b> shape: the loop does whatever the <code>LLMClient</code> returns (<code>TOOL_USE</code> continues, <code>END_TURN</code> stops). Today the client is the scripted <code>MockClaudeClient</code>, so the shape is real but the "brain" is a script.</li>
+<li><code>CoordinatorAgent</code> and the three subagents are plain code today, so they are neither. If a subagent's <code>research(context)</code> simply called an <code>LLMClient</code> once and returned its text, it would be <b>LLM-backed</b>. If it ran its own tool loop, it would be <b>LLM-driven</b>.</li>
+<li><code>LLMClient</code> is the "LLM backend" interface in the provider sense. A real Anthropic implementation would replace <code>MockClaudeClient</code> behind it.</li>
+</ul></div>
+</details>
+
+<details open><summary>Q8. Follow-up: is an LLM-backed app basically rule-based code that calls the LLM to get a tool_result? And do AI apps usually start LLM-backed and become LLM-driven when the application needs it?</summary>
+<h4>Part 1 &mdash; Mostly right, with one correction</h4>
+<ul>
+<li><b>Right:</b> in an LLM-backed app the control flow is rule-based. Your code follows fixed rules and calls the LLM at chosen points, then uses the answer.</li>
+<li><b>Correction:</b> the LLM does not return a <code>tool_result</code>. The direction is the opposite.
+  <ul>
+  <li>The LLM returns a <b>response</b>: text, structured output, or a <code>tool_use</code> request.</li>
+  <li>A <code>tool_result</code> is what <b>your code sends to the LLM</b> after it ran a tool the model asked for.</li>
+  </ul>
+  So in a plain LLM-backed step you usually just get text or structured data back and your code continues. The <code>tool_use</code> / <code>tool_result</code> exchange mostly belongs to the LLM-driven loop.</li>
+</ul>
+
+<h4>Part 2 &mdash; Yes, that is the recommended path, but it is not a mandatory ladder</h4>
+<p>Anthropic's guidance in <i>Building Effective Agents</i> is to <b>use the simplest solution that works</b> and add complexity only when it clearly pays off. Agentic systems trade higher cost, latency and variance for flexibility.</p>
+
+<div class="dg">
+  <div class="dg-row">
+    <div class="dg-sub-agent"><span class="dg-tag">STAGE 1</span><div class="dg-title" style="margin-top:6px">Single LLM call</div><div class="dg-sub">Good prompt, maybe retrieval and examples. Often enough.</div></div>
+    <div class="dg-sub-agent"><span class="dg-tag">STAGE 2</span><div class="dg-title" style="margin-top:6px">LLM-backed workflow</div><div class="dg-sub">Fixed steps in code: chain, route, run in parallel. LLM does language work at each step.</div></div>
+  </div>
+  <div class="dg-arrow"><span>&#9660;</span><em>only if the steps cannot be predicted in advance</em></div>
+  <div class="dg-row">
+    <div class="dg-coord"><span class="dg-tag">STAGE 3</span><div class="dg-title" style="margin-top:6px">Hybrid</div><div class="dg-sub">Workflow stays in code. One open-ended step becomes an LLM-driven agent.</div></div>
+    <div class="dg-coord"><span class="dg-tag">STAGE 4</span><div class="dg-title" style="margin-top:6px">LLM-driven agent</div><div class="dg-sub">The model plans and loops on <code>stop_reason</code>, with gates and hooks around it.</div></div>
+  </div>
+  <div class="dg-legend">
+    <span><i style="background:#d97706"></i>Control flow in code</span>
+    <span><i style="background:#4f46e5"></i>Control flow partly or fully by the model</span>
+  </div>
+</div>
+
+<h4>When it makes sense to move up a stage</h4>
+<ul>
+<li>You cannot list the steps in advance (the number and order of steps depend on what is found).</li>
+<li>Fixed branching keeps growing and breaking on new cases.</li>
+<li>Your evaluations show the simpler version cannot reach the quality you need.</li>
+<li>The extra cost, latency and variance are acceptable for the value gained.</li>
+</ul>
+<h4>Reasons to stay put</h4>
+<ul>
+<li>The process is known and repeatable, so predictability and cost matter more than flexibility.</li>
+<li>Regulated or high-stakes flows where every path must be auditable.</li>
+<li>Many strong production systems are deliberately workflows. LLM-driven is not a "more advanced and therefore better" level.</li>
+</ul>
+<div class="warn"><b>Moving up never removes the code layer.</b> Even a fully LLM-driven agent keeps its gates, hooks, limits and backend permissions in code. You are changing who chooses the next step, not who is allowed to act.</div>
+<div class="tip"><b>Exam angle:</b> when a question asks for the right architecture, prefer the simplest approach that meets the requirement, use programmatic enforcement for must-never-fail rules, and reach for a model-driven agent only when the task is genuinely open-ended.</div>
+
+<div class="cat"><span class="cat-chip">Catalyst-specific</span> Catalyst's progression is a learning path, not the production recommendation above. Phase 1 used a rule-based <code>Planner</code>. Phase 2 jumped straight to the LLM-driven loop shape (with a mock). Phases 3 to 5 added a code-controlled coordinator and workflow engine, so there is no LLM-backed stage yet. A realistic next step is to make each subagent LLM-backed (call <code>LLMClient</code> once with its <code>ResearchContext</code>), keeping the workflow engine in charge, and only then consider an LLM-driven coordinator.</div>
+</details>
+
+<details open><summary>Q9. Open-ended vs closed-ended tasks: which LLM architecture is right for each?</summary>
+<p>The deciding question is <b>can you write down the steps in advance?</b> That is what separates closed-ended from open-ended work, and it maps directly onto the architecture choices from Q7 and Q8.</p>
+
+<table>
+<tr><th></th><th>Closed-ended task</th><th>Open-ended task</th></tr>
+<tr><td>Steps</td><td>Known and repeatable</td><td>Cannot be predicted, depend on what is found</td></tr>
+<tr><td>Inputs and outputs</td><td>Well defined, often a fixed schema</td><td>Loosely defined, goal is described in natural language</td></tr>
+<tr><td>"Correct" answer</td><td>Checkable by code or a rubric</td><td>Subjective or only partly checkable</td></tr>
+<tr><td>Examples</td><td>Extract invoice fields, classify a ticket, translate, route a request, fill a template</td><td>Research a topic, debug an unknown failure, plan a trip, explore a codebase</td></tr>
+<tr><td><b>Right architecture</b></td><td>Single LLM call or an <b>LLM-backed workflow</b> in code (prompt chaining, routing, parallelisation)</td><td>An <b>LLM-driven agent</b>, often orchestrator-workers with subagents</td></tr>
+<tr><td>Control flow</td><td>Written by a developer</td><td>Chosen by the model at run time</td></tr>
+<tr><td>Cost and variance</td><td>Low and predictable</td><td>Higher and variable</td></tr>
+<tr><td>Main safeguards</td><td>Schema validation, retries, tests on fixed examples</td><td>Gates and hooks, iteration and cost limits, coverage checks, human checkpoints</td></tr>
+</table>
+
+<h4>It is really two separate questions</h4>
+<p>A task can be open on one axis and closed on the other, so check both: <b>is the path predictable</b> and <b>is the result verifiable</b>?</p>
+
+<div class="px">
+  <div class="px-g">
+    <div class="px-corner">Read the matrix:<br>columns = the <b>PATH</b><br>rows = the <b>RESULT</b></div>
+
+    <div class="px-h path"><b class="tag">PATH</b><span class="t">Predictable</span><span class="s">closed path: steps known up front</span></div>
+    <div class="px-h path"><b class="tag">PATH</b><span class="t">Unpredictable</span><span class="s">open path: steps depend on what is found</span></div>
+
+    <div class="px-h res"><b class="tag">RESULT</b><span class="t">Verifiable</span><span class="s">closed result: code or tests can check it</span></div>
+    <div class="px-c a"><span class="k">CLOSED PATH + CLOSED RESULT</span><h5>Closed-ended task</h5>Extract fields, classify, route.<br><b>Single call or LLM-backed workflow</b> plus code validation.</div>
+    <div class="px-c m"><span class="k">OPEN PATH + CLOSED RESULT</span><h5>Agent with a checker</h5>Fix a failing test, resolve a ticket.<br><b>LLM-driven agent</b> that uses the check (tests, lookups) as feedback.</div>
+
+    <div class="px-h res"><b class="tag">RESULT</b><span class="t">Subjective</span><span class="s">open result: judged by quality, not exact match</span></div>
+    <div class="px-c m"><span class="k">CLOSED PATH + OPEN RESULT</span><h5>Pipeline with review</h5>Draft copy or a summary in a set pipeline.<br><b>LLM-backed workflow</b> with an evaluator step and human review.</div>
+    <div class="px-c o"><span class="k">OPEN PATH + OPEN RESULT</span><h5>Open-ended task</h5>Deep research, exploration.<br><b>LLM-driven orchestrator with subagents</b>, strong gates, coverage checks, human checkpoints.</div>
+  </div>
+  <div class="px-arrow"><span>Top-left: control flow in code</span><span>Bottom-right: control flow chosen by the model &rarr;</span></div>
+</div>
+<div class="px-def">
+  <div><b class="p">PATH</b> = the sequence of steps taken to get to the answer. Closed path means you can list the steps in advance.</div>
+  <div><b class="r">RESULT</b> = what comes out at the end. Closed result means you can check it is right with code, tests or a fixed rubric.</div>
+</div>
+
+<h4>Rules of thumb</h4>
+<ul>
+<li><b>Default to closed-ended thinking.</b> If you can turn the task into fixed steps, do. It is cheaper, faster and easier to test.</li>
+<li><b>Open-ended does not mean unconstrained.</b> Still enforce order, limits and permissions in code (the VETO from the core principle).</li>
+<li><b>A result you can verify makes agents safer.</b> Tests, schema checks or lookups give the loop real feedback instead of relying on the model's own opinion.</li>
+<li><b>Mixed tasks are common.</b> Keep the closed parts in a workflow and give only the open step to an agent.</li>
+</ul>
+<p style="font-size:.9rem;color:var(--mute)">Side note: "open-ended" and "closed-ended" are also used for <i>prompts</i> (a yes/no or fixed-format question vs a free-form one). That is a prompt-design choice. This answer is about the architecture of the task as a whole.</p>
+
+<div class="tip"><b>Exam angle:</b> a requirement like "must follow these exact steps" or "must be auditable" points to a workflow with programmatic enforcement. A requirement like "the steps depend on what the research finds" points to a model-driven agent or orchestrator. Pick the simplest option that meets the requirement.</div>
+
+<div class="cat"><span class="cat-chip">Catalyst-specific</span> The job-application flow (search, analyse, match, recommend) is <b>closed-ended</b> in structure: four known steps in a fixed order. That fits what is already built, a code workflow engine, with LLM-backed subagents as the natural next step. The open-ended part is the research inside a step, for example which sub-topics matter for a given goal. Today <code>decompose()</code> returns the same five sub-topics every time, so it is closed. Only if different goals genuinely need different sub-topics would an LLM-driven <code>decompose()</code> be justified.</div>
 </details>
 </section>
 </main>
