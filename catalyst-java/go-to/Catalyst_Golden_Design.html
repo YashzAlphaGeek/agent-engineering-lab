@@ -230,7 +230,7 @@
 <!-- 2 -->
 <section id="arch">
   <h2><small>Big picture</small>The complete layered architecture</h2>
-  <p>The main stack runs top to bottom, one layer per row (L0 to L6), and the labelled connectors C1 to C6 between layers define exactly what travels down, what comes back up and which contract applies. The right-hand rail lists the concerns that cut across every layer. A coverage checklist at the end of this section shows where each concern lives, so nothing is left out.</p>
+  <p>The main stack runs top to bottom, one layer per row (L0 to L6), and the labelled connectors C1 to C7 between layers define exactly what travels down, what comes back up and which contract applies. The right-hand rail lists the concerns that cut across every layer. A coverage checklist at the end of this section shows where each concern lives, so nothing is left out.</p>
 
   <div class="arch2">
   <div class="stack">
@@ -267,6 +267,8 @@
       <div class="sub" style="margin-top:8px"><b>Brain:</b> fixed programmatic logic when the plan is known (an LLM-backed workflow), an LLM when the plan must be discovered (an LLM-driven orchestrator).</div>
     </div>
 
+    <div class="cx" style="border-style:dashed"><div class="cx-top"><span class="cid">C7</span><span class="ft">L2 Coordinator &harr; L5 Model layer</span><span class="gp" style="background:#8b5cf6">ONLY IF THE COORDINATOR IS LLM-DRIVEN</span></div><div class="cx-cols"><div class="cx-d"><b>&#9660; TRAVELS DOWN</b>System prompt, the goal, the sub-agent results so far, the delegation tool</div><div class="cx-u"><b>&#9650; COMES BACK UP</b>A plan or a choice of sub-task (as a tool_use for delegation), or end_turn with the final report</div></div><div class="cx-c"><b>Contract:</b> Same client interface as C4. Whatever the model proposes goes through the gate at C3 before any sub agent runs. A programmatic coordinator has no C7.</div></div>
+
     <div class="cx"><div class="cx-top"><span class="cid">C3</span><span class="ft">L2 Coordinator &harr; L3 Sub agents</span><span class="gp">GATE POINT: L1 supervises</span></div><div class="cx-cols"><div class="cx-d"><b>&#9660; TRAVELS DOWN</b>Explicit context only: goal, assigned sub-task, expected output format, prior findings with their sources</div><div class="cx-u"><b>&#9650; COMES BACK UP</b>A finding with provenance (claim, source, confidence), or a structured error (type, what was tried, partial results, alternatives)</div></div><div class="cx-c"><b>Contract:</b> Hub-and-spoke: subagents never talk to each other and share no conversation. Every delegation passes the gate.</div></div>
 
     <div class="subs">
@@ -281,7 +283,7 @@
         <div class="brain"><b>Brain:</b> none, a plain programmatic function</div></div>
     </div>
 
-    <div class="cx2"><div class="cx"><div class="cx-top"><span class="cid">C4</span><span class="ft">L3 Sub agents &harr; L5 Model layer</span></div><div class="cx-cols"><div class="cx-d"><b>&#9660; TRAVELS DOWN</b>System prompt, the full messages[] history and the tools[] list</div><div class="cx-u"><b>&#9650; COMES BACK UP</b>A response: text and tool_use blocks plus a stop_reason</div></div><div class="cx-c"><b>Contract:</b> Only through the client interface. A coordinator uses this same connection when it is LLM-driven.</div></div><div class="cx"><div class="cx-top"><span class="cid">C5</span><span class="ft">L3 Sub agents &harr; L4 Tool layer</span><span class="gp">GATE POINT: L1 supervises</span></div><div class="cx-cols"><div class="cx-d"><b>&#9660; TRAVELS DOWN</b>A tool_use request (tool name and validated input), released only after the PreToolUse hook allows it</div><div class="cx-u"><b>&#9650; COMES BACK UP</b>A tool_result (content, with is_error when it failed), after the PostToolUse hook has filtered it</div></div><div class="cx-c"><b>Contract:</b> Registered tools only, with arguments validated. The application makes this call, never the LLM.</div></div></div>
+    <div class="cx2"><div class="cx"><div class="cx-top"><span class="cid">C4</span><span class="ft">L3 Sub agents &harr; L5 Model layer</span></div><div class="cx-cols"><div class="cx-d"><b>&#9660; TRAVELS DOWN</b>System prompt, the full messages[] history and the tools[] list</div><div class="cx-u"><b>&#9650; COMES BACK UP</b>A response: text and tool_use blocks plus a stop_reason</div></div><div class="cx-c"><b>Contract:</b> Reached only through the client interface. An LLM-driven coordinator uses the same interface (C7).</div></div><div class="cx"><div class="cx-top"><span class="cid">C5</span><span class="ft">L3 Sub agents &harr; L4 Tool layer</span><span class="gp">GATE POINT: L1 supervises</span></div><div class="cx-cols"><div class="cx-d"><b>&#9660; TRAVELS DOWN</b>A tool_use request (tool name and validated input), released only after the PreToolUse hook allows it</div><div class="cx-u"><b>&#9650; COMES BACK UP</b>A tool_result (content, with is_error when it failed), after the PostToolUse hook has filtered it</div></div><div class="cx-c"><b>Contract:</b> Registered tools only, with arguments validated. The application makes this call, never the LLM.</div></div></div>
     <div class="nodirect"><b>No direct line between L5 and L4.</b> The LLM proposes a tool call, the sub agent (application) runs it through the gate. The LLM never executes anything.</div>
 
     <div class="tworow">
@@ -343,6 +345,7 @@
     <tr><td>C4</td><td>L3 and L5</td><td>Prompt, messages[], tools[]</td><td>Response with stop_reason</td><td>Client interface and stop_reason loop</td><td>Rate limit or overload: retry with backoff. max_tokens: not finished, investigate</td></tr>
     <tr><td>C5</td><td>L3 and L4</td><td>Validated tool_use request</td><td>tool_result, with is_error on failure</td><td>PreToolUse and PostToolUse hooks, registry</td><td>Unknown tool or bad arguments: error result the model can read and correct</td></tr>
     <tr><td>C6</td><td>L4 and L6</td><td>Authorised API or database call</td><td>Data or denial</td><td>Backend permissions</td><td>Denied regardless of the upper layers, surfaced as an error result</td></tr>
+    <tr><td>C7</td><td>L2 and L5, only if the coordinator is LLM-driven</td><td>Prompt, goal, results so far</td><td>Plan or sub-task choice, or final report</td><td>Client interface, then the C3 gate on whatever is proposed</td><td>Overload or bad plan: retry with backoff, and the gate refuses an unregistered or out-of-order delegation</td></tr>
   </table>
   <p class="mute">Rules that hold on every connection: information only crosses a boundary through its defined contract, the LLM never reaches L4 or L6 directly, and each gate decision is logged for the audit trail.</p>
 
@@ -549,6 +552,7 @@
       <tr><td>C4 L3 and L5</td><td><span class="st no">NOT YET</span></td><td>Subagents do not call any <code>LLMClient</code>. Only <code>AgentLoopV2</code> uses it, on the separate single-agent path</td></tr>
       <tr><td>C5 L3 and L4</td><td><span class="st no">NOT YET</span></td><td>Subagents do not use tools or the registry. Only the single-agent path (<code>AgentLoopV2</code>, <code>Executor</code>) does, and it has no hooks</td></tr>
       <tr><td>C6 L4 and L6</td><td><span class="st no">NOT YET</span></td><td>No real backend. Tools return canned data</td></tr>
+      <tr><td>C7 L2 and L5</td><td><span class="st no">NOT YET</span></td><td><code>CoordinatorAgent</code> is programmatic and does not call any <code>LLMClient</code>, so this connection does not exist yet</td></tr>
     </table>
   </div>
 
