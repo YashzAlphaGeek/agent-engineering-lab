@@ -40,6 +40,16 @@
   .keyrule{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
   .keyrule div{flex:1;min-width:230px;border-radius:10px;padding:8px 12px;font-size:.88rem;background:#fafbff;border:1px solid var(--line)}
 
+  .tag.hum{background:#ea580c}
+  .kc.h{background:#fff1e6;border-color:#ea580c}
+  .hv{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+  .hvc{border:2px solid;border-radius:14px;padding:12px 16px}
+  .hvc h3{margin:4px 0 6px;font-size:1.1rem}
+  .hvc ul{margin:0;padding-left:18px;font-size:.88rem}
+  .hvc.h{background:#fff1e6;border-color:#ea580c}.hvc.a{background:var(--indl);border-color:var(--ind)}
+  .inloop{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:8px}
+  .inloop div{border:2px solid #ea580c;background:#fff1e6;border-radius:12px;padding:8px 12px;font-size:.86rem}
+  @media(max-width:700px){.hv{grid-template-columns:1fr}}
   /* principle strip */
   .pstrip{display:flex;flex-wrap:wrap;align-items:stretch;gap:10px;margin:14px 0 4px}
   .pbox{flex:1;min-width:220px;border-radius:12px;padding:12px 14px;border:2px solid}
@@ -100,10 +110,10 @@
   .cx-top .gp{margin-left:auto;background:var(--grn);color:#fff;font-weight:800;font-size:.64rem;letter-spacing:.08em;border-radius:999px;padding:1px 9px}
   .cx-cols{display:grid;grid-template-columns:1fr 1fr}
   .cx-d,.cx-u{padding:8px 12px;font-size:.8rem}
-  .cx-d{background:var(--indl);border-right:1px solid var(--line)}
-  .cx-u{background:#fff5f5}
+  .cx-d{background:#f1f5f9;border-right:1px solid var(--line)}
+  .cx-u{background:#f0f9ff}
   .cx-d b,.cx-u b{display:block;font-size:.66rem;letter-spacing:.1em;margin-bottom:2px}
-  .cx-d b{color:var(--ind)}.cx-u b{color:var(--red)}
+  .cx-d b{color:#334155}.cx-u b{color:#0284c7}
   .cx-c{padding:6px 12px;font-size:.78rem;background:#f8fafc;border-top:1px solid var(--line);color:var(--mute)}
   .cx-c b{color:var(--ink)}
   .cx2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px}
@@ -182,6 +192,7 @@
   <a href="#arch">2. Architecture</a>
   <a href="#loop">3. The loop</a>
   <a href="#terms">4. Terms</a>
+  <a href="#human">4b. Human vs agent</a>
   <a href="#shape">5. Task shape</a>
   <a href="#fail">6. Failure</a>
   <a href="#catalyst">7. Catalyst mapping</a>
@@ -191,8 +202,8 @@
 
 <!-- 0 -->
 <section id="key">
-  <h2><small>Read this first</small>Naming key: three words used everywhere on this page</h2>
-  <p>The word "code" is vague because the LLM can also write code. So this page uses three clearer words instead.</p>
+  <h2><small>Read this first</small>Naming key: four words used everywhere on this page</h2>
+  <p>The word "code" is vague because the LLM can also write code. So this page uses clearer words instead, and adds the people involved.</p>
   <div class="keygrid">
     <div class="kc p"><span class="tag code">Green</span><h3>PROGRAMMATIC</h3>
       <p>Deterministic logic that a developer wrote, tested and versioned before runtime. It gives the same output for the same input and cannot be skipped.</p>
@@ -206,6 +217,10 @@
       <p>The overall program that hosts both. It runs the loop, executes tools, holds the state and contains every programmatic part.</p>
       <p class="aka">Also called: host app, harness, runtime.</p>
       <div class="eg">Examples: the agent loop, the workflow engine, the tool runner</div></div>
+    <div class="kc h"><span class="tag hum">Teal</span><h3>HUMAN</h3>
+      <p>A person. Sets the goal, writes the rules, approves risky steps and receives the handoff. Accountable for the outcome.</p>
+      <p class="aka">Also called: user, operator, reviewer.</p>
+      <div class="eg">Examples: the requester, the rule author, the approver</div></div>
   </div>
   <div class="keyrule">
     <div><b>PROGRAMMATIC</b> is guaranteed but rigid.</div>
@@ -229,7 +244,7 @@
 
 <!-- 2 -->
 <section id="arch">
-  <h2><small>Big picture</small>The complete layered architecture</h2>
+  <h2><small>Big picture</small>Layered reference architecture for an agentic system</h2>
   <p>The main stack runs top to bottom, one layer per row (L0 to L6), and the labelled connectors C1 to C7 between layers define exactly what travels down, what comes back up and which contract applies. The right-hand rail lists the concerns that cut across every layer. A coverage checklist at the end of this section shows where each concern lives, so nothing is left out.</p>
 
   <div class="arch2">
@@ -239,7 +254,7 @@
       <span class="tag gray">Application boundary</span>
       <h4><span class="ln">L0</span>User, client and goal intake</h4>
       <div class="sub">Where the goal enters. Identity is established here by programmatic authentication, never by the LLM.</div>
-      <div class="chips"><span class="chip">goal or request</span><span class="chip">authentication (for example OAuth)</span><span class="chip">input validation</span><span class="chip">session and identity</span></div>
+      <div class="chips"><span class="chip">human sends the goal</span><span class="chip">authentication (for example OAuth)</span><span class="chip">input validation</span><span class="chip">session and identity</span></div>
     </div>
 
     <div class="cx"><div class="cx-top"><span class="cid">C1</span><span class="ft">L0 Intake &harr; L1 Workflow engine</span></div><div class="cx-cols"><div class="cx-d"><b>&#9660; TRAVELS DOWN</b>Authenticated request: the goal plus the identity taken from the session</div><div class="cx-u"><b>&#9650; COMES BACK UP</b>Final answer, or a rejection reason, or a handoff for a human</div></div><div class="cx-c"><b>Contract:</b> Identity is fixed here and is never read from model text. Invalid input is rejected before any LLM is called.</div></div>
@@ -250,11 +265,11 @@
       <div class="sub">The outermost authority over behaviour. It decides when each step may run, and the model cannot talk its way past it. It supervises the connections marked GATE POINT (C2, C3, C5).</div>
       <div class="chips">
         <span class="chip">prerequisites and ordering</span><span class="chip">workflow state and status</span><span class="chip">PreToolUse hook</span><span class="chip">PostToolUse hook</span>
-        <span class="chip">allowed-tools list</span><span class="chip">iteration, cost and time limits</span><span class="chip">escalation rules</span><span class="chip">human checkpoint</span>
+        <span class="chip">allowed-tools list</span><span class="chip">iteration, cost and time limits</span><span class="chip">escalation rules</span><span class="chip">human approval when a gate asks</span>
       </div>
     </div>
 
-    <div class="cx"><div class="cx-top"><span class="cid">C2</span><span class="ft">L1 Workflow engine &harr; L2 Coordinator</span><span class="gp">GATE POINT: L1 supervises</span></div><div class="cx-cols"><div class="cx-d"><b>&#9660; TRAVELS DOWN</b>An allowed step together with its limits (iterations, budget, time)</div><div class="cx-u"><b>&#9650; COMES BACK UP</b>Step outcome: a report with gaps, or a structured failure</div></div><div class="cx-c"><b>Contract:</b> The gate returns allow, or deny with a reason. A step is marked complete only after a valid outcome returns.</div></div>
+    <div class="cx"><div class="cx-top"><span class="cid">C2</span><span class="ft">L1 Workflow engine &harr; L2 Coordinator</span><span class="gp">GATE POINT: L1 supervises</span><span class="gp" style="background:#ea580c;margin-left:6px">MAY ASK A HUMAN</span></div><div class="cx-cols"><div class="cx-d"><b>&#9660; TRAVELS DOWN</b>An allowed step together with its limits (iterations, budget, time)</div><div class="cx-u"><b>&#9650; COMES BACK UP</b>Step outcome: a report with gaps, or a structured failure</div></div><div class="cx-c"><b>Contract:</b> The gate returns allow, deny with a reason, or ask a human. A step is marked complete only after a valid outcome returns.</div></div>
 
     <div class="band coord">
       <span class="tag mix">Programmatic or LLM: the main AI agent</span>
@@ -269,7 +284,7 @@
 
     <div class="cx" style="border-style:dashed"><div class="cx-top"><span class="cid">C7</span><span class="ft">L2 Coordinator &harr; L5 Model layer</span><span class="gp" style="background:#8b5cf6">ONLY IF THE COORDINATOR IS LLM-DRIVEN</span></div><div class="cx-cols"><div class="cx-d"><b>&#9660; TRAVELS DOWN</b>System prompt, the goal, the sub-agent results so far, the delegation tool</div><div class="cx-u"><b>&#9650; COMES BACK UP</b>A plan or a choice of sub-task (as a tool_use for delegation), or end_turn with the final report</div></div><div class="cx-c"><b>Contract:</b> Same client interface as C4. Whatever the model proposes goes through the gate at C3 before any sub agent runs. A programmatic coordinator has no C7.</div></div>
 
-    <div class="cx"><div class="cx-top"><span class="cid">C3</span><span class="ft">L2 Coordinator &harr; L3 Sub agents</span><span class="gp">GATE POINT: L1 supervises</span></div><div class="cx-cols"><div class="cx-d"><b>&#9660; TRAVELS DOWN</b>Explicit context only: goal, assigned sub-task, expected output format, prior findings with their sources</div><div class="cx-u"><b>&#9650; COMES BACK UP</b>A finding with provenance (claim, source, confidence), or a structured error (type, what was tried, partial results, alternatives)</div></div><div class="cx-c"><b>Contract:</b> Hub-and-spoke: subagents never talk to each other and share no conversation. Every delegation passes the gate.</div></div>
+    <div class="cx"><div class="cx-top"><span class="cid">C3</span><span class="ft">L2 Coordinator &harr; L3 Sub agents</span><span class="gp">GATE POINT: L1 supervises</span><span class="gp" style="background:#ea580c;margin-left:6px">MAY ASK A HUMAN</span></div><div class="cx-cols"><div class="cx-d"><b>&#9660; TRAVELS DOWN</b>Explicit context only: goal, assigned sub-task, expected output format, prior findings with their sources</div><div class="cx-u"><b>&#9650; COMES BACK UP</b>A finding with provenance (claim, source, confidence), or a structured error (type, what was tried, partial results, alternatives)</div></div><div class="cx-c"><b>Contract:</b> Hub-and-spoke: subagents never talk to each other and share no conversation. Every delegation passes the gate.</div></div>
 
     <div class="subs">
       <div class="sa"><span class="tag work">Usually LLM</span><h5><span class="ln">L3</span>Sub agent A</h5>
@@ -283,7 +298,7 @@
         <div class="brain"><b>Brain:</b> none, a plain programmatic function</div></div>
     </div>
 
-    <div class="cx2"><div class="cx"><div class="cx-top"><span class="cid">C4</span><span class="ft">L3 Sub agents &harr; L5 Model layer</span></div><div class="cx-cols"><div class="cx-d"><b>&#9660; TRAVELS DOWN</b>System prompt, the full messages[] history and the tools[] list</div><div class="cx-u"><b>&#9650; COMES BACK UP</b>A response: text and tool_use blocks plus a stop_reason</div></div><div class="cx-c"><b>Contract:</b> Reached only through the client interface. An LLM-driven coordinator uses the same interface (C7).</div></div><div class="cx"><div class="cx-top"><span class="cid">C5</span><span class="ft">L3 Sub agents &harr; L4 Tool layer</span><span class="gp">GATE POINT: L1 supervises</span></div><div class="cx-cols"><div class="cx-d"><b>&#9660; TRAVELS DOWN</b>A tool_use request (tool name and validated input), released only after the PreToolUse hook allows it</div><div class="cx-u"><b>&#9650; COMES BACK UP</b>A tool_result (content, with is_error when it failed), after the PostToolUse hook has filtered it</div></div><div class="cx-c"><b>Contract:</b> Registered tools only, with arguments validated. The application makes this call, never the LLM.</div></div></div>
+    <div class="cx2"><div class="cx"><div class="cx-top"><span class="cid">C4</span><span class="ft">L3 Sub agents &harr; L5 Model layer</span></div><div class="cx-cols"><div class="cx-d"><b>&#9660; TRAVELS DOWN</b>System prompt, the full messages[] history and the tools[] list</div><div class="cx-u"><b>&#9650; COMES BACK UP</b>A response: text and tool_use blocks plus a stop_reason</div></div><div class="cx-c"><b>Contract:</b> Reached only through the client interface. An LLM-driven coordinator uses the same interface (C7).</div></div><div class="cx"><div class="cx-top"><span class="cid">C5</span><span class="ft">L3 Sub agents &harr; L4 Tool layer</span><span class="gp">GATE POINT: L1 supervises</span><span class="gp" style="background:#ea580c;margin-left:6px">MAY ASK A HUMAN</span></div><div class="cx-cols"><div class="cx-d"><b>&#9660; TRAVELS DOWN</b>A tool_use request (tool name and validated input), released only after the PreToolUse hook allows it</div><div class="cx-u"><b>&#9650; COMES BACK UP</b>A tool_result (content, with is_error when it failed), after the PostToolUse hook has filtered it</div></div><div class="cx-c"><b>Contract:</b> Registered tools only, with arguments validated. The application makes this call, never the LLM.</div></div></div>
     <div class="nodirect"><b>No direct line between L5 and L4.</b> The LLM proposes a tool call, the sub agent (application) runs it through the gate. The LLM never executes anything.</div>
 
     <div class="tworow">
@@ -375,7 +390,7 @@
   <table>
     <tr><th>Layer</th><th>Purpose</th><th>Powered by</th><th>Receives</th><th>Returns</th><th>If it fails</th></tr>
     <tr><td>L0 Intake</td><td>Authenticate and validate the request</td><td>Programmatic</td><td>Goal and credentials</td><td>Authenticated request</td><td>Reject, nothing reaches the LLM</td></tr>
-    <tr><td>L1 Workflow engine</td><td>Enforce order, policy and limits</td><td>Programmatic</td><td>A proposed step or delegation</td><td>Allow, or deny with a reason</td><td>Mark BLOCKED, escalate with a handoff</td></tr>
+    <tr><td>L1 Workflow engine</td><td>Enforce order, policy and limits</td><td>Programmatic</td><td>A proposed step or delegation</td><td>Allow, deny with a reason, or ask a human</td><td>Mark BLOCKED, escalate with a handoff</td></tr>
     <tr><td>L2 Coordinator</td><td>Plan, delegate, aggregate, check coverage</td><td>Programmatic or LLM</td><td>An allowed step and the goal</td><td>Aggregated report with gaps</td><td>Retry, refine, continue with partial results</td></tr>
     <tr><td>L3 Sub agents</td><td>Do one specialist task</td><td>Usually LLM</td><td>Explicit context only</td><td>Finding with source</td><td>Recover locally, else a structured error upward</td></tr>
     <tr><td>L4 Tool layer</td><td>Perform real actions</td><td>Programmatic</td><td>A validated tool call</td><td>tool_result</td><td>Return an error result the model can read</td></tr>
@@ -418,7 +433,7 @@
   <div class="loop">
     <div class="ls w"><b>1. Send</b>Full message history plus the tools list.</div><div class="la">&rarr;</div>
     <div class="ls m"><b>2. Model responds</b>Text and maybe <code>tool_use</code> blocks, plus a <code>stop_reason</code>.</div><div class="la">&rarr;</div>
-    <div class="ls c"><b>3. Gate</b>Programmatic check of the proposed tool call.</div><div class="la">&rarr;</div>
+    <div class="ls c"><b>3. Gate</b>Programmatic check: allow, deny or ask a human.</div><div class="la">&rarr;</div>
     <div class="ls w"><b>4. Run tool</b>The application executes it.</div><div class="la">&rarr;</div>
     <div class="ls w"><b>5. Append</b>Assistant turn, then <code>tool_result</code> in a user message. Loop to step 1.</div>
   </div>
@@ -452,6 +467,7 @@
     <div class="gc"><span class="tag gray">Memory</span><h4>State, messages[]</h4><p>The history sent on every call. The API itself is stateless.</p></div>
     <div class="gc"><span class="tag gray">Handoff</span><h4>Context object</h4><p>Everything a subagent may know, passed explicitly in its prompt.</p></div>
     <div class="gc"><span class="tag gray">Trust</span><h4>Provenance</h4><p>Each claim travels with its source, page and confidence so conflicts can be annotated.</p></div>
+    <div class="gc"><span class="tag hum">Human</span><h4>Human checkpoint</h4><p>A point where a person must approve before the run continues. Triggered by a gate.</p></div>
     <div class="gc"><span class="tag gray">Escalation</span><h4>Structured handoff</h4><p>A self-contained summary for a human: goal, actions taken, root cause, recommended action.</p></div>
   </div>
 
@@ -469,6 +485,37 @@
     <div class="gc"><span class="tag mix">Result</span><h4>Closed or open result</h4><p>Closed: automated checks or tests can verify it. Open: judged by quality, not exact match.</p></div>
     <div class="gc"><span class="tag gray">Rule</span><h4>Simplest first</h4><p>Use the simplest architecture that meets the requirement, and add agency only when needed.</p></div>
   </div>
+</section>
+
+<!-- 4b -->
+<section id="human">
+  <h2><small>People in the design</small>Human vs agent</h2>
+  <p>An agent system always has humans around it. They are not inside the loop by default, but they own the goal, the rules and the exceptions.</p>
+  <div class="hv">
+    <div class="hvc h"><span class="tag hum">Human</span><h3>What the human does</h3>
+      <ul>
+        <li><b>Sets the goal</b> at intake (L0) and is authenticated.</li>
+        <li><b>Writes and reviews the rules</b> at design time: gates, hooks, limits, prompts.</li>
+        <li><b>Approves risky steps</b> at a human checkpoint (L1).</li>
+        <li><b>Receives the handoff</b> when the agent is blocked or unsure.</li>
+        <li><b>Stays accountable</b> for the outcome.</li>
+      </ul></div>
+    <div class="hvc a"><span class="tag llm">Agent</span><h3>What the agent does (LLM plus application)</h3>
+      <ul>
+        <li><b>Plans and proposes</b> the next step.</li>
+        <li><b>Runs the loop</b> and executes allowed actions.</li>
+        <li><b>Reports with sources</b> and structured errors.</li>
+        <li><b>Stops and hands off</b> when blocked or unsure.</li>
+        <li><b>Never changes its own rules.</b></li>
+      </ul></div>
+  </div>
+  <h3>How much human involvement</h3>
+  <div class="inloop">
+    <div><b>Human in the loop</b><br>A person approves each risky step before it runs. Use for high-stakes or irreversible actions.</div>
+    <div><b>Human on the loop</b><br>The agent runs on its own, a person monitors and can stop or correct it.</div>
+    <div><b>Human out of the loop</b><br>Only programmatic gates protect the run, a person reviews results afterwards. Use for low-risk, reversible work.</div>
+  </div>
+  <div class="tip">Rule of thumb: the more irreversible or costly the action, the closer the human sits to the loop. A gate has three outcomes: allow, deny, or ask a human. A programmatic rule decides when to ask, not the LLM, and no answer means deny.</div>
 </section>
 
 <!-- 5 -->
@@ -537,6 +584,7 @@
       <tr><td>Limits and resilience</td><td><code>MAX_ITERATIONS</code></td><td><span class="st part">PARTIAL</span></td><td>Iteration cap only. No token or cost budget, timeouts or retries</td></tr>
       <tr><td>Observability</td><td><code>System.out.println</code></td><td><span class="st part">PARTIAL</span></td><td>Console prints only. No logger, tracing or audit trail</td></tr>
       <tr><td>Intake, authentication, backend permissions (L0 and L6)</td><td>none</td><td><span class="st no">NOT YET</span></td><td>Out of scope for the learning project</td></tr>
+      <tr><td>Human checkpoint and approval</td><td>none</td><td><span class="st no">NOT YET</span></td><td><code>WorkflowHandoff</code> records the handoff to a human, but nothing pauses a step for approval</td></tr>
       <tr><td>Hooks (Agent SDK style)</td><td>none</td><td><span class="st no">NOT YET</span></td><td>Planned as a later phase</td></tr>
       <tr><td>Failure handling and refine step</td><td>none</td><td><span class="st no">NOT YET</span></td><td>No retry, no structured error, <code>evaluateCoverage()</code> always reports 100 percent</td></tr>
     </table>

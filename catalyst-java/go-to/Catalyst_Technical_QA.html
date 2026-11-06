@@ -1164,6 +1164,66 @@ Every call re-sends <code>tools[]</code> and the whole history; more tools means
 
 <div class="cat"><span class="cat-chip">Catalyst-specific</span> The job-application flow (search, analyse, match, recommend) is <b>closed-ended</b> in structure: four known steps in a fixed order. That fits what is already built, a code workflow engine, with LLM-backed subagents as the natural next step. The open-ended part is the research inside a step, for example which sub-topics matter for a given goal. Today <code>decompose()</code> returns the same five sub-topics every time, so it is closed. Only if different goals genuinely need different sub-topics would an LLM-driven <code>decompose()</code> be justified.</div>
 </details>
+
+<details open><summary>Q10. In the gate, do we also need a human?</summary>
+<p><b>Yes, in some gates.</b> A gate is programmatic, but it does not have to decide alone. It has <b>three possible outcomes</b>: allow, deny, or <b>ask a human</b>. The human is one way the gate gets its verdict, and the gate still enforces that verdict.</p>
+
+<div class="dg">
+  <div class="dg-coord">
+    <span class="dg-tag">LLM</span>
+    <div class="dg-title">Proposes an action</div>
+    <div class="dg-sub"><code>tool_use: process_refund(amount=900)</code></div>
+  </div>
+  <div class="dg-arrow"><span>&#9660;</span></div>
+  <div class="dg-gate">
+    <span class="dg-tag">PROGRAMMATIC GATE</span>
+    <div class="dg-title">Applies the rule</div>
+    <div class="dg-sub">verified customer? within limit? irreversible or sensitive?</div>
+  </div>
+  <div class="dg-arrow"><span>&#9660; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &#9660; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &#9660;</span></div>
+  <div class="dg-row">
+    <div class="dg-sub-agent" style="border-color:#16a34a;background:#e8f8ee"><b>1. Allow</b><div class="dg-sub">rule clearly satisfied, the tool runs</div></div>
+    <div class="dg-deny"><b>2. Deny</b><br>rule clearly broken, reason returned to the model</div>
+    <div class="dg-sub-agent" style="border-color:#ea580c;background:#fff1e6"><b>3. Ask a human</b><div class="dg-sub">risky or unclear. Approve, reject or edit. No answer means deny</div></div>
+  </div>
+  <div class="dg-legend">
+    <span><i style="background:#16a34a"></i>Automatic by rule</span>
+    <span><i style="background:#ea580c"></i>Human verdict, enforced by the gate</span>
+  </div>
+</div>
+
+<h4>When a gate should involve a human</h4>
+<ul>
+<li><b>Irreversible or high-value actions:</b> payments above a threshold, deleting data, sending external messages.</li>
+<li><b>Policy exceptions or gaps:</b> the rules do not cover the case, or the request is ambiguous.</li>
+<li><b>Sensitive data access or export.</b></li>
+<li><b>The user explicitly asks for a person</b>, or the agent cannot make progress.</li>
+</ul>
+<h4>When it should not</h4>
+<table>
+<tr><th>Gate type</th><th>Human?</th><th>Why</th></tr>
+<tr><td>Prerequisite order (step B only after step A)</td><td>No</td><td>Fully decidable by logic, a human adds delay and nothing else</td></tr>
+<tr><td>Schema and argument validation</td><td>No</td><td>Deterministic check</td></tr>
+<tr><td>Iteration, cost and time limits</td><td>No, unless breached</td><td>Escalate to a human only when a limit is hit</td></tr>
+<tr><td>Irreversible or high-value action</td><td>Yes</td><td>Cost of a wrong action is high</td></tr>
+<tr><td>Policy exception or ambiguity</td><td>Yes</td><td>Needs judgement the rules lack</td></tr>
+</table>
+
+<h4>Design rules for the human step</h4>
+<ul>
+<li><b>Code decides when to ask, not the LLM.</b> Triggers are programmatic (threshold, tool category, data class). The LLM can raise a flag, but it should not be the only trigger.</li>
+<li><b>Fail closed.</b> If no human answers within the time limit, the gate denies.</li>
+<li><b>Show the human what they need:</b> the proposed action, its arguments, the reason the gate asked. A vague prompt gets rubber-stamped.</li>
+<li><b>Keep it rare.</b> Too many approvals cause fatigue and blind approval, which defeats the gate.</li>
+<li><b>Log every decision</b> for the audit trail.</li>
+</ul>
+<h4>Real mechanism</h4>
+<p>In the Claude Agent SDK and Claude Code, a <code>PreToolUse</code> hook can return a permission decision of allow, deny or ask. Ask pauses the action and prompts the user for approval, so the human gate is built into the hook. The human also appears at design time, since a person writes the gate rules in the first place.</p>
+
+<div class="tip"><b>One-liner:</b> "A gate has three outcomes: allow, deny or ask a human. Code decides when a human is needed, the human supplies the judgement, and the gate enforces the answer. No answer means deny."</div>
+
+<div class="cat"><span class="cat-chip">Catalyst-specific</span> <code>WorkflowValidator.canExecute()</code> returns a plain <code>boolean</code>, so the gate has only allow and deny. <code>WorkflowEngine</code> turns a deny into BLOCKED and an exception. There is no "ask a human" outcome, and <code>WorkflowHandoff</code> is an after-the-fact record, not a mid-run approval. A natural extension is to return a decision with three values (ALLOW, DENY, NEEDS_APPROVAL) and make the engine pause the step on the third.</div>
+</details>
 </section>
 </main>
 </div>
