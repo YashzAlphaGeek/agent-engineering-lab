@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>golden-agent – A framework-free Java agent library</title>
+<style>
+  :root{--bg:#f4f6fb;--card:#fff;--ink:#1d2433;--mute:#5d6678;--line:#dde2ee;--ind:#4f46e5;--indl:#eef0ff;--grn:#16a34a;--grnl:#e8f8ee;--amb:#d97706;--ambl:#fff4e0;--red:#dc2626;--redl:#fde8e8;--org:#ea580c;--orgl:#fff1e6;--vio:#8b5cf6;--viol:#f3effd}
+  *{box-sizing:border-box}
+  body{margin:0;font:16px/1.6 system-ui,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+  header{background:#111735;color:#fff;padding:34px 24px 26px}
+  .w{max-width:1100px;margin:0 auto}
+  header h1{margin:0 0 6px;font-size:2rem}
+  header p{margin:0;color:#c9d1f5;max-width:800px}
+  header code{background:rgba(255,255,255,.18);color:#fff}
+  .badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .badge{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:3px 13px;font-size:.82rem}
+  .nav{max-width:1100px;margin:0 auto;padding:12px 24px 0;display:flex;flex-wrap:wrap;gap:8px}
+  .nav a{background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px 14px;font-size:.84rem;color:var(--ink);text-decoration:none}
+  .nav a:hover{border-color:var(--ind);color:var(--ind)}
+  main{max-width:1100px;margin:0 auto;padding:16px 24px 40px}
+  section{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 26px;margin-bottom:20px}
+  h2{margin:0 0 4px;font-size:1.4rem}
+  h2 small{display:block;font-size:.72rem;font-weight:700;color:var(--ind);text-transform:uppercase;letter-spacing:.09em}
+  h3{margin:18px 0 6px;font-size:1.02rem}
+  p{margin:8px 0}
+  code{background:#eef0f6;padding:1px 6px;border-radius:5px;font:.88em ui-monospace,Consolas,monospace}
+  pre{background:#0f172a;color:#e2e8f0;padding:13px 16px;border-radius:12px;overflow:auto;font:.84rem/1.55 ui-monospace,Consolas,monospace;margin:10px 0}
+  pre code{background:none;padding:0;color:inherit}
+  pre .k{color:#c4b5fd}pre .s{color:#86efac}pre .c{color:#94a3b8}pre .t{color:#7dd3fc}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:.9rem}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+  th{background:#f0f2f9}
+  .mute{color:var(--mute)}
+  .tip{border-left:4px solid var(--grn);background:var(--grnl);padding:9px 14px;border-radius:0 10px 10px 0;margin:12px 0}
+  .warn{border-left:4px solid var(--amb);background:var(--ambl);padding:9px 14px;border-radius:0 10px 10px 0;margin:12px 0}
+  .tag{display:inline-block;font-size:.64rem;font-weight:800;letter-spacing:.09em;padding:2px 9px;border-radius:999px;color:#fff;text-transform:uppercase;vertical-align:1px}
+  .tag.g{background:var(--grn)}.tag.i{background:var(--ind)}.tag.a{background:var(--amb)}.tag.v{background:var(--vio)}.tag.o{background:var(--org)}.tag.s{background:#64748b}
+
+  /* stats */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:12px 0}
+  .stat{border:1px solid var(--line);border-radius:12px;padding:10px 14px;background:#fcfcff}
+  .stat b{display:block;font-size:1.5rem;color:var(--ind)}
+  .stat span{font-size:.84rem;color:var(--mute)}
+
+  /* architecture */
+  .arch{max-width:920px;margin:14px auto}
+  .lay{border:2px solid;border-radius:14px;padding:10px 14px;position:relative}
+  .lay>.tag{position:absolute;top:-10px;left:14px}
+  .lay h4{margin:4px 0 2px;font-size:1rem}
+  .lay .sub{font-size:.82rem;color:var(--mute)}
+  .lay.top{background:var(--indl);border-color:var(--ind)}
+  .lay.mid{background:var(--viol);border-color:var(--vio)}
+  .lay.prov{background:#f1f5f9;border-color:#94a3b8}
+  .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+  .pk{border:2px solid;border-radius:12px;padding:8px 12px;font-size:.82rem;background:#fff}
+  .pk b{display:block;font-size:.92rem}
+  .pk.llm{border-color:var(--ind);background:var(--indl)}.pk.prog{border-color:var(--grn);background:var(--grnl)}.pk.guard{border-color:var(--red);background:var(--redl)}
+  .dn{text-align:center;color:var(--mute);font-size:.76rem;padding:4px 0;line-height:1.2}
+  .dn span{display:block;color:var(--ind);font-size:1.1rem}
+  .leg{display:flex;flex-wrap:wrap;gap:14px;font-size:.8rem;color:var(--mute);margin-top:10px;justify-content:center}
+  .leg i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+  /* flow strip */
+  .flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:6px;margin:12px 0}
+  .st{flex:1;min-width:140px;border-radius:10px;padding:8px 11px;border:1px solid var(--line);background:#fafbff;font-size:.82rem}
+  .st b{display:block;font-size:.85rem}
+  .st.m{border-color:var(--ind);background:var(--indl)}.st.g{border-color:var(--grn);background:var(--grnl)}.st.w{border-color:var(--amb);background:var(--ambl)}.st.x{border-color:var(--red);background:var(--redl)}.st.h{border-color:var(--org);background:var(--orgl)}
+  .ar{align-self:center;color:var(--mute);font-weight:800}
+  .three{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:10px 0}
+  .out{border:2px solid;border-radius:12px;padding:8px 12px;font-size:.84rem}
+  .out.a{background:var(--grnl);border-color:var(--grn)}.out.d{background:var(--redl);border-color:var(--red);border-style:dashed}.out.h{background:var(--orgl);border-color:var(--org)}
+  footer{text-align:center;color:var(--mute);padding:6px 20px 30px;font-size:.85rem}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="w">
+    <h1>golden-agent</h1>
+    <p>A small Java library for building agents from the core elements: model, instructions, tools, loop and state, plus a guard layer and sub agents. Plain Java, no framework, no dependencies. Define a few pieces, build an <code>Agent</code>, call <code>run</code>.</p>
+    <div class="badges">
+      <span class="badge">Java 21 or newer</span>
+      <span class="badge">Zero dependencies</span>
+      <span class="badge">25 self-checks pass</span>
+      <span class="badge">Packaged as a jar</span>
+    </div>
+  </div>
+</header>
+
+<div class="nav">
+  <a href="#glance">At a glance</a>
+  <a href="#arch">Architecture</a>
+  <a href="#elements">Core elements</a>
+  <a href="#start">Quick start</a>
+  <a href="#loop">The loop</a>
+  <a href="#guard">Guard layer</a>
+  <a href="#multi">Sub agents</a>
+  <a href="#extend">Extend it</a>
+  <a href="#use">Use as a library</a>
+  <a href="#api">API reference</a>
+  <a href="#limits">Limits</a>
+</div>
+
+<main>
+
+<section id="glance">
+  <h2><small>Overview</small>What it is and why</h2>
+  <p>Agent frameworks bundle the same handful of ideas. This library keeps those ideas visible and small, so you can read all of it, change any part, and use it as the base for new agents without adopting a large framework.</p>
+  <div class="stats">
+    <div class="stat"><b>5</b><span>core elements, each a small interface or type</span></div>
+    <div class="stat"><b>3</b><span>gate outcomes: allow, deny, ask a human</span></div>
+    <div class="stat"><b>0</b><span>runtime dependencies</span></div>
+    <div class="stat"><b>25</b><span>plain-Java self-checks, no test framework</span></div>
+  </div>
+  <div class="tip">The design rule behind it: the LLM proposes and never executes. Your code validates, gates and runs every action.</div>
+</section>
+
+<section id="arch">
+  <h2><small>Structure</small>Architecture and packages</h2>
+  <p>One public entry point (<code>Agent</code>) sits on top of the loop, and the loop depends only on small abstractions. Dependencies point downwards, so every piece can be replaced.</p>
+
+  <div class="arch">
+    <div class="lay top"><span class="tag i">Public entry point</span>
+      <h4>golden.agent.composition</h4>
+      <div class="sub"><code>Agent</code> and its builder, <code>DelegationTool</code> (a sub agent exposed as a tool)</div>
+    </div>
+    <div class="dn"><span>&#9660;</span>builds and runs</div>
+    <div class="lay mid"><span class="tag v">Element 4</span>
+      <h4>golden.agent.loop</h4>
+      <div class="sub"><code>AgentLoop</code>, <code>LoopConfig</code>, <code>AgentResult</code>. Depends only on the abstractions below.</div>
+    </div>
+    <div class="dn"><span>&#9660;</span>uses</div>
+    <div class="row">
+      <div class="pk llm"><span class="tag i">Element 1</span><b>model</b><code>ModelClient</code>, <code>ModelRequest</code>, <code>ModelResponse</code>, <code>StopReason</code>, <code>ContentBlock</code>, <code>Message</code></div>
+      <div class="pk llm"><span class="tag i">Element 2</span><b>instructions</b><code>Instructions</code></div>
+      <div class="pk prog"><span class="tag g">Element 3</span><b>tool</b><code>Tool</code>, <code>TypedTool</code>, <code>FunctionTool</code>, <code>ToolRegistry</code>, <code>InputSchema</code></div>
+      <div class="pk prog"><span class="tag g">Element 5</span><b>state</b><code>AgentState</code>, <code>RunStatus</code></div>
+      <div class="pk guard"><span class="tag o">Guard layer</span><b>guard</b><code>Gate</code>, <code>Gates</code>, <code>Decision</code>, <code>HumanApprover</code>, <code>ResultFilter</code></div>
+    </div>
+    <div class="dn"><span>&#9650;</span>implements <code>ModelClient</code></div>
+    <div class="lay prov"><span class="tag s">Adapters</span>
+      <h4>golden.agent.provider</h4>
+      <div class="sub"><code>AnthropicModelClient</code> (reference adapter using the JDK HTTP client), <code>Json</code> (small reader and writer). Add your own provider here.</div>
+    </div>
+  </div>
+  <div class="leg">
+    <span><i style="background:#4f46e5"></i>LLM-side</span>
+    <span><i style="background:#16a34a"></i>Programmatic</span>
+    <span><i style="background:#dc2626"></i>Guard layer</span>
+    <span><i style="background:#94a3b8"></i>Adapters</span>
+  </div>
+</section>
+
+<section id="elements">
+  <h2><small>The five elements</small>Where each core element lives</h2>
+  <table>
+    <tr><th>#</th><th>Element</th><th>Main types</th><th>What it does</th></tr>
+    <tr><td>1</td><td><b>Model</b></td><td><code>ModelClient</code> (one method)</td><td>The only place an LLM is reached. One implementation per provider, swappable without touching the loop. <code>ScriptedModelClient</code> replays a script for tests.</td></tr>
+    <tr><td>2</td><td><b>Instructions</b></td><td><code>Instructions</code> (immutable record)</td><td>Role, rules, output format and examples. Composable with <code>withRule</code>, <code>withExample</code> and <code>and</code>. Advisory only.</td></tr>
+    <tr><td>3</td><td><b>Tools</b></td><td><code>Tool</code>, <code>TypedTool&lt;I,O&gt;</code>, <code>FunctionTool</code>, <code>ToolRegistry</code></td><td>A name, description and input schema the model sees, plus code that runs. Only registered tools can run. <code>subset</code> gives least privilege.</td></tr>
+    <tr><td>4</td><td><b>Loop</b></td><td><code>AgentLoop</code>, <code>LoopConfig</code></td><td>Calls the model, branches on <code>stop_reason</code>, gates and runs tools, feeds results back, repeats with an iteration cap.</td></tr>
+    <tr><td>5</td><td><b>State</b></td><td><code>AgentState</code>, <code>RunStatus</code></td><td>The ordered message history, goal, iteration count and outcome. A new instance for every run, never shared.</td></tr>
+    <tr><td>+</td><td><b>Guard layer</b></td><td><code>Gate</code>, <code>Gates</code>, <code>HumanApprover</code>, <code>ResultFilter</code></td><td>Programmatic checks before and after each tool call. Fails closed.</td></tr>
+  </table>
+</section>
+
+<section id="start">
+  <h2><small>Get going</small>Quick start</h2>
+<pre><code><span class="t">Agent</span> agent = <span class="t">Agent</span>.builder(<span class="s">"support"</span>)
+        .model(modelClient)                                              <span class="c">// 1. model</span>
+        .instructions(<span class="t">Instructions</span>.forRole(<span class="s">"You are a support agent."</span>)   <span class="c">// 2. instructions</span>
+                .withRule(<span class="s">"Verify the customer before changing an account."</span>))
+        .tools(<span class="k">new</span> GetCustomerTool(), <span class="k">new</span> RefundTool())                  <span class="c">// 3. tools</span>
+        .gate(<span class="t">Gates</span>.prerequisites(<span class="t">Map</span>.of(<span class="s">"process_refund"</span>, <span class="t">Set</span>.of(<span class="s">"get_customer"</span>))))
+        .gate(<span class="t">Gates</span>.requireApproval(<span class="t">Set</span>.of(<span class="s">"process_refund"</span>), <span class="s">"refunds need approval"</span>))
+        .approver((call, reason) -&gt; askAPerson(call, reason))
+        .maxIterations(10)                                               <span class="c">// 4. loop limits</span>
+        .build();
+
+<span class="t">AgentResult</span> result = agent.run(<span class="s">"Refund order O-1 for customer C-1"</span>);     <span class="c">// 5. fresh state per run</span>
+System.out.println(result.status() + <span class="s">": "</span> + result.text());</code></pre>
+
+  <h3>What that run does (from the bundled demo)</h3>
+<pre><code>model asks for process_refund   -&gt; tool_result (error): Blocked: 'process_refund' requires [get_customer] first
+model asks for get_customer     -&gt; tool_result: customer C-1 is verified
+model asks for process_refund   -&gt; [human] approving: refunds need human approval
+                                   tool_result: refunded 9000 cents for order O-1
+ASSISTANT says: The refund of 9000 cents for order O-1 has been processed.
+status=COMPLETED iterations=4 lastStopReason=END_TURN</code></pre>
+  <p class="mute">The model tried to skip the verification step. The gate refused, the model recovered, and a human approved the last step.</p>
+
+  <h3>Four steps to a new agent</h3>
+  <table>
+    <tr><th>Step</th><th>You provide</th><th>Code</th></tr>
+    <tr><td>1</td><td>A model client</td><td><code>AnthropicModelClient.fromEnvironment("&lt;model id&gt;")</code> or your own <code>ModelClient</code></td></tr>
+    <tr><td>2</td><td>Instructions</td><td><code>Instructions.forRole(...).withRule(...)</code></td></tr>
+    <tr><td>3</td><td>Tools</td><td><code>FunctionTool.of(definition, fn)</code> or a <code>TypedTool</code> subclass</td></tr>
+    <tr><td>4</td><td>Optional guards and limits</td><td><code>.gate(...)</code>, <code>.approver(...)</code>, <code>.maxIterations(n)</code></td></tr>
+  </table>
+</section>
+
+<section id="loop">
+  <h2><small>Element 4</small>The loop</h2>
+  <div class="flow">
+    <div class="st w"><b>Send</b>system prompt, full history, tool list</div><span class="ar">&rarr;</span>
+    <div class="st m"><b>Model responds</b>content blocks plus stop_reason</div><span class="ar">&rarr;</span>
+    <div class="st g"><b>Branch on stop_reason</b>end_turn, tool_use or other</div><span class="ar">&rarr;</span>
+    <div class="st h"><b>Gate</b>allow, deny or ask a human</div><span class="ar">&rarr;</span>
+    <div class="st w"><b>Run tool</b>then append the tool_result</div>
+  </div>
+  <table>
+    <tr><th>stop_reason</th><th>What the loop does</th><th>Run status</th></tr>
+    <tr><td><code>END_TURN</code></td><td>Finishes with the model's text</td><td><code>COMPLETED</code></td></tr>
+    <tr><td><code>TOOL_USE</code></td><td>Gates and runs every requested tool, sends all results back in one user message, loops</td><td><code>RUNNING</code></td></tr>
+    <tr><td>Any other, such as <code>MAX_TOKENS</code> or <code>REFUSAL</code></td><td>Stops, because the model did not finish normally</td><td><code>NOT_FINISHED</code></td></tr>
+    <tr><td>Iteration cap reached</td><td>Stops. The cap is a guard rail, not a normal finish</td><td><code>LIMIT_REACHED</code></td></tr>
+    <tr><td>Model call throws</td><td>Stops with the failure noted</td><td><code>FAILED</code></td></tr>
+  </table>
+  <h3>Guarantees, each covered by a self-check</h3>
+  <ul>
+    <li>The loop branches only on <code>stop_reason</code>. It never parses text such as "I'm done".</li>
+    <li>The full message history is sent on every call. Each <code>run</code> creates a new, isolated state.</li>
+    <li>Unknown tools, bad arguments and tool failures become error results the model can read. Internal details are not leaked.</li>
+    <li>A denied call never runs, and an ask-a-human decision with no approver is denied.</li>
+    <li><code>iterations</code> equals the number of tool rounds plus one.</li>
+  </ul>
+</section>
+
+<section id="guard">
+  <h2><small>Guard layer</small>Gates, humans and filters</h2>
+  <p>A <code>Gate</code> is ordinary programmatic code that runs before every tool call, outside the model. It returns one of three decisions:</p>
+  <div class="three">
+    <div class="out a"><b>Allow</b><br>the tool runs</div>
+    <div class="out d"><b>Deny(reason)</b><br>the model receives an error result with the reason</div>
+    <div class="out h"><b>AskHuman(reason)</b><br>the <code>HumanApprover</code> decides. No approver means deny</div>
+  </div>
+  <table>
+    <tr><th>Piece</th><th>Purpose</th></tr>
+    <tr><td><code>Gates.prerequisites(map)</code></td><td>Block a tool until other tools have succeeded, for example refund only after the customer is verified</td></tr>
+    <tr><td><code>Gates.requireApproval(tools, reason)</code></td><td>Ask a human before the named tools run</td></tr>
+    <tr><td><code>Gates.allowList(tools)</code></td><td>Only the named tools may run</td></tr>
+    <tr><td><code>gate.and(other)</code></td><td>Combine gates. The first non-Allow decision wins</td></tr>
+    <tr><td><code>HumanApprover</code></td><td>Plug in a console prompt, ticket, chat message or web form. Default is deny-all</td></tr>
+    <tr><td><code>ResultFilter</code></td><td>Runs after the tool and before the model sees the result. Trim, normalise or redact</td></tr>
+  </table>
+</section>
+
+<section id="multi">
+  <h2><small>Multi-agent</small>Coordinator and sub agents</h2>
+  <p>An agent can be given to another agent as a tool. The coordinator is just an <code>Agent</code> whose tools are delegation tools.</p>
+<pre><code><span class="t">Agent</span> researcher = <span class="t">Agent</span>.builder(<span class="s">"researcher"</span>)
+        .description(<span class="s">"Finds facts on a topic and returns claims with sources"</span>)
+        .model(researcherModel)
+        .instructions(<span class="t">Instructions</span>.forRole(<span class="s">"You are a research agent."</span>))
+        .tool(webSearchTool)
+        .build();
+
+<span class="t">Agent</span> coordinator = <span class="t">Agent</span>.builder(<span class="s">"coordinator"</span>)
+        .model(coordinatorModel)
+        .instructions(<span class="t">Instructions</span>.forRole(<span class="s">"You are a coordinator."</span>))
+        .subAgent(researcher)            <span class="c">// becomes the tool delegate_to_researcher</span>
+        .subAgent(analyst)
+        .build();</code></pre>
+  <ul>
+    <li><b>Isolation:</b> a sub agent sees only the <code>task</code> and <code>context</code> the coordinator passes. It never sees the coordinator's conversation.</li>
+    <li><b>Least privilege:</b> each agent has only its own tools. Use <code>ToolRegistry.subset(...)</code> to share part of a toolset.</li>
+    <li><b>Structured failure:</b> if a sub agent does not finish, the coordinator receives an error result such as <code>SUB_AGENT_FAILURE agent=... status=NOT_FINISHED iterations=... note=... task=... partial=...</code>, never an empty success. It can then retry, route elsewhere or continue with partial results.</li>
+    <li><b>Reuse:</b> an <code>Agent</code> holds no run state, so one instance can be run many times, even concurrently.</li>
+  </ul>
+</section>
+
+<section id="extend">
+  <h2><small>Make it yours</small>Extension points</h2>
+  <p>Everything is an interface or a small value type. To extend the library you add code and do not change it.</p>
+  <table>
+    <tr><th>To add a...</th><th>Implement or call</th></tr>
+    <tr><td>Model provider</td><td><code>ModelClient</code> (one method)</td></tr>
+    <tr><td>Tool</td><td><code>Tool</code>, subclass <code>TypedTool&lt;I,O&gt;</code>, or <code>FunctionTool.of(...)</code></td></tr>
+    <tr><td>Rule that must never be broken</td><td><code>Gate</code></td></tr>
+    <tr><td>Human approval channel</td><td><code>HumanApprover</code></td></tr>
+    <tr><td>Output trimming or redaction</td><td><code>ResultFilter</code></td></tr>
+    <tr><td>Sub agent</td><td><code>Agent.builder(...).subAgent(other)</code></td></tr>
+  </table>
+
+  <h3>A typed tool</h3>
+<pre><code><span class="k">record</span> RefundRequest(String orderId, <span class="k">int</span> amountCents) { }
+
+<span class="k">final class</span> RefundTool <span class="k">extends</span> <span class="t">TypedTool</span>&lt;RefundRequest, String&gt; {
+    RefundTool() {
+        <span class="k">super</span>(<span class="k">new</span> <span class="t">ToolDefinition</span>(<span class="s">"process_refund"</span>,
+                <span class="s">"Refund an order. Requires a verified customer. Returns a confirmation."</span>,
+                <span class="t">InputSchema</span>.object()
+                        .string(<span class="s">"orderId"</span>, <span class="s">"The order id"</span>, <span class="k">true</span>)
+                        .integer(<span class="s">"amountCents"</span>, <span class="s">"Refund amount in cents"</span>, <span class="k">true</span>)
+                        .build()));
+    }
+    <span class="k">protected</span> RefundRequest decode(Map&lt;String, Object&gt; in) <span class="k">throws</span> ToolException {
+        <span class="k">return new</span> RefundRequest(string(in, <span class="s">"orderId"</span>), integer(in, <span class="s">"amountCents"</span>));
+    }
+    <span class="k">protected</span> String run(RefundRequest r) { <span class="k">return</span> <span class="s">"refunded "</span> + r.amountCents() + <span class="s">" cents"</span>; }
+}</code></pre>
+
+  <h3>A custom gate</h3>
+<pre><code><span class="t">Gate</span> businessHours = (call, state) -&gt;
+        call.name().equals(<span class="s">"process_refund"</span>) &amp;&amp; !isBusinessHours()
+                ? <span class="t">Decision</span>.deny(<span class="s">"Refunds are only processed during business hours"</span>)
+                : <span class="t">Decision</span>.allow();</code></pre>
+
+  <h3>A custom model provider</h3>
+<pre><code><span class="t">ModelClient</span> client = request -&gt; {
+    <span class="c">// map the request to your provider's format, call it, and map the reply back</span>
+    <span class="k">return new</span> <span class="t">ModelResponse</span>(List.of(<span class="k">new</span> <span class="t">ContentBlock</span>.Text(<span class="s">"hello"</span>)), <span class="t">StopReason</span>.END_TURN);
+};</code></pre>
+</section>
+
+<section id="use">
+  <h2><small>Reuse it</small>Use it as a library</h2>
+  <p>Build once, then depend on the jar from any project. A separate test program that used only the packaged jar built and ran a working agent.</p>
+<pre><code><span class="c"># build, run the 25 self-checks and the demo, and package the jar</span>
+.\build.ps1                    <span class="c"># Windows</span>
+./build.sh                     <span class="c"># macOS and Linux</span>
+
+<span class="c"># result</span>
+dist/golden-agent-1.0.0.jar
+dist/golden-agent-1.0.0-sources.jar
+
+<span class="c"># use it from your own project</span>
+javac -cp golden-agent-1.0.0.jar MyApp.java
+java  -cp golden-agent-1.0.0.jar;. MyApp       <span class="c"># use : instead of ; on macOS and Linux</span></code></pre>
+  <table>
+    <tr><th>Option</th><th>Notes</th></tr>
+    <tr><td>Plain classpath</td><td>Add the jar. Nothing else is required.</td></tr>
+    <tr><td>Maven</td><td>An optional <code>pom.xml</code> with no dependencies is included. <code>mvn install</code> puts <code>io.golden:golden-agent:1.0.0</code> in your local repository. It has not been run here.</td></tr>
+    <tr><td>Module name</td><td>The jar declares the automatic module name <code>golden.agent</code>.</td></tr>
+    <tr><td>Layout</td><td><code>src/main/java</code> is the library. <code>src/test/java</code> holds <code>SelfCheck</code>. <code>src/demo/java</code> holds <code>Demo</code>. Only the first goes in the jar.</td></tr>
+  </table>
+</section>
+
+<section id="api">
+  <h2><small>Reference</small>Public API at a glance</h2>
+  <table>
+    <tr><th>Type</th><th>Package</th><th>Role</th></tr>
+    <tr><td><code>Agent</code></td><td>composition</td><td>Entry point. <code>builder(name)</code>, <code>run(goal)</code>, <code>asTool()</code></td></tr>
+    <tr><td><code>Agent.Builder</code></td><td>composition</td><td><code>description</code>, <code>model</code>, <code>instructions</code>, <code>tool</code>, <code>tools</code>, <code>subAgent</code>, <code>gate</code>, <code>approver</code>, <code>resultFilter</code>, <code>config</code>, <code>maxIterations</code>, <code>build</code></td></tr>
+    <tr><td><code>AgentResult</code></td><td>loop</td><td>Outcome: <code>status</code>, <code>text</code>, <code>note</code>, <code>iterations</code>, <code>lastStopReason</code>, <code>history</code>, <code>completed()</code></td></tr>
+    <tr><td><code>LoopConfig</code></td><td>loop</td><td><code>maxIterations</code> (default 20) and <code>maxTokens</code> (default 1024)</td></tr>
+    <tr><td><code>ModelClient</code></td><td>model</td><td><code>ModelResponse send(ModelRequest)</code></td></tr>
+    <tr><td><code>ContentBlock</code></td><td>model</td><td>Sealed: <code>Text</code>, <code>ToolUse</code>, <code>ToolResult</code></td></tr>
+    <tr><td><code>StopReason</code></td><td>model</td><td><code>END_TURN</code>, <code>TOOL_USE</code>, <code>MAX_TOKENS</code>, <code>STOP_SEQUENCE</code>, <code>PAUSE_TURN</code>, <code>REFUSAL</code>, <code>CONTEXT_WINDOW_EXCEEDED</code></td></tr>
+    <tr><td><code>Instructions</code></td><td>instructions</td><td><code>forRole</code>, <code>withRule</code>, <code>withOutputFormat</code>, <code>withExample</code>, <code>and</code>, <code>render</code></td></tr>
+    <tr><td><code>Tool</code>, <code>TypedTool</code>, <code>FunctionTool</code></td><td>tool</td><td>Define and run a capability</td></tr>
+    <tr><td><code>ToolRegistry</code></td><td>tool</td><td><code>register</code>, <code>find</code>, <code>definitions</code>, <code>subset</code>, <code>names</code>, <code>all</code></td></tr>
+    <tr><td><code>Gate</code>, <code>Gates</code>, <code>Decision</code></td><td>guard</td><td>Allow, deny or ask a human</td></tr>
+    <tr><td><code>HumanApprover</code>, <code>ResultFilter</code></td><td>guard</td><td>Approval channel and post-tool filter</td></tr>
+    <tr><td><code>AnthropicModelClient</code></td><td>provider</td><td>Reference adapter. <code>builder(key, model)</code> or <code>fromEnvironment(model)</code></td></tr>
+  </table>
+</section>
+
+<section id="limits">
+  <h2><small>Honest notes</small>Limits and what is not included</h2>
+  <div class="warn"><b>Not run against the live API.</b> <code>AnthropicModelClient</code> has offline checks for its request and response mapping, but it has not been run against the real service from this repository. Test it with your own key first. You choose the model id.</div>
+  <ul>
+    <li><b>Java version:</b> compiled with <code>--release 21</code> and no preview features. Verified on JDK 23 only, since that was the version available.</li>
+    <li><b>Not included on purpose:</b> streaming, long-term memory, context compaction, parallel tool execution, parallel sub agents, persistence and tracing. Each one fits behind an existing extension point.</li>
+    <li><b>Sequential execution:</b> tools in one response run one after another.</li>
+    <li><b>Tool input is a map:</b> there is no JSON library, so tool arguments arrive as <code>Map&lt;String,Object&gt;</code>. <code>TypedTool</code> decodes them into your own type.</li>
+  </ul>
+</section>
+
+</main>
+<footer>golden-agent. Reference documentation for the Java library in this folder. Update this page when the code changes.</footer>
+</body>
+</html>

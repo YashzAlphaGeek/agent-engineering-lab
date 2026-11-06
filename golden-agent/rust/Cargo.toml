@@ -1,0 +1,12 @@
+[package]
+name = "golden-agent"
+version = "1.0.0"
+edition = "2024"
+rust-version = "1.85"
+description = "A small framework-free library for building agents from the core elements: model, instructions, tools, loop and state."
+readme = "README.md"
+keywords = ["agent", "llm", "ai", "tools", "anthropic"]
+categories = ["development-tools"]
+
+# No dependencies on purpose. The standard library is enough.
+[dependencies]

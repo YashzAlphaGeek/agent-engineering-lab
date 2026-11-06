@@ -1619,6 +1619,101 @@ Catalyst is the raw approach: it builds each element by hand, which is why the c
 <div class="cat"><span class="cat-chip">Catalyst-specific</span> Catalyst builds every element by hand in Java, so no framework is used today. If a framework were adopted on the JVM, <b>LangChain4j</b> or <b>Spring AI</b> would replace the hand-written tool wiring, memory and loop. The smallest useful step is different: keep the architecture and implement the existing <code>LLMClient</code> interface with the official <b>Anthropic Java SDK</b>, so only the model element changes. That keeps the hand-built loop, state and workflow engine, which are the parts being studied.</div>
 </details>
 
+<details open><summary>Q17. If we have multiple agents, will each one have the same elements?</summary>
+<p><b>Same shape, different values.</b> Every real agent in a multi-agent system has the same five core elements: model, instructions, tools, loop and state. What differs is the <b>content</b> of each one. It works like objects of one class, where every object has the same fields but its own values.</p>
+
+<table>
+<tr><th>Element</th><th>Coordinator (example)</th><th>Sub agent A (example)</th><th>Sub agent B (example)</th></tr>
+<tr><td><b>Model</b></td><td>Stronger model, it plans and synthesises</td><td>Faster, cheaper model</td><td>Stronger model for hard analysis</td></tr>
+<tr><td><b>Instructions</b></td><td>"Plan, delegate, aggregate, check coverage"</td><td>"You research listings, return claims with sources"</td><td>"You analyse documents, return strengths and gaps"</td></tr>
+<tr><td><b>Tools</b></td><td>Delegation tools only (delegate_to_A, delegate_to_B)</td><td>web_search, read_page</td><td>read_file, extract_text</td></tr>
+<tr><td><b>Loop</b></td><td>Same loop logic, its own run and stop condition</td><td>Same loop logic, its own run and cap</td><td>Same loop logic, its own run and cap</td></tr>
+<tr><td><b>State</b></td><td>The plan and the findings collected so far</td><td>Only its own task history</td><td>Only its own task history</td></tr>
+</table>
+
+<h4>What is separate for each agent</h4>
+<ul>
+<li><b>Instructions.</b> Each agent has its own role and rules.</li>
+<li><b>Tool set.</b> Each gets only the tools it needs (least privilege).</li>
+<li><b>State and context.</b> Isolated. A sub agent sees only what the coordinator passes it, never the coordinator's whole conversation.</li>
+<li><b>Model</b> (optional). It can differ per agent to balance cost and quality.</li>
+<li><b>Limits.</b> Each run has its own iteration cap and budget.</li>
+</ul>
+<h4>What can be shared</h4>
+<ul>
+<li><b>The loop code.</b> One reusable runner, instantiated once per agent with a different configuration.</li>
+<li><b>The model provider connection</b> and credentials.</li>
+<li><b>The gate and hook layer,</b> which sits outside and above all agents.</li>
+<li><b>Tool implementations and the backend.</b> The same underlying API can be exposed to different agents with different permissions.</li>
+<li><b>Logging, tracing and the audit trail.</b></li>
+</ul>
+
+<h4>Differences that are more than configuration</h4>
+<ul>
+<li><b>The coordinator has extra responsibilities:</b> decomposing the goal, delegating, aggregating, and checking coverage. Its tools are mainly delegation.</li>
+<li><b>Not every worker is a full agent.</b> A programmatic worker, a plain function with no model, instructions or loop, is really a tool (see Q11).</li>
+</ul>
+
+<h4>Practical design</h4>
+<p>Build the five elements once as a generic agent, then define each agent as a small configuration: its instructions, its tool list, its model and its limits. In the Claude Agent SDK this matches defining each subagent with a description, a prompt and a restricted tool set (and optionally its own model), while the SDK supplies the loop.</p>
+
+<div class="tip"><b>One-liner:</b> "Every agent has the same five elements, but each has its own instructions, tools and isolated state. The loop code, provider connection and gates can be shared."</div>
+
+<div class="cat"><span class="cat-chip">Catalyst-specific</span> <code>JobSearchAgent</code>, <code>ResumeAnalysisAgent</code> and <code>SkillsMatchAgent</code> are three separate classes with no shared interface or base class. Each has only a <code>research(context)</code> method and none holds a model, instructions, tools or its own loop, so today they do not have "the same things" in the sense above. The only place the five elements exist is the single-agent path (<code>AgentLoopV2</code>, <code>AgentState</code>, <code>ToolRegistry</code>, <code>LLMClient</code>). A natural design is one generic agent class holding those five elements, configured per agent, with the three specialists becoming three configurations of it.</div>
+</details>
+
+<details open><summary>Q18. Which elements can be reused, and which can follow the SOLID principles?</summary>
+<h4>Part 1: reuse</h4>
+<p>Almost every element can be reused across agents, but <b>what you reuse differs</b>. The loop and the tools are the easiest wins. State is the one to be careful with.</p>
+<table>
+<tr><th>Element</th><th>Reuse</th><th>What is reused</th><th>What stays specific</th></tr>
+<tr><td><b>Loop</b></td><td><span style="color:#16a34a;font-weight:700">High</span></td><td>One generic runner for every agent</td><td>Its configuration: limits, hooks</td></tr>
+<tr><td><b>Tools</b></td><td><span style="color:#16a34a;font-weight:700">High</span></td><td>One implementation or MCP server used by many agents</td><td>Which agent may call it (permissions)</td></tr>
+<tr><td><b>Model client</b></td><td><span style="color:#16a34a;font-weight:700">High</span></td><td>One provider connection and credentials</td><td>Which model each agent selects</td></tr>
+<tr><td><b>Instructions</b></td><td><span style="color:#d97706;font-weight:700">Partial</span></td><td>Shared rules, output format, safety preamble, templates</td><td>The role and task-specific rules</td></tr>
+<tr><td><b>State</b></td><td><span style="color:#d97706;font-weight:700">Class yes, instance no</span></td><td>The structure and the persistence code</td><td>The instance, one per agent and per run</td></tr>
+</table>
+<div class="warn"><b>Do not share a state instance between agents or runs.</b> It breaks isolation, leaks context between tasks and makes behaviour unpredictable. Share the class, never the object. Likewise, do not copy instructions blindly, a prompt written for one role can mislead another.</div>
+
+<h4>Part 2: SOLID</h4>
+<p>SOLID applies to the <b>code</b> elements: the model client, the tools, the loop, the state and the gates. Instructions are text, so only the spirit applies (small, single-purpose, composable prompt pieces).</p>
+<table>
+<tr><th>Principle</th><th>Elements that fit it best</th><th>What it looks like for an agent</th></tr>
+<tr><td><b>S</b> Single responsibility</td><td>All of them</td><td>The model client only talks to the LLM. The loop only orchestrates. A tool does one thing. State only holds data. A gate only decides allow, deny or ask.</td></tr>
+<tr><td><b>O</b> Open for extension, closed for modification</td><td>Tools, agents, model provider</td><td>Add a tool by registering it. Add an agent by adding a configuration. Add a provider by adding a client. The loop does not change.</td></tr>
+<tr><td><b>L</b> Liskov substitution</td><td>Model client, tools, sub agents</td><td>Any model client (mock or real) honours the same contract and returns a valid response with a <code>stop_reason</code>. Any tool returns a result or a defined error. Any sub agent returns a finding or a structured error.</td></tr>
+<tr><td><b>I</b> Interface segregation</td><td>Tools, model client, gates, state</td><td>Small focused interfaces: a tool exposes a definition and an execute method, a model client exposes one call, a gate exposes one check. No fat "Agent" interface that forces unused methods.</td></tr>
+<tr><td><b>D</b> Dependency inversion</td><td>Loop, coordinator, workflow engine</td><td>They depend on abstractions (model client, tool registry, gate) and receive them by constructor injection, never creating the concrete Anthropic client or validator themselves.</td></tr>
+</table>
+
+<h4>Best fit per element</h4>
+<table>
+<tr><th>Element</th><th>Strongest principles</th></tr>
+<tr><td>Model client</td><td>L and D: swap a mock for a real provider without touching the loop</td></tr>
+<tr><td>Tools</td><td>O, L and I: new tools plug in, all honour one small contract</td></tr>
+<tr><td>Loop</td><td>S, D and O: orchestration only, depends on abstractions, extended through hooks</td></tr>
+<tr><td>State</td><td>S and I: just data, with narrow read and write access where needed</td></tr>
+<tr><td>Instructions</td><td>The spirit of S and O: separate, composable prompt pieces instead of one giant prompt</td></tr>
+</table>
+
+<div class="tip"><b>One-liner:</b> "The loop, tools and model client are the reusable core. Build them against small interfaces and inject them, so adding a tool, an agent or a provider means adding code, not changing code. Reuse state as a class, never as a shared instance."</div>
+
+<div class="cat"><span class="cat-chip">Catalyst-specific</span>
+<p style="margin:6px 0 4px"><b>Already follows SOLID:</b></p>
+<ul style="margin:0">
+<li><code>BaseTool</code> with <code>ToolRegistry</code>: new tools register without changing the loop (O, L, I).</li>
+<li><code>LLMClient</code> with <code>MockClaudeClient</code>: <code>AgentLoopV2</code> depends on the interface (D, L).</li>
+<li>Separate <code>AgentState</code> and <code>WorkflowState</code>, each with one job (S).</li>
+</ul>
+<p style="margin:8px 0 4px"><b>Gaps:</b></p>
+<ul style="margin:0">
+<li><b>Open/Closed:</b> <code>CoordinatorAgent.delegate()</code> uses a <code>switch</code> on the sub-topic name, so adding an agent means editing it.</li>
+<li><b>Liskov and Interface segregation:</b> the three sub agents share no interface, so they cannot be treated interchangeably.</li>
+<li><b>Dependency inversion:</b> <code>WorkflowEngine</code> creates its own <code>WorkflowValidator</code>, and <code>JobApplicationWorkflow</code> creates the engine and the coordinator with <code>new</code>.</li>
+<li><b>Reuse:</b> the loop logic is written in both <code>AgentLoopV2</code> and <code>Phase2Runner</code>, and the tool contract uses untyped <code>Object</code> in and out.</li>
+</ul></div>
+</details>
+
 
 </section>
 </main>

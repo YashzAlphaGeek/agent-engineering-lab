@@ -26,6 +26,20 @@
   svg{display:block;width:100%;min-width:900px;height:auto}
   svg text{font-family:system-ui,Segoe UI,Roboto,sans-serif}
   .note{margin-top:10px;font-size:.82rem;color:var(--mute)}
+  #fwmatrix{display:none;margin-top:18px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px 20px}
+  #fwmatrix h2{margin:0 0 4px;font-size:1.2rem}
+  #fwmatrix .sub{margin:0 0 10px;font-size:.86rem;color:var(--mute)}
+  .mx{overflow-x:auto}
+  .mx table{width:100%;border-collapse:collapse;font-size:.86rem;min-width:900px}
+  .mx th,.mx td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:middle}
+  .mx th{background:#f0f2f9;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:#5d6678}
+  .mx td.c{text-align:center;font-size:1.05rem}
+  .mx td.c.full{color:#16a34a}.mx td.c.part{color:#d97706}.mx td.c.none{color:#cbd5e1}
+  .mx tr.grp td{background:#1d2433;color:#fff;font-weight:700;font-size:.76rem;letter-spacing:.1em;text-transform:uppercase}
+  .mx td.n{font-weight:700;white-space:nowrap}
+  .lang{display:inline-block;background:#eef0ff;border:1px solid #c7cafc;border-radius:6px;padding:0 7px;margin:1px 3px 1px 0;font-size:.74rem;white-space:nowrap}
+  .mxleg{display:flex;flex-wrap:wrap;gap:16px;font-size:.8rem;color:var(--mute);margin:8px 0}
+  .mxleg b{font-size:1rem}
 </style>
 </head>
 <body>
@@ -50,12 +64,19 @@
     <span><i class="pill f"></i>Framework example</span>
   </div>
 
-  <div class="stage"><svg id="svg" viewBox="0 85 1280 795" role="img" aria-label="Agent core elements with surrounding requirement bubbles"></svg></div>
+  <div class="stage"><svg id="svg" viewBox="120 85 1280 795" role="img" aria-label="Agent core elements with surrounding requirement bubbles"></svg></div>
+  <div id="fwmatrix">
+    <h2>Framework coverage</h2>
+    <p class="sub">Which of the core elements each framework or platform gives you. Use it to see what you still build yourself. The bubbles above list every framework in this table that fully provides that element.</p>
+    <div class="mxleg"><span><b style="color:#16a34a">&#9679;</b> provides it</span><span><b style="color:#d97706">&#9680;</b> partly, or through another library</span><span><b style="color:#cbd5e1">&ndash;</b> not its focus</span></div>
+    <div class="mx" id="mxbody"></div>
+    <p class="note">Ratings are rough guides built from general knowledge and a quick check of a few sources, not a feature audit. Frameworks change quickly, so confirm in the current documentation before choosing one.</p>
+  </div>
   <p class="note">Hover an element bubble for a short definition. Framework names and versions change quickly, so treat that view as examples to check against current documentation.</p>
 </div>
 
 <script>
-const CX = 640, CY = 520, R = 250, RB = 62;
+const CX = 760, CY = 520, R = 250, RB = 62;
 
 const ELEMENTS = [
   { id: 'model', n: 1, name: ['Model', '(LLM)'], angle: -90, color: '#4f46e5', tint: '#eef0ff', verdict: 'Breaks without it',
@@ -97,6 +118,48 @@ const MODES = {
   fw:   { key: 'fw',   stroke: '#d97706', dash: '', fill: '#fff4e0' }
 };
 
+const COLS = ['Model', 'Instructions', 'Tools', 'Loop', 'State', 'Multi-agent'];
+const FRAMEWORKS = [
+  { g: 'Anthropic and Claude' },
+  { n: 'Anthropic Messages API and SDKs', l: ['Python', 'TypeScript', 'Java', 'others'], c: '221100', note: 'Building blocks. You write the loop and keep the state yourself.' },
+  { n: 'Claude Agent SDK', l: ['Python', 'TypeScript'], c: '222222', note: 'Agent loop, built-in tools, MCP, hooks, sessions and subagents packaged together.' },
+  { g: 'General-purpose Python and TypeScript' },
+  { n: 'LangChain', l: ['Python', 'JS/TS'], c: '222211', note: 'Broad provider and tool integrations. create_agent runs on LangGraph and adds middleware hooks.' },
+  { n: 'LangGraph', l: ['Python', 'JS/TS'], c: '101222', note: 'Low-level graph runtime: state, checkpoints, human-in-the-loop, multi-agent graphs.' },
+  { n: 'LlamaIndex', l: ['Python', 'TypeScript'], c: '221211', note: 'Strongest for retrieval over your own data (RAG), plus agent workflows.' },
+  { n: 'OpenAI Agents SDK', l: ['Python', 'JavaScript'], c: '122222', note: 'Agents, handoffs, guardrails, sessions and tracing. OpenAI-first, other models possible.' },
+  { n: 'CrewAI', l: ['Python'], c: '122212', note: 'Role-based crews of cooperating agents.' },
+  { n: 'Pydantic AI', l: ['Python'], c: '222211', note: 'Type-safe agents with validated structured output.' },
+  { n: 'DSPy', l: ['Python'], c: '221100', note: 'Programs and optimises prompts instead of hand-writing them.' },
+  { n: 'smolagents (Hugging Face)', l: ['Python'], c: '212211', note: 'Small library where agents write and run code.' },
+  { n: 'Haystack', l: ['Python'], c: '211110', note: 'Pipeline-based, strong for search and RAG.' },
+  { n: 'Vercel AI SDK', l: ['TypeScript'], c: '222110', note: 'Unified provider API and tool calling for web apps, with multi-step tool loops.' },
+  { g: 'Microsoft and Google' },
+  { n: 'Microsoft Agent Framework', l: ['.NET', 'Python'], c: '222222', note: 'Successor to both Semantic Kernel and AutoGen.' },
+  { n: 'Semantic Kernel', l: ['C#', 'Python', 'Java'], c: '222211', note: 'Plugins and function calling. In maintenance, with Agent Framework as the successor.' },
+  { n: 'AutoGen', l: ['Python', '.NET'], c: '222212', note: 'Multi-agent conversations. Succeeded by Microsoft Agent Framework.' },
+  { n: 'Google ADK', l: ['Python', 'Java', 'others'], c: '222222', note: 'Agent Development Kit. Gemini-first, other models supported.' },
+  { g: 'JVM (Java)' },
+  { n: 'LangChain4j', l: ['Java'], c: '222221', note: 'Annotation-driven AI services, @Tool tools, chat memory and RAG.' },
+  { n: 'Spring AI', l: ['Java'], c: '222221', note: 'Spring-native ChatClient, advisors, tool calling, chat memory, vector stores and MCP support.' },
+  { g: 'Standards and managed services' },
+  { n: 'MCP (Model Context Protocol)', l: ['language-neutral'], c: '002000', note: 'Open standard for exposing tools and data to any agent. A protocol, not a framework.' },
+  { n: 'Managed cloud agent services', l: ['Bedrock Agents', 'Vertex AI Agent Builder', 'Azure AI Foundry'], c: '222221', note: 'The platform hosts the loop and state for you.' }
+];
+
+function renderMatrix() {
+  let h = '<table><tr><th>Framework or platform</th><th>Languages</th>' + COLS.map(c => '<th>' + c + '</th>').join('') + '<th>Good for</th></tr>';
+  FRAMEWORKS.forEach(r => {
+    if (r.g) { h += '<tr class="grp"><td colspan="' + (COLS.length + 3) + '">' + r.g + '</td></tr>'; return; }
+    h += '<tr><td class="n">' + r.n + '</td><td>' + r.l.map(x => '<span class="lang">' + x + '</span>').join('') + '</td>';
+    r.c.split('').forEach(v => {
+      h += v === '2' ? '<td class="c full">&#9679;</td>' : v === '1' ? '<td class="c part">&#9680;</td>' : '<td class="c none">&ndash;</td>';
+    });
+    h += '<td>' + r.note + '</td></tr>';
+  });
+  document.getElementById('mxbody').innerHTML = h + '</table>';
+}
+
 let mode = 'def';
 const svg = document.getElementById('svg');
 const NS = 'http://www.w3.org/2000/svg';
@@ -108,10 +171,19 @@ function el(tag, attrs, text) {
   return e;
 }
 
+const SHORT = { 'Anthropic Messages API and SDKs': 'Anthropic SDKs', 'smolagents (Hugging Face)': 'smolagents', 'Microsoft Agent Framework': 'MS Agent Framework', 'MCP (Model Context Protocol)': 'MCP', 'Managed cloud agent services': 'Managed cloud services' };
+const COLIDX = { model: 0, instr: 1, tools: 2, loop: 3, state: 4 };
+function fwFor(E) {
+  return FRAMEWORKS.filter(f => !f.g && f.c[COLIDX[E.id]] === '2')
+    .map(f => ({ t: SHORT[f.n] || f.n, tip: f.n + ': ' + f.note }));
+}
+
 function pillWidth(t) { return Math.round(t.length * 6.7 + 30); }
 
 function render() {
+  document.getElementById('fwmatrix').style.display = mode === 'fw' ? 'block' : 'none';
   svg.innerHTML = '';
+  svg.setAttribute('viewBox', mode === 'fw' ? '0 0 1520 940' : '120 85 1280 795');
   const m = MODES[mode];
   const lines = el('g', {});
   const pills = el('g', {});
@@ -131,13 +203,44 @@ function render() {
     // spoke from centre to element
     lines.appendChild(el('line', { x1: CX, y1: CY, x2: ex, y2: ey, stroke: E.color, 'stroke-width': 3, opacity: .35 }));
 
-    const items = E[m.key];
+    let items = E[m.key];
+    let tips = [];
+    if (mode === 'fw') {
+      const list = fwFor(E);
+      items = list.map(x => x.t);
+      tips = list.map(x => x.tip);
+    }
     const n = items.length;
     const gap = 38;
+    const FWM = mode === 'fw';
+    const W = FWM ? Math.max.apply(null, items.map(pillWidth)) : 0;
+    const cols = FWM ? (E.id === 'model' ? 4 : (n > 6 ? 2 : 1)) : 0;
+    const rowsN = FWM ? Math.ceil(n / cols) : 0;
     items.forEach((t, i) => {
-      const w = pillWidth(t), h = 30;
-      let px, py, ax, ay;
-      if (E.id === 'model') {
+      let w = pillWidth(t), h = 30;
+      let px, py, ax = null, ay = null;
+      if (FWM) {
+        w = W; h = 28;
+        const g2 = 34;
+        if (E.id === 'model') {
+          const row = Math.floor(i / cols), idx = i % cols;
+          const inRow = Math.min(cols, n - row * cols);
+          const total = inRow * W + (inRow - 1) * 10;
+          px = ex - total / 2 + idx * (W + 10);
+          py = ey - RB - 40 - row * (h + 8) - h / 2;
+          if (row === 0) { ax = px + W / 2; ay = py + h; }
+        } else {
+          const c = Math.floor(i / rowsN), r = i % rowsN;
+          py = ey - ((rowsN - 1) * g2) / 2 + r * g2 - h / 2;
+          if (E.angle < 90 && E.angle > -90) {
+            px = ex + RB + 38 + c * (W + 10);
+            if (c === 0) { ax = px; ay = py + h / 2; }
+          } else {
+            px = ex - RB - 38 - W - c * (W + 10);
+            if (c === 0) { ax = px + W; ay = py + h / 2; }
+          }
+        }
+      } else if (E.id === 'model') {
         // above the element: rows of up to 3, centred
         const perRow = 3;
         const row = Math.floor(i / perRow);
@@ -150,18 +253,17 @@ function render() {
         px = start; py = ey - RB - 40 - row * 40 - h / 2;
         ax = px + w / 2; ay = py + h;
       } else if (E.angle < 90 && E.angle > -90) {
-        // right side: column to the right
         px = ex + RB + 38; py = ey - ((n - 1) * gap) / 2 + i * gap - h / 2;
         ax = px; ay = py + h / 2;
       } else {
-        // left side: column to the left, right-aligned
         px = ex - RB - 38 - w; py = ey - ((n - 1) * gap) / 2 + i * gap - h / 2;
         ax = px + w; ay = py + h / 2;
       }
-      lines.appendChild(el('line', { x1: ex, y1: ey, x2: ax, y2: ay, stroke: '#cbd5e1', 'stroke-width': 1.5 }));
+      if (ax !== null) lines.appendChild(el('line', { x1: ex, y1: ey, x2: ax, y2: ay, stroke: '#cbd5e1', 'stroke-width': 1.5 }));
       const g = el('g', {});
+      if (FWM) g.appendChild(el('title', {}, tips[i]));
       g.appendChild(el('rect', { x: px, y: py, width: w, height: h, rx: h / 2, fill: m.fill || E.tint, stroke: m.key === 'fw' ? m.stroke : E.color, 'stroke-width': 2, 'stroke-dasharray': m.dash }));
-      g.appendChild(el('text', { x: px + w / 2, y: py + h / 2 + 4.5, 'text-anchor': 'middle', 'font-size': 12.5, fill: '#1d2433' }, t));
+      g.appendChild(el('text', { x: px + w / 2, y: py + h / 2 + 4.5, 'text-anchor': 'middle', 'font-size': FWM ? 12 : 12.5, fill: '#1d2433' }, t));
       pills.appendChild(g);
     });
 
@@ -208,6 +310,7 @@ if (q && MODES[q]) {
   mode = q;
   document.querySelectorAll('.bar button').forEach(x => x.classList.toggle('on', x.dataset.m === q));
 }
+renderMatrix();
 render();
 </script>
 </body>

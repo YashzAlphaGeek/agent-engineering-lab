@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>golden-agent (Python) – A framework-free agent library</title>
+<style>
+  :root{--bg:#f4f6fb;--card:#fff;--ink:#1d2433;--mute:#5d6678;--line:#dde2ee;--ind:#4f46e5;--indl:#eef0ff;--grn:#16a34a;--grnl:#e8f8ee;--amb:#d97706;--ambl:#fff4e0;--red:#dc2626;--redl:#fde8e8;--org:#ea580c;--orgl:#fff1e6;--vio:#8b5cf6;--viol:#f3effd}
+  *{box-sizing:border-box}
+  body{margin:0;font:16px/1.6 system-ui,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+  header{background:#111735;color:#fff;padding:34px 24px 26px}
+  .w{max-width:1100px;margin:0 auto}
+  header h1{margin:0 0 6px;font-size:2rem}
+  header p{margin:0;color:#c9d1f5;max-width:800px}
+  header code{background:rgba(255,255,255,.18);color:#fff}
+  .badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .badge{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:3px 13px;font-size:.82rem}
+  .nav{max-width:1100px;margin:0 auto;padding:12px 24px 0;display:flex;flex-wrap:wrap;gap:8px}
+  .nav a{background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px 14px;font-size:.84rem;color:var(--ink);text-decoration:none}
+  .nav a:hover{border-color:var(--ind);color:var(--ind)}
+  main{max-width:1100px;margin:0 auto;padding:16px 24px 40px}
+  section{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 26px;margin-bottom:20px}
+  h2{margin:0 0 4px;font-size:1.4rem}
+  h2 small{display:block;font-size:.72rem;font-weight:700;color:var(--ind);text-transform:uppercase;letter-spacing:.09em}
+  h3{margin:18px 0 6px;font-size:1.02rem}
+  p{margin:8px 0}
+  code{background:#eef0f6;padding:1px 6px;border-radius:5px;font:.88em ui-monospace,Consolas,monospace}
+  pre{background:#0f172a;color:#e2e8f0;padding:13px 16px;border-radius:12px;overflow:auto;font:.84rem/1.55 ui-monospace,Consolas,monospace;margin:10px 0}
+  pre code{background:none;padding:0;color:inherit}
+  pre .k{color:#c4b5fd}pre .s{color:#86efac}pre .c{color:#94a3b8}pre .t{color:#7dd3fc}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:.9rem}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+  th{background:#f0f2f9}
+  .mute{color:var(--mute)}
+  .tip{border-left:4px solid var(--grn);background:var(--grnl);padding:9px 14px;border-radius:0 10px 10px 0;margin:12px 0}
+  .warn{border-left:4px solid var(--amb);background:var(--ambl);padding:9px 14px;border-radius:0 10px 10px 0;margin:12px 0}
+  .tag{display:inline-block;font-size:.64rem;font-weight:800;letter-spacing:.09em;padding:2px 9px;border-radius:999px;color:#fff;text-transform:uppercase;vertical-align:1px}
+  .tag.g{background:var(--grn)}.tag.i{background:var(--ind)}.tag.a{background:var(--amb)}.tag.v{background:var(--vio)}.tag.o{background:var(--org)}.tag.s{background:#64748b}
+
+  /* stats */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:12px 0}
+  .stat{border:1px solid var(--line);border-radius:12px;padding:10px 14px;background:#fcfcff}
+  .stat b{display:block;font-size:1.5rem;color:var(--ind)}
+  .stat span{font-size:.84rem;color:var(--mute)}
+
+  /* architecture */
+  .arch{max-width:920px;margin:14px auto}
+  .lay{border:2px solid;border-radius:14px;padding:10px 14px;position:relative}
+  .lay>.tag{position:absolute;top:-10px;left:14px}
+  .lay h4{margin:4px 0 2px;font-size:1rem}
+  .lay .sub{font-size:.82rem;color:var(--mute)}
+  .lay.top{background:var(--indl);border-color:var(--ind)}
+  .lay.mid{background:var(--viol);border-color:var(--vio)}
+  .lay.prov{background:#f1f5f9;border-color:#94a3b8}
+  .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+  .pk{border:2px solid;border-radius:12px;padding:8px 12px;font-size:.82rem;background:#fff}
+  .pk b{display:block;font-size:.92rem}
+  .pk.llm{border-color:var(--ind);background:var(--indl)}.pk.prog{border-color:var(--grn);background:var(--grnl)}.pk.guard{border-color:var(--red);background:var(--redl)}
+  .dn{text-align:center;color:var(--mute);font-size:.76rem;padding:4px 0;line-height:1.2}
+  .dn span{display:block;color:var(--ind);font-size:1.1rem}
+  .leg{display:flex;flex-wrap:wrap;gap:14px;font-size:.8rem;color:var(--mute);margin-top:10px;justify-content:center}
+  .leg i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+  /* flow strip */
+  .flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:6px;margin:12px 0}
+  .st{flex:1;min-width:140px;border-radius:10px;padding:8px 11px;border:1px solid var(--line);background:#fafbff;font-size:.82rem}
+  .st b{display:block;font-size:.85rem}
+  .st.m{border-color:var(--ind);background:var(--indl)}.st.g{border-color:var(--grn);background:var(--grnl)}.st.w{border-color:var(--amb);background:var(--ambl)}.st.x{border-color:var(--red);background:var(--redl)}.st.h{border-color:var(--org);background:var(--orgl)}
+  .ar{align-self:center;color:var(--mute);font-weight:800}
+  .three{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:10px 0}
+  .out{border:2px solid;border-radius:12px;padding:8px 12px;font-size:.84rem}
+  .out.a{background:var(--grnl);border-color:var(--grn)}.out.d{background:var(--redl);border-color:var(--red);border-style:dashed}.out.h{background:var(--orgl);border-color:var(--org)}
+  footer{text-align:center;color:var(--mute);padding:6px 20px 30px;font-size:.85rem}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="w">
+    <h1>golden-agent (Python)</h1>
+    <p>A small Python library for building agents from the core elements: model, instructions, tools, loop and state, plus a guard layer and sub agents. Standard library only, no framework, no dependencies. Define a few pieces, build an <code>Agent</code>, call <code>run</code>. It is the Python version of the Java library and behaves the same way.</p>
+    <div class="badges">
+      <span class="badge">Python 3.10 or newer</span>
+      <span class="badge">Zero dependencies</span>
+      <span class="badge">34 tests pass</span>
+      <span class="badge">Packaged as a wheel</span>
+    </div>
+  </div>
+</header>
+
+<div class="nav">
+  <a href="#glance">At a glance</a>
+  <a href="#arch">Architecture</a>
+  <a href="#elements">Core elements</a>
+  <a href="#start">Quick start</a>
+  <a href="#loop">The loop</a>
+  <a href="#guard">Guard layer</a>
+  <a href="#multi">Sub agents</a>
+  <a href="#extend">Extend it</a>
+  <a href="#use">Use as a library</a>
+  <a href="#api">API reference</a>
+  <a href="#limits">Limits</a>
+</div>
+
+<main>
+
+<section id="glance">
+  <h2><small>Overview</small>What it is and why</h2>
+  <p>Agent frameworks bundle the same handful of ideas. This library keeps those ideas visible and small, so you can read all of it, change any part, and use it as the base for new agents without adopting a large framework.</p>
+  <div class="stats">
+    <div class="stat"><b>5</b><span>core elements, each a small class or protocol</span></div>
+    <div class="stat"><b>3</b><span>gate outcomes: allow, deny, ask a human</span></div>
+    <div class="stat"><b>0</b><span>runtime dependencies</span></div>
+    <div class="stat"><b>34</b><span>unittest tests: 25 ported from the Java checks, 9 for the Anthropic adapter</span></div>
+  </div>
+  <div class="tip">The design rule behind it: the LLM proposes and never executes. Your code validates, gates and runs every action.</div>
+</section>
+
+<section id="arch">
+  <h2><small>Structure</small>Architecture and modules</h2>
+  <p>One public entry point (<code>Agent</code>) sits on top of the loop, and the loop depends only on small abstractions. Dependencies point downwards, so every piece can be replaced.</p>
+
+  <div class="arch">
+    <div class="lay top"><span class="tag i">Public entry point</span>
+      <h4>golden_agent.composition</h4>
+      <div class="sub"><code>Agent</code>, <code>AgentBuilder</code>, <code>DelegationTool</code> (a sub agent exposed as a tool)</div>
+    </div>
+    <div class="dn"><span>&#9660;</span>builds and runs</div>
+    <div class="lay mid"><span class="tag v">Element 4</span>
+      <h4>golden_agent.loop</h4>
+      <div class="sub"><code>AgentLoop</code>, <code>LoopConfig</code>, <code>AgentResult</code>. Depends only on the abstractions below.</div>
+    </div>
+    <div class="dn"><span>&#9660;</span>uses</div>
+    <div class="row">
+      <div class="pk llm"><span class="tag i">Element 1</span><b>model</b><code>ModelClient</code>, <code>ModelRequest</code>, <code>ModelResponse</code>, <code>StopReason</code>, <code>Text</code>, <code>ToolUse</code>, <code>ToolResult</code>, <code>Message</code></div>
+      <div class="pk llm"><span class="tag i">Element 2</span><b>instructions</b><code>Instructions</code></div>
+      <div class="pk prog"><span class="tag g">Element 3</span><b>tool</b><code>Tool</code>, <code>TypedTool</code>, <code>FunctionTool</code>, <code>ToolRegistry</code>, <code>InputSchema</code></div>
+      <div class="pk prog"><span class="tag g">Element 5</span><b>state</b><code>AgentState</code>, <code>RunStatus</code></div>
+      <div class="pk guard"><span class="tag o">Guard layer</span><b>guard</b><code>Gates</code>, <code>Decision</code>, <code>Gate</code>, <code>HumanApprover</code>, <code>ResultFilter</code></div>
+    </div>
+    <div class="dn"><span>&#9650;</span>implements <code>ModelClient</code></div>
+    <div class="lay prov"><span class="tag s">Adapters</span>
+      <h4>golden_agent.provider</h4>
+      <div class="sub"><code>AnthropicModelClient</code> (reference adapter using <code>urllib</code>, with an injectable transport), <code>build_body</code>, <code>parse_response</code>. Add your own provider here.</div>
+    </div>
+  </div>
+  <div class="leg">
+    <span><i style="background:#4f46e5"></i>LLM-side</span>
+    <span><i style="background:#16a34a"></i>Programmatic</span>
+    <span><i style="background:#dc2626"></i>Guard layer</span>
+    <span><i style="background:#94a3b8"></i>Adapters</span>
+  </div>
+</section>
+
+<section id="elements">
+  <h2><small>The five elements</small>Where each core element lives</h2>
+  <table>
+    <tr><th>#</th><th>Element</th><th>Main names</th><th>What it does</th></tr>
+    <tr><td>1</td><td><b>Model</b></td><td><code>ModelClient</code> (a protocol with one method)</td><td>The only place an LLM is reached. One implementation per provider, swappable without touching the loop. A plain function also works. <code>ScriptedModelClient</code> replays a script for tests.</td></tr>
+    <tr><td>2</td><td><b>Instructions</b></td><td><code>Instructions</code> (frozen dataclass)</td><td>Role, rules, output format and examples. Composable with <code>with_rule</code>, <code>with_example</code> and <code>and_</code>. Advisory only.</td></tr>
+    <tr><td>3</td><td><b>Tools</b></td><td><code>Tool</code>, <code>TypedTool[I, O]</code>, <code>FunctionTool</code>, <code>ToolRegistry</code></td><td>A name, description and input schema the model sees, plus code that runs. Only registered tools can run. <code>subset</code> gives least privilege.</td></tr>
+    <tr><td>4</td><td><b>Loop</b></td><td><code>AgentLoop</code>, <code>LoopConfig</code></td><td>Calls the model, branches on <code>stop_reason</code>, gates and runs tools, feeds results back, repeats with an iteration cap.</td></tr>
+    <tr><td>5</td><td><b>State</b></td><td><code>AgentState</code>, <code>RunStatus</code></td><td>The ordered message history, goal, iteration count and outcome. A new instance for every run, never shared.</td></tr>
+    <tr><td>+</td><td><b>Guard layer</b></td><td><code>Gates</code>, <code>Decision</code>, <code>HumanApprover</code>, <code>ResultFilter</code></td><td>Programmatic checks before and after each tool call. Fails closed.</td></tr>
+  </table>
+</section>
+
+<section id="start">
+  <h2><small>Get going</small>Quick start</h2>
+  <pre><code><span class="k">from</span> golden_agent <span class="k">import</span> <span class="t">Agent</span>, <span class="t">Gates</span>, <span class="t">Instructions</span>
+
+agent = (
+    <span class="t">Agent</span>.builder(<span class="s">&quot;support&quot;</span>)
+    .model(model_client)                                                 <span class="c"># 1. model</span>
+    .instructions(<span class="t">Instructions</span>.for_role(<span class="s">&quot;You are a support agent.&quot;</span>)      <span class="c"># 2. instructions</span>
+                  .with_rule(<span class="s">&quot;Verify the customer before changing an account.&quot;</span>))
+    .tools(<span class="t">GetCustomerTool</span>(), <span class="t">RefundTool</span>())                              <span class="c"># 3. tools</span>
+    .gate(<span class="t">Gates</span>.prerequisites({<span class="s">&quot;process_refund&quot;</span>: {<span class="s">&quot;get_customer&quot;</span>}}))
+    .gate(<span class="t">Gates</span>.require_approval({<span class="s">&quot;process_refund&quot;</span>}, <span class="s">&quot;refunds need approval&quot;</span>))
+    .approver(<span class="k">lambda</span> call, reason: ask_a_person(call, reason))
+    .max_iterations(10)                                                  <span class="c"># 4. loop limits</span>
+    .build()
+)
+
+result = agent.run(<span class="s">&quot;Refund order O-1 for customer C-1&quot;</span>)                  <span class="c"># 5. fresh state per run</span>
+print(result.status.name, result.text)</code></pre>
+  <p>Keyword construction works too:</p>
+  <pre><code>agent = <span class="t">Agent</span>(<span class="s">&quot;support&quot;</span>, model=model_client, instructions=<span class="t">Instructions</span>.for_role(<span class="s">&quot;...&quot;</span>),
+              tools=[<span class="t">GetCustomerTool</span>()], sub_agents=[researcher], gate=[rule_one, rule_two])</code></pre>
+
+  <h3>What that run does (from the bundled demo)</h3>
+  <pre><code>  [human] approving process_refund because: refunds need human approval
+  USER says: Refund order O-1 for customer C-1, 9000 cents
+  model asks for process_refund {&#x27;orderId&#x27;: &#x27;O-1&#x27;, &#x27;amountCents&#x27;: 9000}
+  tool_result (error): Blocked: &#x27;process_refund&#x27; requires these tools to succeed first: [&#x27;get_customer&#x27;]
+  model asks for get_customer {&#x27;customerId&#x27;: &#x27;C-1&#x27;}
+  tool_result: customer C-1 is verified
+  model asks for process_refund {&#x27;orderId&#x27;: &#x27;O-1&#x27;, &#x27;amountCents&#x27;: 9000}
+  tool_result: refunded 9000 cents for order O-1
+  ASSISTANT says: The refund of 9000 cents for order O-1 has been processed.
+  -&gt; status=COMPLETED iterations=4 lastStopReason=END_TURN</code></pre>
+  <p class="mute">The model tried to skip the verification step. The gate refused, the model recovered, and a human approved the last step.</p>
+
+  <h3>Four steps to a new agent</h3>
+  <table>
+    <tr><th>Step</th><th>You provide</th><th>Code</th></tr>
+    <tr><td>1</td><td>A model client</td><td><code>AnthropicModelClient.from_environment("&lt;model id&gt;")</code>, your own object with a <code>send</code> method, or a function</td></tr>
+    <tr><td>2</td><td>Instructions</td><td><code>Instructions.for_role(...).with_rule(...)</code></td></tr>
+    <tr><td>3</td><td>Tools</td><td><code>FunctionTool.of(definition, fn)</code> or a <code>TypedTool</code> subclass</td></tr>
+    <tr><td>4</td><td>Optional guards and limits</td><td><code>.gate(...)</code>, <code>.approver(...)</code>, <code>.max_iterations(n)</code></td></tr>
+  </table>
+</section>
+
+<section id="loop">
+  <h2><small>Element 4</small>The loop</h2>
+  <div class="flow">
+    <div class="st w"><b>Send</b>system prompt, full history, tool list</div><span class="ar">&rarr;</span>
+    <div class="st m"><b>Model responds</b>content blocks plus stop_reason</div><span class="ar">&rarr;</span>
+    <div class="st g"><b>Branch on stop_reason</b>END_TURN, TOOL_USE or other</div><span class="ar">&rarr;</span>
+    <div class="st h"><b>Gate</b>allow, deny or ask a human</div><span class="ar">&rarr;</span>
+    <div class="st w"><b>Run tool</b>then append the tool_result</div>
+  </div>
+  <table>
+    <tr><th>stop_reason</th><th>What the loop does</th><th>Run status</th></tr>
+    <tr><td><code>END_TURN</code></td><td>Finishes with the model's text</td><td><code>COMPLETED</code></td></tr>
+    <tr><td><code>TOOL_USE</code></td><td>Gates and runs every requested tool, sends all results back in one user message, loops</td><td><code>RUNNING</code></td></tr>
+    <tr><td>Any other, such as <code>MAX_TOKENS</code> or <code>REFUSAL</code></td><td>Stops, because the model did not finish normally</td><td><code>NOT_FINISHED</code></td></tr>
+    <tr><td>Iteration cap reached</td><td>Stops. The cap is a guard rail, not a normal finish</td><td><code>LIMIT_REACHED</code></td></tr>
+    <tr><td>Model call raises <code>ModelError</code></td><td>Stops with the failure noted</td><td><code>FAILED</code></td></tr>
+  </table>
+  <h3>Guarantees, each covered by a test</h3>
+  <ul>
+    <li>The loop branches only on <code>stop_reason</code>. It never parses text such as "I'm done".</li>
+    <li>The full message history is sent on every call. Each <code>run</code> creates a new, isolated state.</li>
+    <li>Unknown tools, bad arguments and tool failures become error results the model can read. Internal details are not leaked.</li>
+    <li>A denied call never runs, and an ask-a-human decision with no approver is denied.</li>
+    <li><code>iterations</code> equals the number of tool rounds plus one.</li>
+  </ul>
+</section>
+
+<section id="guard">
+  <h2><small>Guard layer</small>Gates, humans and filters</h2>
+  <p>A gate is a plain function <code>(tool_use, state) -&gt; Decision</code> that runs before every tool call, outside the model. It returns one of three decisions:</p>
+  <div class="three">
+    <div class="out a"><b>Allow()</b><br>the tool runs</div>
+    <div class="out d"><b>Deny(reason)</b><br>the model receives an error result with the reason</div>
+    <div class="out h"><b>AskHuman(reason)</b><br>the approver decides. No approver means deny</div>
+  </div>
+  <table>
+    <tr><th>Piece</th><th>Purpose</th></tr>
+    <tr><td><code>Gates.prerequisites(mapping)</code></td><td>Block a tool until other tools have succeeded, for example refund only after the customer is verified</td></tr>
+    <tr><td><code>Gates.require_approval(tools, reason)</code></td><td>Ask a human before the named tools run</td></tr>
+    <tr><td><code>Gates.allow_list(tools)</code></td><td>Only the named tools may run</td></tr>
+    <tr><td><code>all_of(gate_a, gate_b)</code></td><td>Combine gates. The first non-Allow decision wins. The builder's <code>.gate()</code> does this for you</td></tr>
+    <tr><td>Approver</td><td>A function <code>(tool_use, reason) -&gt; bool</code>. Plug in a console prompt, ticket, chat message or web form. Default is deny-all</td></tr>
+    <tr><td>Result filter</td><td>A function <code>(tool_use, output) -&gt; ToolOutput</code> that runs after the tool and before the model sees the result. Trim, normalise or redact</td></tr>
+  </table>
+</section>
+
+<section id="multi">
+  <h2><small>Multi-agent</small>Coordinator and sub agents</h2>
+  <p>An agent can be given to another agent as a tool. The coordinator is just an <code>Agent</code> whose tools are delegation tools.</p>
+  <pre><code>researcher = (
+    <span class="t">Agent</span>.builder(<span class="s">&quot;researcher&quot;</span>)
+    .description(<span class="s">&quot;Finds facts on a topic and returns claims with sources&quot;</span>)
+    .model(researcher_model)
+    .instructions(<span class="t">Instructions</span>.for_role(<span class="s">&quot;You are a research agent.&quot;</span>))
+    .tool(web_search_tool)
+    .build()
+)
+
+coordinator = (
+    <span class="t">Agent</span>.builder(<span class="s">&quot;coordinator&quot;</span>)
+    .model(coordinator_model)
+    .instructions(<span class="t">Instructions</span>.for_role(<span class="s">&quot;You are a coordinator.&quot;</span>))
+    .sub_agent(researcher)            <span class="c"># becomes the tool delegate_to_researcher</span>
+    .sub_agent(analyst)
+    .build()
+)</code></pre>
+  <ul>
+    <li><b>Isolation:</b> a sub agent sees only the <code>task</code> and <code>context</code> the coordinator passes. It never sees the coordinator's conversation.</li>
+    <li><b>Least privilege:</b> each agent has only its own tools. Use <code>ToolRegistry.subset(...)</code> to share part of a toolset.</li>
+    <li><b>Structured failure:</b> if a sub agent does not finish, the coordinator receives an error result such as <code>SUB_AGENT_FAILURE agent=... status=NOT_FINISHED iterations=... note=... task=... partial=...</code>, never an empty success. It can then retry, route elsewhere or continue with partial results.</li>
+    <li><b>Reuse:</b> an <code>Agent</code> holds no run state, so one instance can be run many times, even concurrently.</li>
+  </ul>
+</section>
+
+<section id="extend">
+  <h2><small>Make it yours</small>Extension points</h2>
+  <p>Models and tools are anything with the right methods (structural typing), and gates, approvers and filters are plain callables. To extend the library you add code and do not change it.</p>
+  <table>
+    <tr><th>To add a...</th><th>Provide</th></tr>
+    <tr><td>Model provider</td><td>An object with <code>send(request)</code>, or a function</td></tr>
+    <tr><td>Tool</td><td>An object with <code>definition()</code> and <code>execute(input)</code>, a <code>TypedTool</code> subclass, or <code>FunctionTool.of(...)</code></td></tr>
+    <tr><td>Rule that must never be broken</td><td>A gate function</td></tr>
+    <tr><td>Human approval channel</td><td>An approver function</td></tr>
+    <tr><td>Output trimming or redaction</td><td>A result filter function</td></tr>
+    <tr><td>Sub agent</td><td><code>Agent.builder(...).sub_agent(other)</code></td></tr>
+  </table>
+
+  <h3>A function tool</h3>
+  <pre><code>get_temp = <span class="t">FunctionTool</span>.of(
+    <span class="t">ToolDefinition</span>(<span class="s">&quot;get_temp&quot;</span>, <span class="s">&quot;Current temperature for a city&quot;</span>,
+                   <span class="t">InputSchema</span>.object().string(<span class="s">&quot;city&quot;</span>, <span class="s">&quot;City name&quot;</span>).build()),
+    <span class="k">lambda</span> args: f<span class="s">&quot;18C in {args[&#x27;city&#x27;]}&quot;</span>)</code></pre>
+
+  <h3>A typed tool</h3>
+  <pre><code>@dataclass(frozen=<span class="k">True</span>)
+<span class="k">class</span> <span class="t">RefundRequest</span>:
+    order_id: str
+    amount_cents: int
+
+
+<span class="k">class</span> <span class="t">RefundTool</span>(<span class="t">TypedTool</span>[<span class="t">RefundRequest</span>, str]):
+    <span class="k">def</span> __init__(<span class="k">self</span>) -&gt; <span class="k">None</span>:
+        super().__init__(<span class="t">ToolDefinition</span>(
+            <span class="s">&quot;process_refund&quot;</span>,
+            <span class="s">&quot;Refund an order. Requires a verified customer. Returns a confirmation.&quot;</span>,
+            <span class="t">InputSchema</span>.object()
+            .string(<span class="s">&quot;orderId&quot;</span>, <span class="s">&quot;The order id&quot;</span>)
+            .integer(<span class="s">&quot;amountCents&quot;</span>, <span class="s">&quot;Refund amount in cents&quot;</span>)
+            .build()))
+
+    <span class="k">def</span> decode(<span class="k">self</span>, input):
+        <span class="k">return</span> <span class="t">RefundRequest</span>(<span class="k">self</span>.string(input, <span class="s">&quot;orderId&quot;</span>), <span class="k">self</span>.integer(input, <span class="s">&quot;amountCents&quot;</span>))
+
+    <span class="k">def</span> run(<span class="k">self</span>, request):
+        <span class="k">return</span> f<span class="s">&quot;refunded {request.amount_cents} cents&quot;</span></code></pre>
+
+  <h3>A custom gate</h3>
+  <pre><code><span class="k">def</span> business_hours(call: <span class="t">ToolUse</span>, state: <span class="t">AgentState</span>) -&gt; <span class="t">Decision</span>:
+    <span class="k">if</span> call.name == <span class="s">&quot;process_refund&quot;</span> <span class="k">and</span> <span class="k">not</span> is_business_hours():
+        <span class="k">return</span> deny(<span class="s">&quot;Refunds are only processed during business hours&quot;</span>)
+    <span class="k">return</span> allow()
+
+agent = <span class="t">Agent</span>.builder(<span class="s">&quot;support&quot;</span>)...gate(business_hours).build()</code></pre>
+
+  <h3>A custom model provider</h3>
+  <pre><code><span class="k">def</span> my_model(request: <span class="t">ModelRequest</span>) -&gt; <span class="t">ModelResponse</span>:
+    <span class="c"># map the request to your provider&#x27;s format, call it, and map the reply back</span>
+    <span class="k">return</span> <span class="t">ModelResponse</span>((<span class="t">Text</span>(<span class="s">&quot;hello&quot;</span>),), <span class="t">StopReason</span>.<span class="t">END_TURN</span>)
+
+agent = <span class="t">Agent</span>.builder(<span class="s">&quot;a&quot;</span>).model(my_model).instructions(...).build()   <span class="c"># a plain function works</span></code></pre>
+</section>
+
+<section id="use">
+  <h2><small>Reuse it</small>Use it as a library</h2>
+  <p>Build once, then install the wheel anywhere. The wheel was installed into a clean virtual environment with no network, and a separate program that imported the installed package built and ran a working agent.</p>
+  <pre><code><span class="c"># run the tests and the demo, and build the wheel</span>
+.\build.ps1                    <span class="c"># Windows</span>
+./build.sh                     <span class="c"># macOS and Linux</span>
+
+<span class="c"># result</span>
+dist/golden_agent-1.0.0-py3-none-any.whl
+
+<span class="c"># use it from your own project</span>
+pip install dist/golden_agent-1.0.0-py3-none-any.whl
+pip install .                  <span class="c"># straight from the folder</span>
+pip install -e .               <span class="c"># editable, while working on the library</span></code></pre>
+  <table>
+    <tr><th>Option</th><th>Notes</th></tr>
+    <tr><td>Wheel</td><td><code>pip install dist/golden_agent-1.0.0-py3-none-any.whl</code>. It has no dependencies and ships <code>py.typed</code> so type checkers use its annotations.</td></tr>
+    <tr><td>From source</td><td><code>pip install .</code> or <code>pip install -e .</code> from this folder. The build backend is setuptools, already present in most environments.</td></tr>
+    <tr><td>Layout</td><td><code>src/golden_agent</code> is the library. <code>tests</code> holds the unittest tests. <code>examples/demo.py</code> holds the demo. Only the first goes in the wheel.</td></tr>
+  </table>
+  <h3>Using a real model</h3>
+  <pre><code><span class="k">from</span> golden_agent <span class="k">import</span> <span class="t">AnthropicModelClient</span>
+
+client = <span class="t">AnthropicModelClient</span>.from_environment(<span class="s">&quot;&lt;model id&gt;&quot;</span>)    <span class="c"># reads ANTHROPIC_API_KEY</span></code></pre>
+</section>
+
+<section id="api">
+  <h2><small>Reference</small>Public API at a glance</h2>
+  <table>
+    <tr><th>Name</th><th>Module</th><th>Role</th></tr>
+    <tr><td><code>Agent</code></td><td>composition</td><td>Entry point. <code>Agent.builder(name)</code>, keyword construction, <code>run(goal)</code>, <code>as_tool()</code></td></tr>
+    <tr><td><code>AgentBuilder</code></td><td>composition</td><td><code>description</code>, <code>model</code>, <code>instructions</code>, <code>tool</code>, <code>tools</code>, <code>sub_agent</code>, <code>gate</code>, <code>approver</code>, <code>result_filter</code>, <code>config</code>, <code>max_iterations</code>, <code>build</code></td></tr>
+    <tr><td><code>AgentResult</code></td><td>loop</td><td>Outcome: <code>status</code>, <code>text</code>, <code>note</code>, <code>iterations</code>, <code>last_stop_reason</code>, <code>history</code>, <code>completed</code></td></tr>
+    <tr><td><code>LoopConfig</code></td><td>loop</td><td><code>max_iterations</code> (default 20) and <code>max_tokens</code> (default 1024)</td></tr>
+    <tr><td><code>ModelClient</code></td><td>model</td><td>Protocol: <code>send(ModelRequest) -&gt; ModelResponse</code></td></tr>
+    <tr><td><code>Text</code>, <code>ToolUse</code>, <code>ToolResult</code></td><td>model</td><td>The three content blocks. <code>ContentBlock</code> is their union</td></tr>
+    <tr><td><code>StopReason</code></td><td>model</td><td><code>END_TURN</code>, <code>TOOL_USE</code>, <code>MAX_TOKENS</code>, <code>STOP_SEQUENCE</code>, <code>PAUSE_TURN</code>, <code>REFUSAL</code>, <code>CONTEXT_WINDOW_EXCEEDED</code></td></tr>
+    <tr><td><code>Instructions</code></td><td>instructions</td><td><code>for_role</code>, <code>with_rule</code>, <code>with_output_format</code>, <code>with_example</code>, <code>and_</code>, <code>render</code></td></tr>
+    <tr><td><code>Tool</code>, <code>TypedTool</code>, <code>FunctionTool</code></td><td>tool</td><td>Define and run a capability</td></tr>
+    <tr><td><code>ToolRegistry</code></td><td>tool</td><td><code>register</code>, <code>find</code>, <code>definitions</code>, <code>subset</code>, <code>names</code>, <code>all</code></td></tr>
+    <tr><td><code>Gates</code>, <code>Decision</code>, <code>all_of</code></td><td>guard</td><td>Allow, deny or ask a human</td></tr>
+    <tr><td><code>AnthropicModelClient</code></td><td>provider</td><td>Reference adapter. <code>AnthropicModelClient(api_key, model)</code> or <code>from_environment(model)</code></td></tr>
+  </table>
+</section>
+
+<section id="limits">
+  <h2><small>Honest notes</small>Limits and what is not included</h2>
+  <div class="warn"><b>Not run against the live API.</b> <code>AnthropicModelClient</code> has offline tests for its request and response mapping and its retry behaviour, using a fake transport, but it has not been run against the real service from this repository. Test it with your own key first. You choose the model id.</div>
+  <ul>
+    <li><b>Python version:</b> requires 3.10 or newer because it uses structural pattern matching. Verified on Python 3.12.6 only, since that was the version available.</li>
+    <li><b>Not included on purpose:</b> streaming, long-term memory, context compaction, parallel tool execution, parallel sub agents, persistence and tracing. Each one fits behind an existing extension point.</li>
+    <li><b>Sequential execution:</b> tools in one response run one after another.</li>
+    <li><b>Tool input is a mapping:</b> tool arguments arrive as a dictionary. <code>TypedTool</code> decodes them into your own type, and there is no automatic schema validation beyond required arguments.</li>
+    <li><b>Wheel build:</b> needs setuptools. It was available offline here, and the build script reports clearly if it is not.</li>
+  </ul>
+</section>
+
+</main>
+<footer>golden-agent for Python. Reference documentation for the library in this folder. Update this page when the code changes.</footer>
+</body>
+</html>

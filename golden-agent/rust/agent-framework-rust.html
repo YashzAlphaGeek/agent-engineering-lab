@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>golden-agent – A framework-free Rust agent library</title>
+<style>
+  :root{--bg:#f4f6fb;--card:#fff;--ink:#1d2433;--mute:#5d6678;--line:#dde2ee;--ind:#4f46e5;--indl:#eef0ff;--grn:#16a34a;--grnl:#e8f8ee;--amb:#d97706;--ambl:#fff4e0;--red:#dc2626;--redl:#fde8e8;--org:#ea580c;--orgl:#fff1e6;--vio:#8b5cf6;--viol:#f3effd}
+  *{box-sizing:border-box}
+  body{margin:0;font:16px/1.6 system-ui,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+  header{background:#111735;color:#fff;padding:34px 24px 26px}
+  .w{max-width:1100px;margin:0 auto}
+  header h1{margin:0 0 6px;font-size:2rem}
+  header p{margin:0;color:#c9d1f5;max-width:800px}
+  header code{background:rgba(255,255,255,.18);color:#fff}
+  .badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .badge{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:3px 13px;font-size:.82rem}
+  .nav{max-width:1100px;margin:0 auto;padding:12px 24px 0;display:flex;flex-wrap:wrap;gap:8px}
+  .nav a{background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px 14px;font-size:.84rem;color:var(--ink);text-decoration:none}
+  .nav a:hover{border-color:var(--ind);color:var(--ind)}
+  main{max-width:1100px;margin:0 auto;padding:16px 24px 40px}
+  section{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 26px;margin-bottom:20px}
+  h2{margin:0 0 4px;font-size:1.4rem}
+  h2 small{display:block;font-size:.72rem;font-weight:700;color:var(--ind);text-transform:uppercase;letter-spacing:.09em}
+  h3{margin:18px 0 6px;font-size:1.02rem}
+  p{margin:8px 0}
+  code{background:#eef0f6;padding:1px 6px;border-radius:5px;font:.88em ui-monospace,Consolas,monospace}
+  pre{background:#0f172a;color:#e2e8f0;padding:13px 16px;border-radius:12px;overflow:auto;font:.84rem/1.55 ui-monospace,Consolas,monospace;margin:10px 0}
+  pre code{background:none;padding:0;color:inherit}
+  pre .k{color:#c4b5fd}pre .s{color:#86efac}pre .c{color:#94a3b8}pre .t{color:#7dd3fc}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:.9rem}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+  th{background:#f0f2f9}
+  .mute{color:var(--mute)}
+  .tip{border-left:4px solid var(--grn);background:var(--grnl);padding:9px 14px;border-radius:0 10px 10px 0;margin:12px 0}
+  .warn{border-left:4px solid var(--amb);background:var(--ambl);padding:9px 14px;border-radius:0 10px 10px 0;margin:12px 0}
+  .tag{display:inline-block;font-size:.64rem;font-weight:800;letter-spacing:.09em;padding:2px 9px;border-radius:999px;color:#fff;text-transform:uppercase;vertical-align:1px}
+  .tag.g{background:var(--grn)}.tag.i{background:var(--ind)}.tag.a{background:var(--amb)}.tag.v{background:var(--vio)}.tag.o{background:var(--org)}.tag.s{background:#64748b}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:12px 0}
+  .stat{border:1px solid var(--line);border-radius:12px;padding:10px 14px;background:#fcfcff}
+  .stat b{display:block;font-size:1.5rem;color:var(--ind)}
+  .stat span{font-size:.84rem;color:var(--mute)}
+
+  .arch{max-width:920px;margin:14px auto}
+  .lay{border:2px solid;border-radius:14px;padding:10px 14px;position:relative}
+  .lay>.tag{position:absolute;top:-10px;left:14px}
+  .lay h4{margin:4px 0 2px;font-size:1rem}
+  .lay .sub{font-size:.82rem;color:var(--mute)}
+  .lay.top{background:var(--indl);border-color:var(--ind)}
+  .lay.mid{background:var(--viol);border-color:var(--vio)}
+  .lay.prov{background:#f1f5f9;border-color:#94a3b8}
+  .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+  .pk{border:2px solid;border-radius:12px;padding:8px 12px;font-size:.82rem;background:#fff}
+  .pk b{display:block;font-size:.92rem}
+  .pk.llm{border-color:var(--ind);background:var(--indl)}.pk.prog{border-color:var(--grn);background:var(--grnl)}.pk.guard{border-color:var(--red);background:var(--redl)}
+  .dn{text-align:center;color:var(--mute);font-size:.76rem;padding:4px 0;line-height:1.2}
+  .dn span{display:block;color:var(--ind);font-size:1.1rem}
+  .leg{display:flex;flex-wrap:wrap;gap:14px;font-size:.8rem;color:var(--mute);margin-top:10px;justify-content:center}
+  .leg i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+  .flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:6px;margin:12px 0}
+  .st{flex:1;min-width:140px;border-radius:10px;padding:8px 11px;border:1px solid var(--line);background:#fafbff;font-size:.82rem}
+  .st b{display:block;font-size:.85rem}
+  .st.m{border-color:var(--ind);background:var(--indl)}.st.g{border-color:var(--grn);background:var(--grnl)}.st.w{border-color:var(--amb);background:var(--ambl)}.st.x{border-color:var(--red);background:var(--redl)}.st.h{border-color:var(--org);background:var(--orgl)}
+  .ar{align-self:center;color:var(--mute);font-weight:800}
+  .three{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:10px 0}
+  .out{border:2px solid;border-radius:12px;padding:8px 12px;font-size:.84rem}
+  .out.a{background:var(--grnl);border-color:var(--grn)}.out.d{background:var(--redl);border-color:var(--red);border-style:dashed}.out.h{background:var(--orgl);border-color:var(--org)}
+  footer{text-align:center;color:var(--mute);padding:6px 20px 30px;font-size:.85rem}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="w">
+    <h1>golden-agent for Rust</h1>
+    <p>A small Rust library for building agents from the core elements: model, instructions, tools, loop and state, plus a guard layer and sub agents. Standard library only, no dependencies. Define a few pieces, build an <code>Agent</code>, call <code>run</code>. It mirrors the Java library in design and behaviour.</p>
+    <div class="badges">
+      <span class="badge">Rust 1.85 or newer, edition 2024</span>
+      <span class="badge">Zero dependencies</span>
+      <span class="badge">35 tests pass, clippy clean</span>
+      <span class="badge">No unsafe code</span>
+    </div>
+  </div>
+</header>
+
+<div class="nav">
+  <a href="#glance">At a glance</a>
+  <a href="#arch">Architecture</a>
+  <a href="#elements">Core elements</a>
+  <a href="#start">Quick start</a>
+  <a href="#loop">The loop</a>
+  <a href="#guard">Guard layer</a>
+  <a href="#multi">Sub agents</a>
+  <a href="#extend">Extend it</a>
+  <a href="#use">Use as a library</a>
+  <a href="#real">Real model</a>
+  <a href="#api">API reference</a>
+  <a href="#limits">Limits</a>
+</div>
+
+<main>
+
+<section id="glance">
+  <h2><small>Overview</small>What it is and why</h2>
+  <p>Agent frameworks bundle the same handful of ideas. This crate keeps those ideas visible and small, so you can read all of it, change any part, and use it as the base for new agents without adopting a large framework.</p>
+  <div class="stats">
+    <div class="stat"><b>5</b><span>core elements, each a small trait or type</span></div>
+    <div class="stat"><b>3</b><span>gate outcomes: allow, deny, ask a human</span></div>
+    <div class="stat"><b>0</b><span>dependencies, the standard library only</span></div>
+    <div class="stat"><b>25</b><span>ported checks, plus 10 adapter and concurrency tests</span></div>
+  </div>
+  <div class="tip">The design rule behind it: the LLM proposes and never executes. Your code validates, gates and runs every action.</div>
+</section>
+
+<section id="arch">
+  <h2><small>Structure</small>Architecture and modules</h2>
+  <p>One public entry point (<code>Agent</code>) sits on top of the loop, and the loop depends only on small traits. Dependencies point downwards, so every piece can be replaced.</p>
+
+  <div class="arch">
+    <div class="lay top"><span class="tag i">Public entry point</span>
+      <h4>golden_agent::agent</h4>
+      <div class="sub"><code>Agent</code>, <code>AgentBuilder</code>, <code>DelegationTool</code> (a sub agent exposed as a tool)</div>
+    </div>
+    <div class="dn"><span>&#9660;</span>builds and runs</div>
+    <div class="lay mid"><span class="tag v">Element 4</span>
+      <h4>golden_agent::agent_loop</h4>
+      <div class="sub"><code>AgentLoop</code>, <code>LoopConfig</code>, <code>AgentResult</code>. Depends only on the traits below.</div>
+    </div>
+    <div class="dn"><span>&#9660;</span>uses</div>
+    <div class="row">
+      <div class="pk llm"><span class="tag i">Element 1</span><b>model</b><code>ModelClient</code>, <code>ModelRequest</code>, <code>ModelResponse</code>, <code>StopReason</code>, <code>ContentBlock</code>, <code>Message</code></div>
+      <div class="pk llm"><span class="tag i">Element 2</span><b>instructions</b><code>Instructions</code></div>
+      <div class="pk prog"><span class="tag g">Element 3</span><b>tool</b><code>Tool</code>, <code>TypedTool</code>, <code>FunctionTool</code>, <code>ToolRegistry</code>, <code>InputSchema</code></div>
+      <div class="pk prog"><span class="tag g">Element 5</span><b>state</b><code>AgentState</code>, <code>RunStatus</code></div>
+      <div class="pk guard"><span class="tag o">Guard layer</span><b>guard</b><code>Gate</code>, <code>Gates</code>, <code>Decision</code>, <code>HumanApprover</code>, <code>ResultFilter</code></div>
+    </div>
+    <div class="dn"><span>&#9650;</span>implements <code>ModelClient</code></div>
+    <div class="lay prov"><span class="tag s">Adapters</span>
+      <h4>golden_agent::provider::anthropic and golden_agent::json</h4>
+      <div class="sub"><code>AnthropicModelClient&lt;T&gt;</code> (generic over an <code>HttpTransport</code> you supply), <code>Json</code> (small reader and writer). Add your own provider here.</div>
+    </div>
+  </div>
+  <div class="leg">
+    <span><i style="background:#4f46e5"></i>LLM-side</span>
+    <span><i style="background:#16a34a"></i>Programmatic</span>
+    <span><i style="background:#dc2626"></i>Guard layer</span>
+    <span><i style="background:#94a3b8"></i>Adapters</span>
+  </div>
+</section>
+
+<section id="elements">
+  <h2><small>The five elements</small>Where each core element lives</h2>
+  <table>
+    <tr><th>#</th><th>Element</th><th>Main types</th><th>What it does</th></tr>
+    <tr><td>1</td><td><b>Model</b></td><td><code>ModelClient</code> (one method)</td><td>The only place an LLM is reached. One implementation per provider, swappable without touching the loop. Any matching closure is also a client. <code>ScriptedModelClient</code> replays a script for tests.</td></tr>
+    <tr><td>2</td><td><b>Instructions</b></td><td><code>Instructions</code> (immutable value)</td><td>Role, rules, output format and examples. Composable with <code>with_rule</code>, <code>with_example</code> and <code>and</code>. Advisory only.</td></tr>
+    <tr><td>3</td><td><b>Tools</b></td><td><code>Tool</code>, <code>TypedTool&lt;I, O&gt;</code>, <code>FunctionTool</code>, <code>ToolRegistry</code></td><td>A name, description and input schema the model sees, plus code that runs. Only registered tools can run. <code>subset</code> gives least privilege.</td></tr>
+    <tr><td>4</td><td><b>Loop</b></td><td><code>AgentLoop</code>, <code>LoopConfig</code></td><td>Calls the model, branches on <code>stop_reason</code>, gates and runs tools, feeds results back, repeats with an iteration cap.</td></tr>
+    <tr><td>5</td><td><b>State</b></td><td><code>AgentState</code>, <code>RunStatus</code></td><td>The ordered message history, goal, iteration count and outcome. A new instance for every run, never shared.</td></tr>
+    <tr><td>+</td><td><b>Guard layer</b></td><td><code>Gate</code>, <code>Gates</code>, <code>HumanApprover</code>, <code>ResultFilter</code></td><td>Programmatic checks before and after each tool call. Fails closed.</td></tr>
+  </table>
+</section>
+
+<section id="start">
+  <h2><small>Get going</small>Quick start</h2>
+<pre><code><span class="k">use</span> golden_agent::prelude::*;
+
+<span class="k">let</span> agent = <span class="t">Agent</span>::builder(<span class="s">"support"</span>)
+    .model(model_client)                                              <span class="c">// 1. model</span>
+    .instructions(
+        <span class="t">Instructions</span>::for_role(<span class="s">"You are a support agent."</span>)            <span class="c">// 2. instructions</span>
+            .with_rule(<span class="s">"Verify the customer before changing an account."</span>),
+    )
+    .tool(get_customer_tool())                                        <span class="c">// 3. tools</span>
+    .tool(refund_tool())
+    .gate(<span class="t">Gates</span>::prerequisites(&amp;[(<span class="s">"process_refund"</span>, &amp;[<span class="s">"get_customer"</span>])]))
+    .gate(<span class="t">Gates</span>::require_approval(&amp;[<span class="s">"process_refund"</span>], <span class="s">"refunds need approval"</span>))
+    .approver(<span class="t">HumanApprover</span>::new(|call, reason| ask_a_person(call, reason)))
+    .max_iterations(10)                                               <span class="c">// 4. loop limits</span>
+    .build()?;                                                        <span class="c">// validates, returns a Result</span>
+
+<span class="k">let</span> result = agent.run(<span class="s">"Refund order O-1 for customer C-1"</span>);          <span class="c">// 5. fresh state per run</span>
+<span class="k">println!</span>(<span class="s">"{}: {}"</span>, result.status, result.text);</code></pre>
+
+  <h3>What that run does (real output of <code>cargo run --example demo</code>)</h3>
+<pre><code>model asks for process_refund {amountCents=9000, orderId=O-1}
+tool_result (error): Blocked: 'process_refund' requires these tools to succeed first: [get_customer]
+model asks for get_customer {customerId=C-1}
+tool_result: customer C-1 is verified
+model asks for process_refund {amountCents=9000, orderId=O-1}
+[human] approving process_refund because: refunds need human approval
+tool_result: refunded 9000 cents for order O-1
+ASSISTANT says: The refund of 9000 cents for order O-1 has been processed.
+-&gt; status=COMPLETED iterations=4 lastStopReason=END_TURN</code></pre>
+  <p class="mute">The model tried to skip the verification step. The gate refused, the model recovered, and a human approved the last step.</p>
+
+  <h3>Four steps to a new agent</h3>
+  <table>
+    <tr><th>Step</th><th>You provide</th><th>Code</th></tr>
+    <tr><td>1</td><td>A model client</td><td>Your own <code>ModelClient</code>, a closure, or <code>AnthropicModelClient::from_environment("&lt;model id&gt;", transport)</code></td></tr>
+    <tr><td>2</td><td>Instructions</td><td><code>Instructions::for_role(...).with_rule(...)</code></td></tr>
+    <tr><td>3</td><td>Tools</td><td><code>FunctionTool::new(definition, closure)</code> or <code>TypedTool::new(...)</code></td></tr>
+    <tr><td>4</td><td>Optional guards and limits</td><td><code>.gate(...)</code>, <code>.approver(...)</code>, <code>.max_iterations(n)</code></td></tr>
+  </table>
+</section>
+
+<section id="loop">
+  <h2><small>Element 4</small>The loop</h2>
+  <div class="flow">
+    <div class="st w"><b>Send</b>system prompt, full history, tool list</div><span class="ar">&rarr;</span>
+    <div class="st m"><b>Model responds</b>content blocks plus stop_reason</div><span class="ar">&rarr;</span>
+    <div class="st g"><b>Branch on stop_reason</b>EndTurn, ToolUse or other</div><span class="ar">&rarr;</span>
+    <div class="st h"><b>Gate</b>allow, deny or ask a human</div><span class="ar">&rarr;</span>
+    <div class="st w"><b>Run tool</b>then append the tool_result</div>
+  </div>
+  <table>
+    <tr><th>stop_reason</th><th>What the loop does</th><th>Run status</th></tr>
+    <tr><td><code>EndTurn</code></td><td>Finishes with the model's text</td><td><code>Completed</code></td></tr>
+    <tr><td><code>ToolUse</code></td><td>Gates and runs every requested tool, sends all results back in one user message, loops</td><td><code>Running</code></td></tr>
+    <tr><td>Any other, such as <code>MaxTokens</code> or <code>Refusal</code></td><td>Stops, because the model did not finish normally</td><td><code>NotFinished</code></td></tr>
+    <tr><td>Iteration cap reached</td><td>Stops. The cap is a guard rail, not a normal finish</td><td><code>LimitReached</code></td></tr>
+    <tr><td>Model call returns an error</td><td>Stops with the failure noted</td><td><code>Failed</code></td></tr>
+  </table>
+  <h3>Guarantees, each covered by a test</h3>
+  <ul>
+    <li>The loop branches only on <code>stop_reason</code>. It never parses text such as "I'm done".</li>
+    <li>The full message history is sent on every call. Each <code>run</code> creates a new, isolated state.</li>
+    <li>Unknown tools, bad arguments and tool failures become error results the model can read. A panic inside a tool is caught at the loop boundary and reported without its message, so internal details are not leaked.</li>
+    <li>A denied call never runs, and an ask-a-human decision with no approver is denied.</li>
+    <li><code>iterations</code> equals the number of tool rounds plus one.</li>
+    <li>An <code>Agent</code> is <code>Send + Sync</code> and holds no run state, so one instance can be shared and run from many threads at once. A test runs 16 threads against one agent.</li>
+  </ul>
+</section>
+
+<section id="guard">
+  <h2><small>Guard layer</small>Gates, humans and filters</h2>
+  <p>A <code>Gate</code> is ordinary programmatic code that runs before every tool call, outside the model. It returns one of three decisions:</p>
+  <div class="three">
+    <div class="out a"><b>Decision::Allow</b><br>the tool runs</div>
+    <div class="out d"><b>Decision::Deny(reason)</b><br>the model receives an error result with the reason</div>
+    <div class="out h"><b>Decision::AskHuman(reason)</b><br>the <code>HumanApprover</code> decides. No approver means deny</div>
+  </div>
+  <table>
+    <tr><th>Piece</th><th>Purpose</th></tr>
+    <tr><td><code>Gates::prerequisites(&amp;[...])</code></td><td>Block a tool until other tools have succeeded, for example refund only after the customer is verified</td></tr>
+    <tr><td><code>Gates::require_approval(tools, reason)</code></td><td>Ask a human before the named tools run</td></tr>
+    <tr><td><code>Gates::allow_list(tools)</code></td><td>Only the named tools may run</td></tr>
+    <tr><td><code>gate.and(other)</code></td><td>Combine gates. The first non-Allow decision wins</td></tr>
+    <tr><td><code>HumanApprover</code></td><td>Plug in a console prompt, ticket, chat message or web form. Default is deny-all</td></tr>
+    <tr><td><code>ResultFilter</code></td><td>Runs after the tool and before the model sees the result. Trim, normalise or redact</td></tr>
+  </table>
+</section>
+
+<section id="multi">
+  <h2><small>Multi-agent</small>Coordinator and sub agents</h2>
+  <p>An agent can be given to another agent as a tool. The coordinator is just an <code>Agent</code> whose tools are delegation tools. Share a sub agent with an <code>Arc</code>.</p>
+<pre><code><span class="k">let</span> researcher = <span class="t">Arc</span>::new(
+    <span class="t">Agent</span>::builder(<span class="s">"researcher"</span>)
+        .description(<span class="s">"Finds facts on a topic and returns claims with sources"</span>)
+        .model(researcher_model)
+        .instructions(<span class="t">Instructions</span>::for_role(<span class="s">"You are a research agent."</span>))
+        .tool(web_search_tool)
+        .build()?,
+);
+
+<span class="k">let</span> coordinator = <span class="t">Agent</span>::builder(<span class="s">"coordinator"</span>)
+    .model(coordinator_model)
+    .instructions(<span class="t">Instructions</span>::for_role(<span class="s">"You are a coordinator."</span>))
+    .sub_agent(researcher)         <span class="c">// becomes the tool delegate_to_researcher</span>
+    .sub_agent(analyst)
+    .build()?;</code></pre>
+  <ul>
+    <li><b>Isolation:</b> a sub agent sees only the <code>task</code> and <code>context</code> the coordinator passes. It never sees the coordinator's conversation.</li>
+    <li><b>Least privilege:</b> each agent has only its own tools. Use <code>ToolRegistry::subset(...)</code> to share part of a toolset.</li>
+    <li><b>Structured failure:</b> if a sub agent does not finish, the coordinator receives an error result such as <code>SUB_AGENT_FAILURE agent=... status=NOT_FINISHED iterations=... note=... task=... partial=...</code>, never an empty success. It can then retry, route elsewhere or continue with partial results.</li>
+    <li><b>Reuse:</b> an <code>Agent</code> holds no run state, so one instance can be run many times, even concurrently.</li>
+  </ul>
+</section>
+
+<section id="extend">
+  <h2><small>Make it yours</small>Extension points</h2>
+  <p>Everything is a trait or a small value type. To extend the crate you add code and do not change it.</p>
+  <table>
+    <tr><th>To add a...</th><th>Implement or call</th></tr>
+    <tr><td>Model provider</td><td><code>ModelClient</code> (one method, and any matching closure works)</td></tr>
+    <tr><td>Tool</td><td><code>Tool</code>, <code>TypedTool::new(...)</code>, or <code>FunctionTool::new(...)</code></td></tr>
+    <tr><td>Rule that must never be broken</td><td><code>Gate::new(|call, state| ...)</code></td></tr>
+    <tr><td>Human approval channel</td><td><code>HumanApprover::new(|call, reason| ...)</code></td></tr>
+    <tr><td>Output trimming or redaction</td><td><code>ResultFilter::new(|call, output| ...)</code></td></tr>
+    <tr><td>Sub agent</td><td><code>Agent::builder(...).sub_agent(Arc::new(other))</code></td></tr>
+  </table>
+
+  <h3>A typed tool</h3>
+<pre><code><span class="k">struct</span> <span class="t">RefundRequest</span> { order_id: <span class="t">String</span>, amount_cents: <span class="t">i64</span> }
+
+<span class="k">fn</span> refund_tool() -&gt; <span class="t">TypedTool</span>&lt;<span class="t">RefundRequest</span>, <span class="t">String</span>&gt; {
+    <span class="t">TypedTool</span>::displaying(
+        <span class="t">ToolDefinition</span>::new(
+            <span class="s">"process_refund"</span>,
+            <span class="s">"Refund an order. Requires a verified customer. Returns a confirmation."</span>,
+            <span class="t">InputSchema</span>::object()
+                .string(<span class="s">"orderId"</span>, <span class="s">"The order id"</span>, <span class="k">true</span>)
+                .integer(<span class="s">"amountCents"</span>, <span class="s">"Refund amount in cents"</span>, <span class="k">true</span>)
+                .build(),
+        )
+        .expect(<span class="s">"valid definition"</span>),
+        |input| <span class="t">Ok</span>(<span class="t">RefundRequest</span> {                          <span class="c">// decode the raw arguments</span>
+            order_id: string_arg(input, <span class="s">"orderId"</span>)?,
+            amount_cents: integer_arg(input, <span class="s">"amountCents"</span>)?,
+        }),
+        |r| <span class="t">Ok</span>(<span class="k">format!</span>(<span class="s">"refunded {} cents for order {}"</span>, r.amount_cents, r.order_id)),  <span class="c">// run</span>
+    )
+}</code></pre>
+
+  <h3>A custom gate</h3>
+<pre><code><span class="k">let</span> business_hours = <span class="t">Gate</span>::new(|call, _state| {
+    <span class="k">if</span> call.name == <span class="s">"process_refund"</span> &amp;&amp; !is_business_hours() {
+        <span class="t">Decision</span>::Deny(<span class="s">"Refunds are only processed during business hours"</span>.to_string())
+    } <span class="k">else</span> {
+        <span class="t">Decision</span>::Allow
+    }
+});</code></pre>
+
+  <h3>A custom model provider</h3>
+<pre><code><span class="k">let</span> client = |request: &amp;<span class="t">ModelRequest</span>| -&gt; <span class="t">Result</span>&lt;<span class="t">ModelResponse</span>, <span class="t">ModelError</span>&gt; {
+    <span class="c">// map the request to your provider's format, call it, and map the reply back</span>
+    <span class="t">Ok</span>(<span class="t">ModelResponse</span> {
+        content: <span class="k">vec!</span>[<span class="t">ContentBlock</span>::Text(<span class="s">"hello"</span>.to_string())],
+        stop_reason: <span class="t">StopReason</span>::EndTurn,
+    })
+};
+<span class="k">let</span> agent = <span class="t">Agent</span>::builder(<span class="s">"x"</span>).model(client).instructions(instructions).build()?;</code></pre>
+</section>
+
+<section id="use">
+  <h2><small>Reuse it</small>Use it as a library</h2>
+  <p>Add it as a dependency of any Rust project. A separate test crate that depended on it only by path built and ran a working agent.</p>
+<pre><code><span class="c"># Cargo.toml of your project</span>
+[dependencies]
+golden-agent = { path = <span class="s">"../golden-agent/rust"</span> }
+
+<span class="c"># build everything here: format check, clippy, tests, demo, package</span>
+.\build.ps1                    <span class="c"># Windows</span>
+./build.sh                     <span class="c"># macOS and Linux</span>
+cargo run --example demo       <span class="c"># just the demo</span></code></pre>
+  <table>
+    <tr><th>Option</th><th>Notes</th></tr>
+    <tr><td>Path or git dependency</td><td>The simplest route. Nothing else is required, and it builds offline.</td></tr>
+    <tr><td>Packaged crate</td><td><code>cargo package</code> produces a <code>.crate</code> file, for example for a private registry. It worked offline here. It warns that no license or repository is set, so add those before publishing.</td></tr>
+    <tr><td>Layout</td><td><code>src/</code> is the library. <code>tests/</code> holds the integration tests. <code>examples/demo.rs</code> is the demo.</td></tr>
+  </table>
+</section>
+
+<section id="real">
+  <h2><small>Real model</small>Using the Anthropic adapter</h2>
+  <p>The Rust standard library has no HTTPS client, so <code>AnthropicModelClient</code> is generic over an <code>HttpTransport</code> that <b>you supply</b>. The trait has one method, and is usually a thin wrapper over the HTTP crate your project already uses.</p>
+<pre><code><span class="k">use</span> std::time::Duration;
+<span class="k">use</span> golden_agent::provider::anthropic::{<span class="t">AnthropicModelClient</span>, <span class="t">HttpResponse</span>, <span class="t">HttpTransport</span>, <span class="t">TransportError</span>};
+
+<span class="k">struct</span> <span class="t">MyTransport</span>;   <span class="c">// wrap reqwest, ureq, hyper or anything else</span>
+
+<span class="k">impl</span> <span class="t">HttpTransport</span> <span class="k">for</span> <span class="t">MyTransport</span> {
+    <span class="k">fn</span> post(&amp;<span class="k">self</span>, url: &amp;<span class="t">str</span>, headers: &amp;[(&amp;<span class="t">str</span>, &amp;<span class="t">str</span>)], body: &amp;<span class="t">str</span>, timeout: <span class="t">Duration</span>)
+        -&gt; <span class="t">Result</span>&lt;<span class="t">HttpResponse</span>, <span class="t">TransportError</span>&gt; {
+        <span class="c">// send an HTTPS POST and return the status code and body text</span>
+        <span class="k">todo!</span>()
+    }
+}
+
+<span class="k">let</span> client = <span class="t">AnthropicModelClient</span>::from_environment(<span class="s">"&lt;model id&gt;"</span>, <span class="t">MyTransport</span>)?;  <span class="c">// reads ANTHROPIC_API_KEY</span></code></pre>
+  <table>
+    <tr><th>Covered by offline tests with a mock transport</th></tr>
+    <tr><td>Correct URL, <code>x-api-key</code>, <code>anthropic-version</code> and content-type headers, and a request body in the Messages API shape</td></tr>
+    <tr><td>A 429 followed by a 200 succeeds on the retry, and server errors and network errors are retried with exponential backoff</td></tr>
+    <tr><td>Retries stop after the configured limit, and a 400 is never retried</td></tr>
+    <tr><td>An unknown <code>stop_reason</code> is rejected, never treated as a normal finish</td></tr>
+    <tr><td>A full tool loop runs through the adapter, including the <code>tool_result</code> sent back</td></tr>
+  </table>
+</section>
+
+<section id="api">
+  <h2><small>Reference</small>Public API at a glance</h2>
+  <table>
+    <tr><th>Type</th><th>Module</th><th>Role</th></tr>
+    <tr><td><code>Agent</code></td><td>agent</td><td>Entry point. <code>builder(name)</code>, <code>run(goal)</code>, <code>as_tool()</code></td></tr>
+    <tr><td><code>AgentBuilder</code></td><td>agent</td><td><code>description</code>, <code>model</code>, <code>instructions</code>, <code>tool</code>, <code>tool_arc</code>, <code>registry</code>, <code>sub_agent</code>, <code>gate</code>, <code>approver</code>, <code>result_filter</code>, <code>config</code>, <code>max_iterations</code>, <code>build</code> (returns <code>Result&lt;Agent, AgentError&gt;</code>)</td></tr>
+    <tr><td><code>AgentResult</code></td><td>agent_loop</td><td>Outcome: <code>status</code>, <code>text</code>, <code>note</code>, <code>iterations</code>, <code>last_stop_reason</code>, <code>history</code>, <code>completed()</code></td></tr>
+    <tr><td><code>LoopConfig</code></td><td>agent_loop</td><td><code>max_iterations</code> (default 20) and <code>max_tokens</code> (default 1024), validated by <code>new</code></td></tr>
+    <tr><td><code>ModelClient</code></td><td>model</td><td><code>fn send(&amp;self, &amp;ModelRequest) -&gt; Result&lt;ModelResponse, ModelError&gt;</code>, requires <code>Send + Sync</code></td></tr>
+    <tr><td><code>ContentBlock</code></td><td>model</td><td>Enum: <code>Text</code>, <code>ToolUse</code>, <code>ToolResult</code></td></tr>
+    <tr><td><code>StopReason</code></td><td>model</td><td><code>EndTurn</code>, <code>ToolUse</code>, <code>MaxTokens</code>, <code>StopSequence</code>, <code>PauseTurn</code>, <code>Refusal</code>, <code>ContextWindowExceeded</code></td></tr>
+    <tr><td><code>Instructions</code></td><td>instructions</td><td><code>for_role</code>, <code>with_rule</code>, <code>with_output_format</code>, <code>with_example</code>, <code>and</code>, <code>render</code></td></tr>
+    <tr><td><code>Tool</code>, <code>TypedTool</code>, <code>FunctionTool</code></td><td>tool</td><td>Define and run a capability</td></tr>
+    <tr><td><code>ToolRegistry</code></td><td>tool</td><td><code>register</code>, <code>find</code>, <code>definitions</code>, <code>subset</code>, <code>names</code>, <code>all</code></td></tr>
+    <tr><td><code>Gate</code>, <code>Gates</code>, <code>Decision</code></td><td>guard</td><td>Allow, deny or ask a human</td></tr>
+    <tr><td><code>HumanApprover</code>, <code>ResultFilter</code></td><td>guard</td><td>Approval channel and post-tool filter</td></tr>
+    <tr><td><code>AnthropicModelClient&lt;T&gt;</code></td><td>provider::anthropic</td><td>Reference adapter. <code>builder(key, model, transport)</code> or <code>from_environment(model, transport)</code></td></tr>
+    <tr><td><code>Json</code></td><td>json</td><td>Small value type with <code>parse</code> and <code>write</code></td></tr>
+  </table>
+</section>
+
+<section id="limits">
+  <h2><small>Honest notes</small>Limits and what is not included</h2>
+  <div class="warn"><b>Not run against the live API, and needs your transport.</b> <code>AnthropicModelClient</code> has offline tests for its request and response mapping, but it has not been run against the real service from this repository. It also needs an <code>HttpTransport</code> that you write, because the standard library has no HTTPS client. Test it with your own key first. You choose the model id.</div>
+  <ul>
+    <li><b>Toolchain:</b> verified on rustc 1.95.0 only. The manifest declares Rust 1.85 or newer, which was not tested.</li>
+    <li><b>Not included on purpose:</b> streaming, long-term memory, context compaction, parallel tool execution, parallel sub agents, persistence and tracing. Each one fits behind an existing extension point.</li>
+    <li><b>Sequential execution:</b> tools in one response run one after another.</li>
+    <li><b>Tool input is a map of JSON values:</b> there is no JSON crate, so arguments arrive as a map of <code>Json</code>. <code>TypedTool</code> decodes them into your own type.</li>
+    <li><b>Panics in tools:</b> they are caught at the loop boundary and reported as a generic error, but Rust's default panic hook still prints the panic message to standard error.</li>
+    <li><b>Packaging:</b> <code>cargo package</code> works offline but warns that the manifest has no license or repository. Add them before publishing.</li>
+  </ul>
+</section>
+
+</main>
+<footer>golden-agent for Rust. Reference documentation for the crate in this folder. Update this page when the code changes.</footer>
+</body>
+</html>
